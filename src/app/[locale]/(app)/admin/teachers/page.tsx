@@ -1,9 +1,64 @@
 import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { prisma } from "@/lib/prisma";
+import { TeachersClient } from "./_components/teachers-client";
 
-export default async function AdminTeachersPage() {
+export const dynamic = "force-dynamic";
+
+const PAGE_SIZE = 20;
+
+export default async function AdminTeachersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+}) {
   await requireRole("ADMIN", "SUPER_ADMIN");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.teachers")} phase={2} description="Teacher CRUD, salary history, ratings." />;
+  const sp = await searchParams;
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10));
+  const q = (sp.q ?? "").trim();
+  const status = sp.status;
+
+  const where: any = { role: "TEACHER" };
+  if (q) {
+    where.OR = [
+      { name: { contains: q, mode: "insensitive" } },
+      { email: { contains: q, mode: "insensitive" } },
+      { phone: { contains: q } },
+    ];
+  }
+  if (status === "active") where.isActive = true;
+  if (status === "inactive") where.isActive = false;
+
+  const [total, rows] = await Promise.all([
+    prisma.user.count({ where }),
+    prisma.user.findMany({
+      where,
+      include: { teacherProfile: { include: { _count: { select: { classes: true } } } } },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+  ]);
+
+  const data = rows.map((u) => ({
+    id: u.id,
+    name: u.name,
+    nameAr: u.nameAr,
+    email: u.email,
+    phone: u.phone,
+    isActive: u.isActive,
+    createdAt: u.createdAt.toISOString(),
+    profile: u.teacherProfile
+      ? {
+          bio: u.teacherProfile.bio,
+          specializations: u.teacherProfile.specializations,
+          salaryBase: u.teacherProfile.salaryBase.toString(),
+          zoomHostEmail: u.teacherProfile.zoomHostEmail,
+          rating: u.teacherProfile.rating?.toString() ?? null,
+          totalStudents: u.teacherProfile.totalStudents,
+          classCount: u.teacherProfile._count.classes,
+        }
+      : null,
+  }));
+
+  return <TeachersClient rows={data} total={total} page={page} pageSize={PAGE_SIZE} />;
 }

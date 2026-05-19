@@ -1,9 +1,30 @@
 import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { prisma } from "@/lib/prisma";
+import { ProgramsClient } from "./_components/programs-client";
+
+export const dynamic = "force-dynamic";
 
 export default async function AdminProgramsPage() {
   await requireRole("ADMIN", "SUPER_ADMIN");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.programs")} phase={2} description="Edit the 5 programs, pricing, descriptions." />;
+  const programs = await prisma.program.findMany({
+    include: { _count: { select: { classes: true } } },
+    orderBy: { nameEn: "asc" },
+  });
+  return (
+    <ProgramsClient
+      rows={programs.map((p) => ({
+        id: p.id,
+        code: p.code,
+        nameEn: p.nameEn,
+        nameAr: p.nameAr,
+        descriptionEn: p.descriptionEn,
+        descriptionAr: p.descriptionAr,
+        type: p.type,
+        defaultPriceSar: p.defaultPriceSar.toString(),
+        durationHours: p.durationHours,
+        active: p.active,
+        classesCount: p._count.classes,
+      }))}
+    />
+  );
 }

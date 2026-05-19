@@ -3,11 +3,11 @@ import { prisma } from "@/lib/prisma";
 export async function logAudit(opts: {
   userId?: string | null;
   action: string;
-  entity?: string;
-  entityId?: string;
-  metadata?: Record<string, unknown>;
-  ipAddress?: string;
-  userAgent?: string;
+  entity?: string | null;
+  entityId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }) {
   try {
     await prisma.auditLog.create({
