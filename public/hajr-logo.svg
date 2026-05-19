@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
+  <style>
+    .navy { fill: #2C3E50; }
+    .rose { fill: #C97B8A; stroke: #C97B8A; }
+    .word { font-family: 'Inter', 'Helvetica Neue', sans-serif; font-weight: 800; letter-spacing: -0.04em; }
+  </style>
+  <!-- HAJR wordmark, tall and condensed -->
+  <text x="0" y="78" class="navy word" font-size="92" textLength="195" lengthAdjust="spacingAndGlyphs">HAJR</text>
+  <!-- vertical divider -->
+  <line x1="215" y1="14" x2="215" y2="88" class="rose" stroke-width="3"/>
+  <!-- A with degree mark -->
+  <text x="232" y="68" class="rose word" font-size="62">A</text>
+  <circle cx="289" cy="22" r="6" fill="none" stroke="#C97B8A" stroke-width="3"/>
+</svg>
