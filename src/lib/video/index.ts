@@ -1,24 +1,20 @@
-// Provider selector. Phase 3 will plug in concrete ZoomProvider / DailyProvider.
-// For Phase 1 this returns a stub so server code can import the interface safely.
+// Provider factory. Reads VIDEO_PROVIDER env (zoom | daily). Default: zoom.
+// A Daily.co implementation can be slotted in later behind the same interface.
 
 import type { VideoProvider } from "./types";
+import { ZoomProvider } from "./ZoomProvider";
 
-const stubProvider: VideoProvider = {
-  async createMeeting() {
-    throw new Error("VideoProvider not configured (Phase 3)");
-  },
-  async generateJoinSignature() {
-    throw new Error("VideoProvider not configured (Phase 3)");
-  },
-  async endMeeting() {
-    throw new Error("VideoProvider not configured (Phase 3)");
-  },
-  async getRecordingUrl() {
-    return null;
-  },
-};
+let cached: VideoProvider | null = null;
 
 export function getVideoProvider(): VideoProvider {
-  // wired in Phase 3
-  return stubProvider;
+  if (cached) return cached;
+  const choice = (process.env.VIDEO_PROVIDER ?? "zoom").toLowerCase();
+  switch (choice) {
+    case "zoom":
+    default:
+      cached = new ZoomProvider();
+      return cached;
+  }
 }
+
+export type { VideoProvider, CreateMeetingOpts, MeetingResult, SignatureOpts } from "./types";

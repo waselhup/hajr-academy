@@ -1,4 +1,5 @@
-// Video provider abstraction. Implemented in Phase 3 by ZoomProvider + DailyProvider.
+// Video provider abstraction. Implemented in Phase 3 by ZoomProvider.
+// Swap providers later by setting VIDEO_PROVIDER env (zoom | daily).
 
 export type VideoRole = "host" | "attendee";
 
@@ -8,18 +9,43 @@ export interface CreateMeetingOpts {
   durationMinutes: number;
   hostEmail: string;
   password?: string;
+  /** Auto-start cloud recording when the host joins. */
+  autoRecording?: boolean;
 }
 
 export interface MeetingResult {
   meetingId: string;
   joinUrl: string;
   password: string;
-  startUrlForHost?: string; // never expose to students
+  /** Host start URL — server-side only, never sent to students. */
+  startUrlForHost?: string;
+}
+
+export interface SignatureOpts {
+  meetingNumber: string;
+  role: VideoRole;
+  userName: string;
+  /** Validity window in seconds for the signature (default 2h). */
+  expirationSeconds?: number;
+}
+
+export interface SignatureResult {
+  signature: string;
+  sdkKey: string;
+}
+
+export interface RecordingResult {
+  url: string;
+  passcode?: string;
 }
 
 export interface VideoProvider {
   createMeeting(opts: CreateMeetingOpts): Promise<MeetingResult>;
-  generateJoinSignature(meetingId: string, role: VideoRole, userName: string): Promise<string>;
+  updateMeeting(meetingId: string, opts: Partial<CreateMeetingOpts>): Promise<void>;
+  deleteMeeting(meetingId: string): Promise<void>;
   endMeeting(meetingId: string): Promise<void>;
-  getRecordingUrl(meetingId: string): Promise<string | null>;
+  generateJoinSignature(opts: SignatureOpts): Promise<SignatureResult>;
+  getMeetingRecording(meetingId: string): Promise<RecordingResult | null>;
+  /** Live participant count for a meeting, or null if not live / not found. */
+  getLiveParticipantCount(meetingId: string): Promise<number | null>;
 }

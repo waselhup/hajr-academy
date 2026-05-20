@@ -73,3 +73,43 @@
 ### D19. Audit log retains JSON metadata + dual Hijri/Gregorian timestamps in UI
 - **Decision**: Each row shows ISO + Hijri side-by-side, with expandable raw metadata.
 - **Why**: Spec 2.9 + PDPL forensics. `moment-hijri` already on the dependency list from Phase 1.
+
+---
+
+## Phase 3 — Video Classroom (Zoom Web SDK + Auto-Attendance)
+
+### D20. `ZoomMtgEmbedded` (Component View) over `ZoomMtg` (Client View)
+- **Decision**: `/classroom/[sessionId]` mounts Zoom via `@zoom/meetingsdk/embedded` (`ZoomMtgEmbedded.createClient()`), not the legacy full-page `ZoomMtg` client.
+- **Why**: The embedded client mounts inside a `<div ref>` we control, so it co-exists with Next.js routing and our brand chrome. The legacy `ZoomMtg` injects React 16 + global CSS — incompatible with the App Router.
+
+### D21. `.npmrc` with `legacy-peer-deps=true`
+- **Decision**: Committed `.npmrc` so both local installs and Vercel respect it.
+- **Why**: `@zoom/meetingsdk@6` peer-pins `react@18.2.0`; our app is on `react@18.3.1`. The SDK runs fine on 18.3 — the pin is overly strict. Without the flag Vercel's `npm install` fails.
+
+### D22. S2S OAuth token cached in module memory, refreshed 5 min early
+- **Decision**: `ZoomProvider` caches the access token in a module-level variable; refreshes when < 5 min remain.
+- **Why**: Zoom tokens live 1 h. A per-request fetch adds ~300 ms latency and risks rate limits. Module memory is per-Vercel-instance — acceptable.
+
+### D23. Webhook verifies HMAC; `endpoint.url_validation` handled first
+- **Decision**: `/api/zoom/webhook` answers the `url_validation` challenge (HMAC echo of `plainToken`) before the signature gate; every other event requires a valid `x-zm-signature` or is rejected 401.
+- **Why**: The validation handshake is unsigned by design; everything else must be signed.
+
+### D24. Webhook always returns 200 (except bad JSON / bad signature)
+- **Decision**: Event-processing errors are caught, logged, and the handler still returns 200.
+- **Why**: Zoom retries non-2xx aggressively; a transient DB hiccup shouldn't trigger a retry storm.
+
+### D25. Single shared Zoom host account
+- **Decision**: All API-created meetings use `ZOOM_HOST_EMAIL`; teachers join as SDK `role=1` via signature, students as `role=0`.
+- **Why**: Matches supplied infra (one Zoom Basic account). The SDK host role gives teachers in-meeting host controls without each needing a licensed Zoom seat.
+
+### D26. Auto-attendance + manual fallback both write `Attendance`
+- **Decision**: Webhook upserts on `participant_joined/left`, finalizes on `meeting.ended`; `/teacher/attendance/[sessionId]` allows overrides (sets `markedBy`).
+- **Why**: Spec requires both. `markedBy` distinguishes a manual override from a webhook auto-mark; the grid shows an `auto` badge when `joinedAt` is set but `markedBy` is null.
+
+### D27. Rate limiter is in-memory token bucket
+- **Decision**: `lib/rate-limit.ts` is a per-process `Map`; signature endpoint allows 10/min/user.
+- **Why**: Zero extra infra at current scale. Swap for Vercel KV / Upstash when running many concurrent instances.
+
+### D28. Classroom window computed on the fly (no cron)
+- **Decision**: Join/start eligibility derives from `scheduledDate` + `durationMinutes` (host starts −15 min; everyone joins −15 min to +30 min after end).
+- **Why**: No background job; the button self-enables each second client-side. The webhook still flips `ClassSession.status` for accurate monitoring.

@@ -3,8 +3,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
 
-export default async function TeacherDashboardPage() {
+export const dynamic = "force-dynamic";
+
+export default async function TeacherDashboardPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const session = await requireRole("TEACHER");
   const t = await getTranslations();
 
@@ -27,10 +35,32 @@ export default async function TeacherDashboardPage() {
       })
     : 0;
 
+  // Upcoming + live sessions for this teacher's classes (next 7 days).
+  const horizon = new Date(Date.now() + 7 * 86400_000);
+  const sessions = profile
+    ? await prisma.classSession.findMany({
+        where: {
+          class: { teacherId: profile.id },
+          OR: [
+            { status: "LIVE" },
+            {
+              status: "SCHEDULED",
+              scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon },
+            },
+          ],
+        },
+        include: { class: true },
+        orderBy: { scheduledDate: "asc" },
+        take: 6,
+      })
+    : [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">{t("Dashboard.welcome")}، {session.user.name}</h1>
+        <h1 className="text-2xl font-bold">
+          {t("Dashboard.welcome")}، {session.user.name}
+        </h1>
         <Badge variant="info">{t("Roles.TEACHER")}</Badge>
       </div>
 
@@ -61,6 +91,37 @@ export default async function TeacherDashboardPage() {
             </span>
           </CardContent>
         </Card>
+      </div>
+
+      <div>
+        <h2 className="mb-3 text-lg font-bold">{t("Video.nextClass")}</h2>
+        {sessions.length === 0 ? (
+          <Card>
+            <CardContent className="p-6 text-sm text-muted-foreground">
+              {t("Video.noUpcoming")}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
+            {sessions.map((s) => (
+              <UpcomingSessionCard
+                key={s.id}
+                mode="start"
+                locale={locale}
+                session={{
+                  id: s.id,
+                  kind: "classSession",
+                  title: s.class.nameAr ?? s.class.name,
+                  subtitle: s.class.cohortCode,
+                  scheduledDate: s.scheduledDate.toISOString(),
+                  durationMinutes: s.class.durationMinutes,
+                  status: s.status,
+                  hasMeeting: !!s.zoomMeetingId,
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
