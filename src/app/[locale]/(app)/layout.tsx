@@ -3,10 +3,16 @@ import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
 import { SessionProvider } from "@/components/providers/session-provider";
+import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
+import AdminChatPanel from "@/components/admin/AdminChatPanel";
+import HajrChatPanel from "@/components/shared/HajrChatPanel";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
   if (!session?.user) redirect("/ar/login");
+
+  const isAdmin =
+    session.user.role === "SUPER_ADMIN" || session.user.role === "ADMIN";
 
   return (
     <SessionProvider session={session}>
@@ -21,6 +27,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
         </div>
       </div>
+      {isAdmin ? (
+        <>
+          <AdminCommandPalette />
+          <AdminChatPanel />
+        </>
+      ) : (
+        <HajrChatPanel />
+      )}
     </SessionProvider>
   );
 }

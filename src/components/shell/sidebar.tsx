@@ -7,7 +7,8 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen, Calendar, Wallet,
   MessageSquare, ClipboardCheck, FlaskConical, FileText, Building2,
   Radio, ShieldCheck, Settings, BellRing, User as UserIcon, ChevronLeft,
-  ListChecks, School, Receipt, BadgeDollarSign, BookText, BarChart3, BookCheck, Video
+  ListChecks, School, Receipt, BadgeDollarSign, BookText, BarChart3, BookCheck, Video,
+  UserPlus, Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/logo";
@@ -26,12 +27,14 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
     { key: "Nav.finance", href: "/admin/finance", icon: Wallet },
     { key: "Nav.communications", href: "/admin/communications", icon: MessageSquare },
+    { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
     { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardCheck },
     { key: "Nav.lab", href: "/admin/lab", icon: FlaskConical },
     { key: "Nav.stepBank", href: "/admin/step-bank", icon: FileText },
     { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
     { key: "Nav.live", href: "/admin/live", icon: Radio },
     { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+    { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
     { key: "Nav.auditLog", href: "/admin/audit-log", icon: ShieldCheck },
     { key: "Nav.settings", href: "/admin/settings", icon: Settings },
   ],
@@ -44,11 +47,13 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
     { key: "Nav.finance", href: "/admin/finance", icon: Wallet },
     { key: "Nav.communications", href: "/admin/communications", icon: MessageSquare },
+    { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
     { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardCheck },
     { key: "Nav.lab", href: "/admin/lab", icon: FlaskConical },
     { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
     { key: "Nav.live", href: "/admin/live", icon: Radio },
     { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+    { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
   ],
   TEACHER: [
     { key: "Nav.dashboard", href: "/teacher", icon: LayoutDashboard },

@@ -113,3 +113,37 @@
 ### D28. Classroom window computed on the fly (no cron)
 - **Decision**: Join/start eligibility derives from `scheduledDate` + `durationMinutes` (host starts −15 min; everyone joins −15 min to +30 min after end).
 - **Why**: No background job; the button self-enables each second client-side. The webhook still flips `ClassSession.status` for accurate monitoring.
+
+## Phase 4 — Hajr AI Layer
+
+### D29. Dual-agent architecture: Admin Agent + Public Assistant
+- **Decision**: Two distinct AI agents sharing a common engine. Admin Agent (Sonnet, 12 tools, unlimited) for SUPER_ADMIN/ADMIN. Public Assistant (Haiku→Sonnet escalation, 8 tools, rate-limited) for visitors/students/parents/teachers.
+- **Why**: Different audiences need different models, tools, and cost profiles. Admins need deep data queries; public users need fast, cheap responses with escalation for complex questions.
+
+### D30. Anthropic SDK with SSE streaming, no WebSocket
+- **Decision**: `@anthropic-ai/sdk` with `ReadableStream` SSE — no WebSocket, no Vercel AI SDK.
+- **Why**: Vercel Edge + SSE is simpler to deploy and debug than WebSocket. Direct SDK gives full control over tool loops and cost tracking without adapter overhead.
+
+### D31. Haiku-first with auto-escalation to Sonnet
+- **Decision**: Public Assistant defaults to `claude-haiku-4-5-20251001`; escalates to `claude-sonnet-4-6` when: message >200 chars, conversation >5 messages, tool returns >500 tokens, explicit "explain in detail", or sensitive topics (cancel/complaint).
+- **Why**: Haiku is 3× cheaper and faster for simple FAQ/enrollment queries. Escalation preserves quality for complex or sensitive interactions.
+
+### D32. Rate limiting via DB count (no Redis)
+- **Decision**: Rate limits checked by counting `AgentMessage` rows in Prisma. Anonymous: 5 total per `visitorId` cookie. Authenticated: 50/day. Admin: unlimited.
+- **Why**: Supabase PostgreSQL is already the bottleneck for tool queries; one extra count query is negligible. Avoids Redis dependency at current scale.
+
+### D33. Cost tracking per API call, stored in DB
+- **Decision**: Every Anthropic API call logs `inputTokens`, `outputTokens`, `costUsd` on `AgentMessage`; aggregates on `AgentConversation`. Admin dashboard shows SAR conversion (×3.75).
+- **Why**: Must track AI spend for budgeting. Per-message granularity enables per-conversation cost display and monthly cost analysis.
+
+### D34. TrialRequest model for lead capture
+- **Decision**: Public Assistant's `book_trial` tool creates a `TrialRequest` record + notifies all admins. Separate `/admin/trials` page for status management (NEW→CONTACTED→SCHEDULED→COMPLETED→CONVERTED/DECLINED).
+- **Why**: Converts anonymous chat engagement into trackable leads. Status workflow matches academy's manual follow-up process.
+
+### D35. Cmd+K command palette + persistent chat panel for admin
+- **Decision**: Two UIs for admin: Cmd+K spotlight for quick queries (dark overlay, ephemeral), and a persistent side-panel chat (Sheet-based, conversation history).
+- **Why**: Cmd+K is fastest for one-off questions ("how many students?"); the panel suits multi-turn conversations ("analyze this class, then draft a message").
+
+### D36. Schema applied via Supabase MCP (not prisma db push)
+- **Decision**: New tables (AgentConversation, AgentMessage, TrialRequest) created via `execute_sql` through Supabase MCP.
+- **Why**: `prisma db push` fails from this network (connection pooler unreachable). MCP connects directly to Supabase management API. Same pattern as Phase 2 (D12).

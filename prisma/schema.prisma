@@ -31,13 +31,14 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  teacherProfile   TeacherProfile?
-  studentProfile   StudentProfile?
-  parentProfile    ParentProfile?
-  sentMessages     Message[]       @relation("SentMessages")
-  receivedMessages Message[]       @relation("ReceivedMessages")
-  notifications    Notification[]
-  auditLogs        AuditLog[]
+  teacherProfile       TeacherProfile?
+  studentProfile       StudentProfile?
+  parentProfile        ParentProfile?
+  sentMessages         Message[]             @relation("SentMessages")
+  receivedMessages     Message[]             @relation("ReceivedMessages")
+  notifications        Notification[]
+  auditLogs            AuditLog[]
+  agentConversations   AgentConversation[]
 }
 
 model TeacherProfile {
@@ -456,6 +457,61 @@ model AuditLog {
   @@index([action, createdAt])
 }
 
+// ─────────────────────── AI AGENT ───────────────────────
+model AgentConversation {
+  id           String    @id @default(uuid())
+  userId       String?
+  user         User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  agentType    AgentType
+  userRole     Role?
+  title        String?
+  metadata     Json?
+  isActive     Boolean   @default(true)
+  totalTokens  Int       @default(0)
+  totalCostUsd Decimal   @default(0) @db.Decimal(8, 6)
+  messageCount Int       @default(0)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  messages AgentMessage[]
+}
+
+model AgentMessage {
+  id             String            @id @default(uuid())
+  conversationId String
+  conversation   AgentConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           AgentMessageRole
+  content        String            @db.Text
+  toolName       String?
+  toolInput      Json?
+  toolOutput     Json?
+  model          String?
+  inputTokens    Int?
+  outputTokens   Int?
+  costUsd        Decimal?          @db.Decimal(8, 6)
+  durationMs     Int?
+  createdAt      DateTime          @default(now())
+}
+
+// ─────────────────────── TRIAL REQUESTS ───────────────────────
+model TrialRequest {
+  id                   String      @id @default(uuid())
+  name                 String
+  phone                String
+  email                String?
+  childGrade           String?
+  preferredProgram     String?
+  preferredTime        String?
+  notes                String?
+  source               String      @default("public_assistant")
+  status               TrialStatus @default(NEW)
+  assignedTo           String?
+  followUpAt           DateTime?
+  convertedToStudentId String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+}
+
 // ─────────────────────── ENUMS ───────────────────────
 enum Role {
   SUPER_ADMIN
@@ -597,4 +653,26 @@ enum Channel {
   IN_APP
   EMAIL
   SMS
+}
+
+enum AgentType {
+  ADMIN_AGENT
+  PUBLIC_ASSISTANT
+}
+
+enum AgentMessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL_CALL
+  TOOL_RESULT
+}
+
+enum TrialStatus {
+  NEW
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  CONVERTED
+  DECLINED
 }

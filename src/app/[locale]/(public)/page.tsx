@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/shell/language-toggle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import ChatBubble from "@/components/public/ChatBubble";
 import {
   GraduationCap, BookOpen, School, FlaskConical, Headphones,
   Calendar, ClipboardCheck, Users, Award, Check,
@@ -115,6 +116,7 @@ export default async function LandingPage() {
       <footer className="container border-t border-gray-200 py-8 text-center text-sm text-muted-foreground">
         © <span className="num">2026</span> {t("Brand.fullName")}. {t("Landing.footerRights")}
       </footer>
+      <ChatBubble />
     </div>
   );
 }

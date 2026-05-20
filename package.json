@@ -15,6 +15,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.82.0",
     "@auth/prisma-adapter": "^2.7.4",
     "@hookform/resolvers": "^3.9.1",
     "@prisma/client": "^5.22.0",
