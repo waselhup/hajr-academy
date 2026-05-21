@@ -47,15 +47,27 @@ export async function POST(req: Request) {
       await prisma.notification.createMany({
         data: admins.map((a) => ({
           userId: a.id,
-          type: "SYSTEM_ANNOUNCEMENT" as const,
+          type: "TRIAL_REQUEST" as const,
           title: `New trial request from ${parsed.data.name}`,
           titleAr: `طلب حصة تجريبية جديد من ${parsed.data.name}`,
-          message: `Phone: ${parsed.data.phone}, Program: ${parsed.data.preferredProgram ?? "Not specified"}`,
-          messageAr: `الجوال: ${parsed.data.phone}، البرنامج: ${parsed.data.preferredProgram ?? "غير محدد"}`,
-          link: "/admin/trials",
-          channels: ["IN_APP"],
+          body: `Phone: ${parsed.data.phone}, Program: ${parsed.data.preferredProgram ?? "Not specified"}`,
+          bodyAr: `الجوال: ${parsed.data.phone}، البرنامج: ${parsed.data.preferredProgram ?? "غير محدد"}`,
+          actionUrl: "/admin/trials",
+          actionLabel: "View request",
+          actionLabelAr: "عرض الطلب",
+          priority: "HIGH" as const,
+          refType: "TrialRequest",
+          refId: trial.id,
         })),
       });
+    }
+
+    // Phase 7: dispatch email + SMS to admins via the comms dispatcher.
+    try {
+      const { triggerTrialRequestReceived } = await import("@/lib/comms/triggers");
+      await triggerTrialRequestReceived(trial.id);
+    } catch (e) {
+      console.error("[trial-request] dispatch failed:", e);
     }
 
     await logAudit({

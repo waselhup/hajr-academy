@@ -89,7 +89,7 @@ async function handleMeetingEnded(meetingId: string) {
     await notifyUsers(
       absent.map((a) => a.student.user.id),
       {
-        type: "ATTENDANCE_MARKED",
+        type: "ATTENDANCE_UPDATE",
         title: "Missed class",
         titleAr: "غياب عن حصة",
         message: "You were marked absent for a class session.",
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
               select: { userId: true },
             });
             await notifyUsers(profiles.map((p) => p.userId), {
-              type: "SESSION_STARTING",
+              type: "CLASS_STARTING",
               title: "Class started",
               titleAr: "بدأت الحصة",
               message: "Your class has started — join now.",

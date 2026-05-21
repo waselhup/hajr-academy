@@ -31,14 +31,15 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  teacherProfile       TeacherProfile?
-  studentProfile       StudentProfile?
-  parentProfile        ParentProfile?
-  sentMessages         Message[]             @relation("SentMessages")
-  receivedMessages     Message[]             @relation("ReceivedMessages")
-  notifications        Notification[]
-  auditLogs            AuditLog[]
-  agentConversations   AgentConversation[]
+  teacherProfile          TeacherProfile?
+  studentProfile          StudentProfile?
+  parentProfile           ParentProfile?
+  messagesSent            Message[]               @relation("MessagesSent")
+  messagesReceived        Message[]               @relation("MessagesReceived")
+  notifications           Notification[]
+  notificationPreferences NotificationPreference?
+  auditLogs               AuditLog[]
+  agentConversations      AgentConversation[]
 }
 
 model TeacherProfile {
@@ -450,20 +451,49 @@ model ExamAnswer {
 
 // ─────────────────────── COMMUNICATION ───────────────────────
 model Message {
-  id          String   @id @default(uuid())
-  senderId    String
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
-  receiverId  String
-  receiver    User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  classId     String?
-  content     String
-  attachments String[]
-  isRead      Boolean  @default(false)
-  isFlagged   Boolean  @default(false)
-  isDeleted   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id              String        @id @default(uuid())
+  threadId        String
+  fromUserId      String
+  fromUser        User          @relation("MessagesSent", fields: [fromUserId], references: [id])
+  toUserId        String?
+  toUser          User?         @relation("MessagesReceived", fields: [toUserId], references: [id])
+  toRole          Role?
+  toClassId       String?
+  subject         String?
+  body            String        @db.Text
+  bodyHtml        String?       @db.Text
+  channel         CommChannel
+  status          MessageStatus @default(QUEUED)
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  externalId      String?
+  errorMessage    String?       @db.Text
+  triggerType     TriggerType   @default(MANUAL)
+  triggerRefId    String?
+  parentMessageId String?
+  parentMessage   Message?      @relation("MessageThread", fields: [parentMessageId], references: [id])
+  replies         Message[]     @relation("MessageThread")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
-  @@index([senderId, receiverId, createdAt])
+  @@index([threadId])
+  @@index([toUserId, status])
+  @@index([fromUserId, createdAt])
+}
+
+model EmailTemplate {
+  id        String           @id @default(uuid())
+  key       String           @unique
+  subjectAr String
+  subjectEn String
+  bodyAr    String           @db.Text
+  bodyEn    String           @db.Text
+  variables String[]
+  category  TemplateCategory
+  isActive  Boolean          @default(true)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }
 
 // ─────────────────────── FINANCE ───────────────────────
@@ -534,24 +564,46 @@ model PartnerSchool {
 
 // ─────────────────────── NOTIFICATIONS ───────────────────────
 model Notification {
-  id        String           @id @default(uuid())
-  userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      NotificationType
-  title     String
-  titleAr   String?
-  message   String
-  messageAr String?
-  link      String?
-  channels  Channel[]
-  isRead    Boolean          @default(false)
-  sentAt    DateTime         @default(now())
+  id            String               @id @default(uuid())
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          NotificationType
+  title         String
+  titleAr       String
+  body          String               @db.Text
+  bodyAr        String               @db.Text
+  actionUrl     String?
+  actionLabel   String?
+  actionLabelAr String?
+  isRead        Boolean              @default(false)
+  readAt        DateTime?
+  refType       String?
+  refId         String?
+  priority      NotificationPriority @default(NORMAL)
+  expiresAt     DateTime?
+  createdAt     DateTime             @default(now())
+
+  @@index([userId, isRead, createdAt])
 }
 
 model NotificationPreference {
-  id     String @id @default(uuid())
-  userId String @unique
-  prefs  Json   @default("{}")
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailEnabled      Boolean  @default(true)
+  smsEnabled        Boolean  @default(true)
+  whatsappEnabled   Boolean  @default(true)
+  inAppEnabled      Boolean  @default(true)
+  classReminders    Boolean  @default(true)
+  paymentAlerts     Boolean  @default(true)
+  attendanceUpdates Boolean  @default(true)
+  labFeedback       Boolean  @default(true)
+  marketingMessages Boolean  @default(false)
+  quietHoursStart   String?
+  quietHoursEnd     String?
+  timezone          String   @default("Asia/Riyadh")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 // ─────────────────────── AUDIT & SECURITY ───────────────────────
@@ -794,16 +846,16 @@ enum PaymentMethod {
 }
 
 enum NotificationType {
-  CLASS_REMINDER
-  SESSION_STARTING
-  ATTENDANCE_MARKED
-  ASSIGNMENT_NEW
-  ASSIGNMENT_GRADED
-  INVOICE_NEW
-  INVOICE_PAID
-  INVOICE_OVERDUE
-  SALARY_PAID
-  MESSAGE_NEW
+  CLASS_STARTING
+  CLASS_CANCELLED
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  NEW_MESSAGE
+  ATTENDANCE_UPDATE
+  LAB_FEEDBACK
+  EXAM_RESULT
+  TRIAL_REQUEST
+  ENROLLMENT_UPDATE
   SYSTEM_ANNOUNCEMENT
 }
 
@@ -811,6 +863,50 @@ enum Channel {
   IN_APP
   EMAIL
   SMS
+}
+
+enum CommChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  IN_APP
+}
+
+enum MessageStatus {
+  QUEUED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum TriggerType {
+  MANUAL
+  CLASS_REMINDER
+  CLASS_STARTING
+  PAYMENT_DUE
+  PAYMENT_RECEIVED
+  ATTENDANCE_MARKED
+  LAB_FEEDBACK
+  TRIAL_REQUEST
+  WELCOME
+  PASSWORD_RESET
+  TEACHER_ASSIGNED
+  ENROLLMENT_CONFIRMED
+  EXAM_RESULT
+}
+
+enum TemplateCategory {
+  TRANSACTIONAL
+  MARKETING
+  SYSTEM
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }
 
 enum AgentType {

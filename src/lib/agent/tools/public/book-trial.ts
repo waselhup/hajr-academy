@@ -125,19 +125,34 @@ export const bookTrial: AgentTool = {
         await context.prisma.notification.createMany({
           data: admins.map((admin) => ({
             userId: admin.id,
-            type: "SYSTEM_ANNOUNCEMENT" as const,
+            type: "TRIAL_REQUEST" as const,
             title: "New Trial Request",
             titleAr: "طلب حصة تجريبية جديد",
-            message: `New trial request from ${name} (${cleanPhone})${
+            body: `New trial request from ${name} (${cleanPhone})${
               preferredProgram ? ` — interested in ${preferredProgram}` : ""
             }`,
-            messageAr: `طلب حصة تجريبية جديد من ${name} (${cleanPhone})${
+            bodyAr: `طلب حصة تجريبية جديد من ${name} (${cleanPhone})${
               preferredProgram ? ` — مهتم بـ ${preferredProgram}` : ""
             }`,
-            channels: ["IN_APP"],
+            actionUrl: "/admin/trials",
+            actionLabel: "View request",
+            actionLabelAr: "عرض الطلب",
+            priority: "HIGH" as const,
+            refType: "TrialRequest",
+            refId: trialRequest.id,
             isRead: false,
           })),
         });
+      }
+
+      // Phase 7: also dispatch email + SMS to admins via the comms dispatcher.
+      try {
+        const { triggerTrialRequestReceived } = await import(
+          "@/lib/comms/triggers"
+        );
+        await triggerTrialRequestReceived(trialRequest.id);
+      } catch (e) {
+        console.error("[book-trial] trial dispatch failed:", e);
       }
 
       return {

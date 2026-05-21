@@ -1,10 +1,13 @@
 import { prisma } from "@/lib/prisma";
-import type { NotificationType, Channel } from "@prisma/client";
+import type { NotificationType } from "@prisma/client";
 
 /**
- * Create in-app notifications. Phase 8 will extend this dispatcher to also send
- * email (Resend) and SMS (Unifonic) based on each user's NotificationPreference.
- * For now everything is written with channel IN_APP.
+ * Create in-app notifications for a set of users.
+ *
+ * Phase 7 introduced `lib/comms/dispatcher.ts` as the canonical multi-channel
+ * path (email + SMS + WhatsApp + in-app, preference-aware). This helper
+ * remains as a thin in-app-only shim for callers that only need a quick
+ * notification without channel routing.
  */
 export async function notifyUsers(
   userIds: string[],
@@ -12,30 +15,40 @@ export async function notifyUsers(
     type: NotificationType;
     title: string;
     titleAr: string;
-    message: string;
-    messageAr: string;
+    /** Body text (English). Accepts the legacy `message` name too. */
+    body?: string;
+    bodyAr?: string;
+    message?: string;
+    messageAr?: string;
+    /** Where clicking the notification navigates. Legacy name: `link`. */
+    actionUrl?: string;
     link?: string;
-    channels?: Channel[];
   }
 ) {
   const unique = [...new Set(userIds)].filter(Boolean);
   if (unique.length === 0) return;
+
+  const body = payload.body ?? payload.message ?? "";
+  const bodyAr = payload.bodyAr ?? payload.messageAr ?? body;
+  const actionUrl = payload.actionUrl ?? payload.link ?? null;
+
   await prisma.notification.createMany({
     data: unique.map((userId) => ({
       userId,
       type: payload.type,
       title: payload.title,
       titleAr: payload.titleAr,
-      message: payload.message,
-      messageAr: payload.messageAr,
-      link: payload.link ?? null,
-      channels: payload.channels ?? ["IN_APP"],
+      body,
+      bodyAr,
+      actionUrl,
     })),
   });
 }
 
 /** Resolve the User ids for every parent linked to a set of student-profile ids. */
-export async function parentUserIdsForStudents(studentProfileIds: string[]): Promise<string[]> {
+export async function parentUserIdsForStudents(
+  studentProfileIds: string[]
+): Promise<string[]> {
   if (studentProfileIds.length === 0) return [];
   const links = await prisma.parentStudentLink.findMany({
     where: { studentId: { in: studentProfileIds } },
