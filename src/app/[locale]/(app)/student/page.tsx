@@ -16,21 +16,23 @@ export default async function StudentDashboardPage({
   const session = await requireRole("STUDENT");
   const t = await getTranslations();
 
-  const profile = await prisma.studentProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { enrollments: { where: { status: "ACTIVE" }, include: { class: true } } },
-  });
+  let profile: any = null;
+  let pendingInvoices = 0;
+  let sessions: any[] = [];
 
-  const pendingInvoices = profile
-    ? await prisma.invoice.count({ where: { studentId: profile.id, status: "PENDING" } })
-    : 0;
+  try {
+    profile = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+      include: { enrollments: { where: { status: "ACTIVE" }, include: { class: true } } },
+    });
 
-  // Live + upcoming sessions for the student's enrolled classes.
-  const classIds = profile?.enrollments.map((e) => e.classId) ?? [];
-  const horizon = new Date(Date.now() + 7 * 86400_000);
-  const sessions =
-    classIds.length > 0
-      ? await prisma.classSession.findMany({
+    if (profile) {
+      pendingInvoices = await prisma.invoice.count({ where: { studentId: profile.id, status: "PENDING" } });
+
+      const classIds = profile.enrollments.map((e: any) => e.classId);
+      const horizon = new Date(Date.now() + 7 * 86400_000);
+      if (classIds.length > 0) {
+        sessions = await prisma.classSession.findMany({
           where: {
             classId: { in: classIds },
             OR: [
@@ -41,8 +43,12 @@ export default async function StudentDashboardPage({
           include: { class: true },
           orderBy: { scheduledDate: "asc" },
           take: 6,
-        })
-      : [];
+        });
+      }
+    }
+  } catch (e) {
+    console.error("[student-dashboard] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -91,7 +97,7 @@ export default async function StudentDashboardPage({
           </Card>
         ) : (
           <div className="space-y-3">
-            {sessions.map((s) => (
+            {sessions.map((s: any) => (
               <UpcomingSessionCard
                 key={s.id}
                 mode="join"

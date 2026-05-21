@@ -21,41 +21,47 @@ export default async function StudentClassesPage({
   const session = await requireRole("STUDENT");
   const t = await getTranslations();
 
-  const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
-  if (!profile) return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
+  let enrollments: any[] = [];
+  let recordings: any[] = [];
 
-  const enrollments = await prisma.enrollment.findMany({
-    where: { studentId: profile.id, status: "ACTIVE" },
-    include: {
-      class: {
-        include: {
-          program: true,
-          teacher: { include: { user: { select: { name: true, nameAr: true } } } },
-          sessions: {
-            where: {
-              OR: [
-                { status: "LIVE" },
-                { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
-              ],
+  try {
+    const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
+    if (!profile) return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
+
+    enrollments = await prisma.enrollment.findMany({
+      where: { studentId: profile.id, status: "ACTIVE" },
+      include: {
+        class: {
+          include: {
+            program: true,
+            teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+            sessions: {
+              where: {
+                OR: [
+                  { status: "LIVE" },
+                  { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
+                ],
+              },
+              orderBy: { scheduledDate: "asc" },
+              take: 1,
             },
-            orderBy: { scheduledDate: "asc" },
-            take: 1,
           },
         },
       },
-    },
-  });
+    });
 
-  // Past sessions with recordings for these classes.
-  const recordings = await prisma.classSession.findMany({
-    where: {
-      classId: { in: enrollments.map((e) => e.classId) },
-      zoomRecordingUrl: { not: null },
-    },
-    include: { class: true },
-    orderBy: { scheduledDate: "desc" },
-    take: 10,
-  });
+    recordings = await prisma.classSession.findMany({
+      where: {
+        classId: { in: enrollments.map((e: any) => e.classId) },
+        zoomRecordingUrl: { not: null },
+      },
+      include: { class: true },
+      orderBy: { scheduledDate: "desc" },
+      take: 10,
+    });
+  } catch (e) {
+    console.error("[student-classes] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -67,7 +73,7 @@ export default async function StudentClassesPage({
         </Card>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {enrollments.map(({ class: c }) => {
+          {enrollments.map(({ class: c }: any) => {
             const next = c.sessions[0];
             return (
               <Card key={c.id}>
@@ -79,7 +85,7 @@ export default async function StudentClassesPage({
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-xs text-muted-foreground">
-                    {c.scheduleDays.map((d) => (locale === "ar" ? DAY_AR[d] : d.slice(0, 3))).join("، ")}{" "}
+                    {c.scheduleDays.map((d: string) => (locale === "ar" ? DAY_AR[d] : d.slice(0, 3))).join("، ")}{" "}
                     <span className="num">{c.timeSlot}</span>
                   </p>
                   {next ? (
@@ -110,7 +116,7 @@ export default async function StudentClassesPage({
         <div>
           <h2 className="mb-3 text-lg font-bold">{t("Video.recordings")}</h2>
           <div className="space-y-2">
-            {recordings.map((r) => (
+            {recordings.map((r: any) => (
               <Card key={r.id}>
                 <CardContent className="flex items-center justify-between p-4">
                   <div>

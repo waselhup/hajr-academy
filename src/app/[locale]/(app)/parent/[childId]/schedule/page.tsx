@@ -19,40 +19,46 @@ export default async function ParentChildSchedulePage({
   const session = await requireRole("PARENT");
   const t = await getTranslations();
 
-  // Verify this parent is linked to the requested child.
-  const parent = await prisma.parentProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { childLinks: true },
-  });
-  if (!parent || !parent.childLinks.some((l) => l.studentId === childId)) {
+  let student: any = null;
+  let sessions: any[] = [];
+
+  try {
+    const parent = await prisma.parentProfile.findUnique({
+      where: { userId: session.user.id },
+      include: { childLinks: true },
+    });
+    if (!parent || !parent.childLinks.some((l) => l.studentId === childId)) {
+      notFound();
+    }
+
+    student = await prisma.studentProfile.findUnique({
+      where: { id: childId },
+      include: {
+        user: true,
+        enrollments: { where: { status: "ACTIVE" } },
+      },
+    });
+    if (!student) notFound();
+
+    const classIds = student.enrollments.map((e: any) => e.classId);
+    const horizon = new Date(Date.now() + 14 * 86400_000);
+    if (classIds.length > 0) {
+      sessions = await prisma.classSession.findMany({
+        where: {
+          classId: { in: classIds },
+          OR: [
+            { status: "LIVE" },
+            { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon } },
+          ],
+        },
+        include: { class: true },
+        orderBy: { scheduledDate: "asc" },
+      });
+    }
+  } catch (e) {
+    console.error("[parent-child-schedule] DB query failed:", e);
     notFound();
   }
-
-  const student = await prisma.studentProfile.findUnique({
-    where: { id: childId },
-    include: {
-      user: true,
-      enrollments: { where: { status: "ACTIVE" } },
-    },
-  });
-  if (!student) notFound();
-
-  const classIds = student.enrollments.map((e) => e.classId);
-  const horizon = new Date(Date.now() + 14 * 86400_000);
-  const sessions =
-    classIds.length > 0
-      ? await prisma.classSession.findMany({
-          where: {
-            classId: { in: classIds },
-            OR: [
-              { status: "LIVE" },
-              { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon } },
-            ],
-          },
-          include: { class: true },
-          orderBy: { scheduledDate: "asc" },
-        })
-      : [];
 
   return (
     <div className="space-y-6">
@@ -75,7 +81,7 @@ export default async function ParentChildSchedulePage({
         </Card>
       ) : (
         <div className="space-y-3">
-          {sessions.map((s) => (
+          {sessions.map((s: any) => (
             <UpcomingSessionCard
               key={s.id}
               mode="observe"

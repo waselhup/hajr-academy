@@ -18,22 +18,27 @@ export default async function TeacherAttendanceHub({
   const session = await requireRole("TEACHER");
   const t = await getTranslations();
 
-  const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
-  if (!profile) return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
+  let sessions: any[] = [];
 
-  // Recent + current sessions worth marking.
-  const sessions = await prisma.classSession.findMany({
-    where: {
-      class: { teacherId: profile.id },
-      scheduledDate: { gte: new Date(Date.now() - 30 * 86400_000) },
-    },
-    include: {
-      class: { include: { _count: { select: { enrollments: { where: { status: "ACTIVE" } } } } } },
-      _count: { select: { attendances: true } },
-    },
-    orderBy: { scheduledDate: "desc" },
-    take: 40,
-  });
+  try {
+    const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
+    if (!profile) return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
+
+    sessions = await prisma.classSession.findMany({
+      where: {
+        class: { teacherId: profile.id },
+        scheduledDate: { gte: new Date(Date.now() - 30 * 86400_000) },
+      },
+      include: {
+        class: { include: { _count: { select: { enrollments: { where: { status: "ACTIVE" } } } } } },
+        _count: { select: { attendances: true } },
+      },
+      orderBy: { scheduledDate: "desc" },
+      take: 40,
+    });
+  } catch (e) {
+    console.error("[teacher-attendance] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -48,7 +53,7 @@ export default async function TeacherAttendanceHub({
         </Card>
       ) : (
         <div className="space-y-2">
-          {sessions.map((s) => (
+          {sessions.map((s: any) => (
             <Card key={s.id}>
               <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
                 <div>

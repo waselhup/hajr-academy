@@ -16,16 +16,22 @@ export default async function AdminRecordingsPage({
   await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations();
 
-  const rows = await prisma.classSession.findMany({
-    where: { zoomRecordingUrl: { not: null } },
-    include: {
-      class: {
-        include: { teacher: { include: { user: { select: { name: true, nameAr: true } } } } },
+  let rows: any[] = [];
+
+  try {
+    rows = await prisma.classSession.findMany({
+      where: { zoomRecordingUrl: { not: null } },
+      include: {
+        class: {
+          include: { teacher: { include: { user: { select: { name: true, nameAr: true } } } } },
+        },
       },
-    },
-    orderBy: { scheduledDate: "desc" },
-    take: 100,
-  });
+      orderBy: { scheduledDate: "desc" },
+      take: 100,
+    });
+  } catch (e) {
+    console.error("[admin-recordings] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -55,7 +61,7 @@ export default async function AdminRecordingsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r) => {
+                {rows.map((r: any) => {
                   const dur =
                     r.startedAt && r.endedAt
                       ? Math.round((r.endedAt.getTime() - r.startedAt.getTime()) / 60_000)

@@ -29,43 +29,56 @@ export default async function AdminClassesPage({
   if (sp.gender) where.genderRestriction = sp.gender;
   if (sp.day) where.scheduleDays = { has: sp.day };
 
-  const [total, rows, programs, teachers] = await Promise.all([
-    prisma.class.count({ where }),
-    prisma.class.findMany({
-      where,
-      include: {
-        program: true,
-        teacher: { include: { user: { select: { name: true, nameAr: true } } } },
-        _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.program.findMany({ where: { active: true }, select: { id: true, code: true, nameEn: true, nameAr: true, defaultPriceSar: true } }),
-    prisma.teacherProfile.findMany({ where: { active: true }, include: { user: { select: { name: true, nameAr: true } } } }),
-  ]);
+  let total = 0;
+  let classRows: any[] = [];
+  let programs: any[] = [];
+  let teachers: any[] = [];
+
+  try {
+    const [_total, rows, _programs, _teachers] = await Promise.all([
+      prisma.class.count({ where }),
+      prisma.class.findMany({
+        where,
+        include: {
+          program: true,
+          teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+          _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+        },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+      prisma.program.findMany({ where: { active: true }, select: { id: true, code: true, nameEn: true, nameAr: true, defaultPriceSar: true } }),
+      prisma.teacherProfile.findMany({ where: { active: true }, include: { user: { select: { name: true, nameAr: true } } } }),
+    ]);
+    total = _total;
+    programs = _programs;
+    teachers = _teachers;
+    classRows = rows.map((c) => ({
+      id: c.id,
+      name: c.name,
+      nameAr: c.nameAr,
+      cohortCode: c.cohortCode,
+      status: c.status,
+      scheduleDays: c.scheduleDays,
+      timeSlot: c.timeSlot,
+      durationMinutes: c.durationMinutes,
+      maxStudents: c.maxStudents,
+      genderRestriction: c.genderRestriction,
+      pricePerMonth: c.pricePerMonth.toString(),
+      startDate: c.startDate.toISOString().slice(0, 10),
+      endDate: c.endDate?.toISOString().slice(0, 10) ?? null,
+      enrolled: c._count.enrollments,
+      program: { id: c.program.id, code: c.program.code, name: c.program.nameEn, nameAr: c.program.nameAr },
+      teacher: { id: c.teacher.id, name: c.teacher.user.name, nameAr: c.teacher.user.nameAr },
+    }));
+  } catch (e) {
+    console.error("[admin-classes] DB query failed:", e);
+  }
 
   return (
     <ClassesClient
-      rows={rows.map((c) => ({
-        id: c.id,
-        name: c.name,
-        nameAr: c.nameAr,
-        cohortCode: c.cohortCode,
-        status: c.status,
-        scheduleDays: c.scheduleDays,
-        timeSlot: c.timeSlot,
-        durationMinutes: c.durationMinutes,
-        maxStudents: c.maxStudents,
-        genderRestriction: c.genderRestriction,
-        pricePerMonth: c.pricePerMonth.toString(),
-        startDate: c.startDate.toISOString().slice(0, 10),
-        endDate: c.endDate?.toISOString().slice(0, 10) ?? null,
-        enrolled: c._count.enrollments,
-        program: { id: c.program.id, code: c.program.code, name: c.program.nameEn, nameAr: c.program.nameAr },
-        teacher: { id: c.teacher.id, name: c.teacher.user.name, nameAr: c.teacher.user.nameAr },
-      }))}
+      rows={classRows}
       total={total}
       page={page}
       pageSize={PAGE_SIZE}

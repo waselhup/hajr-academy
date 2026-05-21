@@ -22,34 +22,48 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
   const dayAhead = new Date(now.getTime() + 24 * 3600_000);
 
-  const [
-    studentsActive, teachersActive, classesActiveMonth,
-    mrrAgg, outstandingAgg, liveCount,
-    auditFeed, overdueRows, upcomingSessions,
-  ] = await Promise.all([
-    prisma.studentProfile.count({ where: { user: { isActive: true } } }),
-    prisma.teacherProfile.count({ where: { active: true } }),
-    prisma.class.count({ where: { status: "ACTIVE", startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: monthStart } }] } }),
-    prisma.invoice.aggregate({ _sum: { totalSar: true }, where: { status: "PAID", paidAt: { gte: monthStart } } }),
-    prisma.invoice.aggregate({ _sum: { totalSar: true }, _count: true, where: { status: { in: ["PENDING", "OVERDUE"] } } }),
-    prisma.classSession.count({ where: { status: "LIVE" } }),
-    prisma.auditLog.findMany({
-      take: 10, orderBy: { createdAt: "desc" },
-      include: { user: { select: { name: true, nameAr: true, role: true } } },
-    }),
-    prisma.invoice.findMany({
-      where: { status: "OVERDUE" }, take: 5, orderBy: { dueDate: "asc" },
-      include: { student: { include: { user: { select: { name: true, nameAr: true, email: true } } } } },
-    }),
-    prisma.classSession.findMany({
-      where: { status: { in: ["SCHEDULED", "LIVE"] }, scheduledDate: { gte: now, lte: dayAhead } },
-      take: 5, orderBy: { scheduledDate: "asc" },
-      include: { class: { include: { teacher: { include: { user: { select: { name: true, nameAr: true } } } } } } },
-    }),
-  ]);
+  let studentsActive = 0, teachersActive = 0, classesActiveMonth = 0;
+  let mrr = 0, outstanding = 0, liveCount = 0;
+  let auditFeed: any[] = [], overdueRows: any[] = [], upcomingSessions: any[] = [];
 
-  const mrr = Number(mrrAgg._sum.totalSar ?? 0);
-  const outstanding = Number(outstandingAgg._sum.totalSar ?? 0);
+  try {
+    const [
+      _students, _teachers, _classes,
+      mrrAgg, outstandingAgg, _live,
+      _audit, _overdue, _upcoming,
+    ] = await Promise.all([
+      prisma.studentProfile.count({ where: { user: { isActive: true } } }),
+      prisma.teacherProfile.count({ where: { active: true } }),
+      prisma.class.count({ where: { status: "ACTIVE", startDate: { lte: now }, OR: [{ endDate: null }, { endDate: { gte: monthStart } }] } }),
+      prisma.invoice.aggregate({ _sum: { totalSar: true }, where: { status: "PAID", paidAt: { gte: monthStart } } }),
+      prisma.invoice.aggregate({ _sum: { totalSar: true }, _count: true, where: { status: { in: ["PENDING", "OVERDUE"] } } }),
+      prisma.classSession.count({ where: { status: "LIVE" } }),
+      prisma.auditLog.findMany({
+        take: 10, orderBy: { createdAt: "desc" },
+        include: { user: { select: { name: true, nameAr: true, role: true } } },
+      }),
+      prisma.invoice.findMany({
+        where: { status: "OVERDUE" }, take: 5, orderBy: { dueDate: "asc" },
+        include: { student: { include: { user: { select: { name: true, nameAr: true, email: true } } } } },
+      }),
+      prisma.classSession.findMany({
+        where: { status: { in: ["SCHEDULED", "LIVE"] }, scheduledDate: { gte: now, lte: dayAhead } },
+        take: 5, orderBy: { scheduledDate: "asc" },
+        include: { class: { include: { teacher: { include: { user: { select: { name: true, nameAr: true } } } } } } },
+      }),
+    ]);
+    studentsActive = _students;
+    teachersActive = _teachers;
+    classesActiveMonth = _classes;
+    mrr = Number(mrrAgg._sum.totalSar ?? 0);
+    outstanding = Number(outstandingAgg._sum.totalSar ?? 0);
+    liveCount = _live;
+    auditFeed = _audit;
+    overdueRows = _overdue;
+    upcomingSessions = _upcoming;
+  } catch (e) {
+    console.error("[admin-dashboard] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -78,7 +92,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
           </CardHeader>
           <CardContent className="space-y-2">
             {auditFeed.length === 0 && <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>}
-            {auditFeed.map((a) => (
+            {auditFeed.map((a: any) => (
               <div key={a.id} className="flex items-center justify-between gap-2 rounded-md border border-gray-100 p-3 text-sm">
                 <div>
                   <div className="font-medium">{a.user?.name ?? "—"}</div>
@@ -97,7 +111,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
           </CardHeader>
           <CardContent className="space-y-2">
             {overdueRows.length === 0 && <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>}
-            {overdueRows.map((inv) => (
+            {overdueRows.map((inv: any) => (
               <div key={inv.id} className="flex items-center justify-between gap-2 rounded-md border border-red-100 bg-red-50 p-3 text-sm">
                 <div>
                   <div className="font-medium">{inv.student.user.name}</div>
@@ -120,7 +134,7 @@ export default async function AdminDashboard({ params }: { params: Promise<{ loc
             <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>
           ) : (
             <div className="divide-y">
-              {upcomingSessions.map((s) => (
+              {upcomingSessions.map((s: any) => (
                 <div key={s.id} className="flex items-center justify-between gap-3 py-3">
                   <div>
                     <div className="font-medium">{locale === "ar" && s.class.nameAr ? s.class.nameAr : s.class.name}</div>

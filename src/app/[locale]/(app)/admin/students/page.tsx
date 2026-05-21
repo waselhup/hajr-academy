@@ -43,40 +43,49 @@ export default async function AdminStudentsPage({
   const sortField = sp.sort ?? "createdAt";
   const sortDir = (sp.dir ?? "desc") === "asc" ? "asc" : "desc";
 
-  const [total, rows, schools] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      include: { studentProfile: { include: { school: { select: { nameEn: true, nameAr: true } } } } },
-      orderBy: { [sortField]: sortDir } as any,
-      skip,
-      take: PAGE_SIZE,
-    }),
-    prisma.partnerSchool.findMany({ select: { id: true, nameEn: true, nameAr: true } }),
-  ]);
+  let total = 0;
+  let data: any[] = [];
+  let schools: any[] = [];
 
-  const data = rows.map((u) => ({
-    id: u.id,
-    name: u.name,
-    nameAr: u.nameAr,
-    email: u.email,
-    phone: u.phone,
-    isActive: u.isActive,
-    createdAt: u.createdAt.toISOString(),
-    profile: u.studentProfile
-      ? {
-          birthDate: u.studentProfile.birthDate?.toISOString() ?? null,
-          gradeLevel: u.studentProfile.gradeLevel,
-          englishLevel: u.studentProfile.englishLevel,
-          gender: u.studentProfile.gender,
-          schoolName: u.studentProfile.school?.nameEn ?? null,
-          schoolId: u.studentProfile.schoolId ?? null,
-          activePackage: u.studentProfile.activePackage,
-          packageStartedAt: u.studentProfile.packageStartedAt?.toISOString() ?? null,
-          packageExpiresAt: u.studentProfile.packageExpiresAt?.toISOString() ?? null,
-        }
-      : null,
-  }));
+  try {
+    const [_total, rows, _schools] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        include: { studentProfile: { include: { school: { select: { nameEn: true, nameAr: true } } } } },
+        orderBy: { [sortField]: sortDir } as any,
+        skip,
+        take: PAGE_SIZE,
+      }),
+      prisma.partnerSchool.findMany({ select: { id: true, nameEn: true, nameAr: true } }),
+    ]);
+    total = _total;
+    schools = _schools;
+    data = rows.map((u) => ({
+      id: u.id,
+      name: u.name,
+      nameAr: u.nameAr,
+      email: u.email,
+      phone: u.phone,
+      isActive: u.isActive,
+      createdAt: u.createdAt.toISOString(),
+      profile: u.studentProfile
+        ? {
+            birthDate: u.studentProfile.birthDate?.toISOString() ?? null,
+            gradeLevel: u.studentProfile.gradeLevel,
+            englishLevel: u.studentProfile.englishLevel,
+            gender: u.studentProfile.gender,
+            schoolName: u.studentProfile.school?.nameEn ?? null,
+            schoolId: u.studentProfile.schoolId ?? null,
+            activePackage: u.studentProfile.activePackage,
+            packageStartedAt: u.studentProfile.packageStartedAt?.toISOString() ?? null,
+            packageExpiresAt: u.studentProfile.packageExpiresAt?.toISOString() ?? null,
+          }
+        : null,
+    }));
+  } catch (e) {
+    console.error("[admin-students] DB query failed:", e);
+  }
 
   return (
     <StudentsClient

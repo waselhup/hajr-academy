@@ -28,37 +28,44 @@ export default async function AdminTeachersPage({
   if (status === "active") where.isActive = true;
   if (status === "inactive") where.isActive = false;
 
-  const [total, rows] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      include: { teacherProfile: { include: { _count: { select: { classes: true } } } } },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-  ]);
+  let total = 0;
+  let data: any[] = [];
 
-  const data = rows.map((u) => ({
-    id: u.id,
-    name: u.name,
-    nameAr: u.nameAr,
-    email: u.email,
-    phone: u.phone,
-    isActive: u.isActive,
-    createdAt: u.createdAt.toISOString(),
-    profile: u.teacherProfile
-      ? {
-          bio: u.teacherProfile.bio,
-          specializations: u.teacherProfile.specializations,
-          salaryBase: u.teacherProfile.salaryBase.toString(),
-          zoomHostEmail: u.teacherProfile.zoomHostEmail,
-          rating: u.teacherProfile.rating?.toString() ?? null,
-          totalStudents: u.teacherProfile.totalStudents,
-          classCount: u.teacherProfile._count.classes,
-        }
-      : null,
-  }));
+  try {
+    const [_total, rows] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        include: { teacherProfile: { include: { _count: { select: { classes: true } } } } },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+    ]);
+    total = _total;
+    data = rows.map((u) => ({
+      id: u.id,
+      name: u.name,
+      nameAr: u.nameAr,
+      email: u.email,
+      phone: u.phone,
+      isActive: u.isActive,
+      createdAt: u.createdAt.toISOString(),
+      profile: u.teacherProfile
+        ? {
+            bio: u.teacherProfile.bio,
+            specializations: u.teacherProfile.specializations,
+            salaryBase: u.teacherProfile.salaryBase.toString(),
+            zoomHostEmail: u.teacherProfile.zoomHostEmail,
+            rating: u.teacherProfile.rating?.toString() ?? null,
+            totalStudents: u.teacherProfile.totalStudents,
+            classCount: u.teacherProfile._count.classes,
+          }
+        : null,
+    }));
+  } catch (e) {
+    console.error("[admin-teachers] DB query failed:", e);
+  }
 
   return <TeachersClient rows={data} total={total} page={page} pageSize={PAGE_SIZE} />;
 }

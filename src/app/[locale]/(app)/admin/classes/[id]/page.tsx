@@ -22,30 +22,37 @@ export default async function ClassDetailPage({
   const { id, locale } = await params;
   const t = await getTranslations();
 
-  const cls = await prisma.class.findUnique({
-    where: { id },
-    include: {
-      program: true,
-      teacher: { include: { user: { select: { name: true, nameAr: true, email: true } } } },
-      enrollments: {
-        where: { status: "ACTIVE" },
-        include: { student: { include: { user: { select: { name: true, nameAr: true, email: true } } } } },
-      },
-      sessions: { orderBy: { scheduledDate: "desc" }, take: 50 },
-      assignments: { orderBy: { createdAt: "desc" } },
-    },
-  });
-  if (!cls) notFound();
+  let cls: any;
+  let availableStudents: any[] = [];
 
-  // students not yet enrolled (respecting gender restriction)
-  const availableStudents = await prisma.studentProfile.findMany({
-    where: {
-      enrollments: { none: { classId: id, status: "ACTIVE" } },
-      ...(cls.genderRestriction ? { gender: cls.genderRestriction } : {}),
-    },
-    include: { user: { select: { name: true, nameAr: true } } },
-    take: 200,
-  });
+  try {
+    cls = await prisma.class.findUnique({
+      where: { id },
+      include: {
+        program: true,
+        teacher: { include: { user: { select: { name: true, nameAr: true, email: true } } } },
+        enrollments: {
+          where: { status: "ACTIVE" },
+          include: { student: { include: { user: { select: { name: true, nameAr: true, email: true } } } } },
+        },
+        sessions: { orderBy: { scheduledDate: "desc" }, take: 50 },
+        assignments: { orderBy: { createdAt: "desc" } },
+      },
+    });
+    if (!cls) notFound();
+
+    availableStudents = await prisma.studentProfile.findMany({
+      where: {
+        enrollments: { none: { classId: id, status: "ACTIVE" } },
+        ...(cls.genderRestriction ? { gender: cls.genderRestriction } : {}),
+      },
+      include: { user: { select: { name: true, nameAr: true } } },
+      take: 200,
+    });
+  } catch (e) {
+    console.error("[admin-class-detail] DB query failed:", e);
+    notFound();
+  }
 
   return (
     <div className="space-y-6">
@@ -96,11 +103,11 @@ export default async function ClassDetailPage({
                 <TableBody>
                   {cls.enrollments.length === 0 ? (
                     <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-6">{t("Common.noData")}</TableCell></TableRow>
-                  ) : cls.enrollments.map((en) => (
+                  ) : cls.enrollments.map((en: any) => (
                     <TableRow key={en.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <Avatar className="h-7 w-7"><AvatarFallback>{en.student.user.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}</AvatarFallback></Avatar>
+                          <Avatar className="h-7 w-7"><AvatarFallback>{en.student.user.name.split(" ").map((p: string) => p[0]).slice(0, 2).join("")}</AvatarFallback></Avatar>
                           {locale === "ar" && en.student.user.nameAr ? en.student.user.nameAr : en.student.user.name}
                         </div>
                       </TableCell>
@@ -130,7 +137,7 @@ export default async function ClassDetailPage({
                 <TableBody>
                   {cls.sessions.length === 0 ? (
                     <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground p-6">{t("Common.noData")}</TableCell></TableRow>
-                  ) : cls.sessions.map((s) => (
+                  ) : cls.sessions.map((s: any) => (
                     <TableRow key={s.id}>
                       <TableCell className="num">{fmtRiyadh(s.scheduledDate, "yyyy-MM-dd HH:mm")}</TableCell>
                       <TableCell><Badge variant={s.status === "LIVE" ? "rose" : "info"}>{s.status}</Badge></TableCell>

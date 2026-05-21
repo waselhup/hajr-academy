@@ -21,42 +21,51 @@ export default async function TeacherBlackboardRoomPage({
     redirect("/ar/login");
   }
 
-  const room = await prisma.blackboardRoom.findUnique({
-    where: { id: params.roomId },
-    include: {
-      teacher: { include: { user: { select: { name: true } } } },
-      session: {
-        include: {
-          class: {
-            include: {
-              enrollments: {
-                where: { status: "ACTIVE" },
-                include: { student: { include: { user: { select: { name: true, id: true } } } } },
+  let room: any;
+  let enrolledStudents: any[] = [];
+  let grantedStudentIds: string[] = [];
+
+  try {
+    room = await prisma.blackboardRoom.findUnique({
+      where: { id: params.roomId },
+      include: {
+        teacher: { include: { user: { select: { name: true } } } },
+        session: {
+          include: {
+            class: {
+              include: {
+                enrollments: {
+                  where: { status: "ACTIVE" },
+                  include: { student: { include: { user: { select: { name: true, id: true } } } } },
+                },
               },
             },
           },
         },
+        permissions: { where: { revokedAt: null } },
       },
-      permissions: { where: { revokedAt: null } },
-    },
-  });
+    });
 
-  if (!room) redirect(`/${params.locale}/teacher/blackboard`);
+    if (!room) redirect(`/${params.locale}/teacher/blackboard`);
 
-  if (role === "TEACHER") {
-    const teacher = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
-    if (!teacher || room.teacherId !== teacher.id) {
-      redirect(`/${params.locale}/teacher/blackboard`);
+    if (role === "TEACHER") {
+      const teacher = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
+      if (!teacher || room.teacherId !== teacher.id) {
+        redirect(`/${params.locale}/teacher/blackboard`);
+      }
     }
+
+    enrolledStudents = (room.session?.class?.enrollments ?? []).map((e: any) => ({
+      id: e.student.id,
+      userId: e.student.user.id,
+      name: e.student.user.name,
+    }));
+
+    grantedStudentIds = room.permissions.map((p: any) => p.studentId);
+  } catch (e) {
+    console.error("[teacher-blackboard-room] DB query failed:", e);
+    redirect(`/${params.locale}/teacher/blackboard`);
   }
-
-  const enrolledStudents = (room.session?.class?.enrollments ?? []).map((e) => ({
-    id: e.student.id,
-    userId: e.student.user.id,
-    name: e.student.user.name,
-  }));
-
-  const grantedStudentIds = room.permissions.map((p) => p.studentId);
 
   return (
     <BlackboardClient

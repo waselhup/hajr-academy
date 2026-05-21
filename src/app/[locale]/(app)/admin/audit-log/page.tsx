@@ -35,34 +35,45 @@ export default async function AuditLogPage({
   if (sp.from) where.createdAt = { ...(where.createdAt || {}), gte: new Date(sp.from) };
   if (sp.to) where.createdAt = { ...(where.createdAt || {}), lte: new Date(sp.to) };
 
-  const [total, rows, actionsAgg] = await Promise.all([
-    prisma.auditLog.count({ where }),
-    prisma.auditLog.findMany({
-      where,
-      include: { user: { select: { name: true, nameAr: true, email: true, role: true, avatar: true } } },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.auditLog.groupBy({ by: ["action"], _count: { _all: true }, orderBy: { _count: { action: "desc" } }, take: 30 }),
-  ]);
+  let total = 0;
+  let data: any[] = [];
+  let actions: any[] = [];
+
+  try {
+    const [_total, rows, actionsAgg] = await Promise.all([
+      prisma.auditLog.count({ where }),
+      prisma.auditLog.findMany({
+        where,
+        include: { user: { select: { name: true, nameAr: true, email: true, role: true, avatar: true } } },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+      prisma.auditLog.groupBy({ by: ["action"], _count: { _all: true }, orderBy: { _count: { action: "desc" } }, take: 30 }),
+    ]);
+    total = _total;
+    data = rows.map((r) => ({
+      id: r.id,
+      createdAt: r.createdAt.toISOString(),
+      action: r.action,
+      entity: r.entity,
+      entityId: r.entityId,
+      metadata: r.metadata as any,
+      ipAddress: r.ipAddress,
+      user: r.user ? { name: r.user.name, email: r.user.email, role: r.user.role } : null,
+    }));
+    actions = actionsAgg.map((a) => ({ value: a.action, count: a._count._all }));
+  } catch (e) {
+    console.error("[admin-audit-log] DB query failed:", e);
+  }
 
   return (
     <AuditLogClient
-      rows={rows.map((r) => ({
-        id: r.id,
-        createdAt: r.createdAt.toISOString(),
-        action: r.action,
-        entity: r.entity,
-        entityId: r.entityId,
-        metadata: r.metadata as any,
-        ipAddress: r.ipAddress,
-        user: r.user ? { name: r.user.name, email: r.user.email, role: r.user.role } : null,
-      }))}
+      rows={data}
       total={total}
       page={page}
       pageSize={PAGE_SIZE}
-      actions={actionsAgg.map((a) => ({ value: a.action, count: a._count._all }))}
+      actions={actions}
     />
   );
 }

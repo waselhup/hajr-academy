@@ -15,9 +15,12 @@ export default async function StudentPrivateLessonsPage({
   const session = await requireRole("STUDENT");
   const t = await getTranslations();
 
-  const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
-  const lessons = profile
-    ? await prisma.privateLesson.findMany({
+  let lessons: any[] = [];
+
+  try {
+    const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
+    if (profile) {
+      lessons = await prisma.privateLesson.findMany({
         where: {
           studentId: profile.id,
           OR: [
@@ -27,8 +30,11 @@ export default async function StudentPrivateLessonsPage({
         },
         include: { teacher: { include: { user: true } } },
         orderBy: { scheduledAt: "asc" },
-      })
-    : [];
+      });
+    }
+  } catch (e) {
+    console.error("[student-private-lessons] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -41,7 +47,7 @@ export default async function StudentPrivateLessonsPage({
         </Card>
       ) : (
         <div className="space-y-3">
-          {lessons.map((l) => (
+          {lessons.map((l: any) => (
             <UpcomingSessionCard
               key={l.id}
               mode="join"

@@ -18,21 +18,27 @@ export default async function ParentDashboardPage({
   const session = await requireRole("PARENT");
   const t = await getTranslations();
 
-  const profile = await prisma.parentProfile.findUnique({
-    where: { userId: session.user.id },
-    include: {
-      childLinks: {
-        include: {
-          student: {
-            include: {
-              user: true,
-              enrollments: { where: { status: "ACTIVE" } },
+  let profile: any = null;
+
+  try {
+    profile = await prisma.parentProfile.findUnique({
+      where: { userId: session.user.id },
+      include: {
+        childLinks: {
+          include: {
+            student: {
+              include: {
+                user: true,
+                enrollments: { where: { status: "ACTIVE" } },
+              },
             },
           },
         },
       },
-    },
-  });
+    });
+  } catch (e) {
+    console.error("[parent-dashboard] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -49,7 +55,7 @@ export default async function ParentDashboardPage({
         </CardHeader>
         <CardContent className="space-y-3">
           {profile && profile.childLinks.length > 0 ? (
-            profile.childLinks.map((link) => (
+            profile.childLinks.map((link: any) => (
               <div
                 key={link.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"

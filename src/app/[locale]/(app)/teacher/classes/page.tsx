@@ -24,29 +24,35 @@ export default async function TeacherClassesPage({
   const session = await requireRole("TEACHER");
   const t = await getTranslations();
 
-  const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
-  if (!profile) {
-    return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
-  }
+  let classes: any[] = [];
 
-  const classes = await prisma.class.findMany({
-    where: { teacherId: profile.id },
-    include: {
-      program: true,
-      _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
-      sessions: {
-        where: {
-          OR: [
-            { status: "LIVE" },
-            { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
-          ],
+  try {
+    const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
+    if (!profile) {
+      return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
+    }
+
+    classes = await prisma.class.findMany({
+      where: { teacherId: profile.id },
+      include: {
+        program: true,
+        _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+        sessions: {
+          where: {
+            OR: [
+              { status: "LIVE" },
+              { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
+            ],
+          },
+          orderBy: { scheduledDate: "asc" },
+          take: 1,
         },
-        orderBy: { scheduledDate: "asc" },
-        take: 1,
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (e) {
+    console.error("[teacher-classes] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -58,7 +64,7 @@ export default async function TeacherClassesPage({
         </Card>
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
-          {classes.map((c) => {
+          {classes.map((c: any) => {
             const next = c.sessions[0];
             return (
               <Card key={c.id}>
@@ -78,7 +84,7 @@ export default async function TeacherClassesPage({
                     <span className="num">{c._count.enrollments} / {c.maxStudents}</span>
                     <span>•</span>
                     <span>
-                      {c.scheduleDays.map((d) => (locale === "ar" ? DAY_AR[d] : d.slice(0, 3))).join("، ")}
+                      {c.scheduleDays.map((d: string) => (locale === "ar" ? DAY_AR[d] : d.slice(0, 3))).join("، ")}
                       {" "}
                       <span className="num">{c.timeSlot}</span>
                     </span>

@@ -18,32 +18,40 @@ export default async function StudentBlackboardRoomPage({
 
   if (session.user.role !== "STUDENT") redirect("/ar/login");
 
-  const student = await prisma.studentProfile.findUnique({
-    where: { userId: session.user.id },
-  });
-  if (!student) redirect(`/${params.locale}/student`);
+  let student: any;
+  let room: any;
 
-  const room = await prisma.blackboardRoom.findUnique({
-    where: { id: params.roomId },
-    include: {
-      teacher: { include: { user: { select: { name: true } } } },
-      session: {
-        include: {
-          class: {
-            include: {
-              enrollments: { where: { studentId: student.id, status: "ACTIVE" } },
+  try {
+    student = await prisma.studentProfile.findUnique({
+      where: { userId: session.user.id },
+    });
+    if (!student) redirect(`/${params.locale}/student`);
+
+    room = await prisma.blackboardRoom.findUnique({
+      where: { id: params.roomId },
+      include: {
+        teacher: { include: { user: { select: { name: true } } } },
+        session: {
+          include: {
+            class: {
+              include: {
+                enrollments: { where: { studentId: student.id, status: "ACTIVE" } },
+              },
             },
           },
         },
+        permissions: { where: { studentId: student.id, revokedAt: null } },
       },
-      permissions: { where: { studentId: student.id, revokedAt: null } },
-    },
-  });
+    });
 
-  if (!room) redirect(`/${params.locale}/student`);
+    if (!room) redirect(`/${params.locale}/student`);
 
-  const isEnrolled = (room.session?.class?.enrollments.length ?? 0) > 0;
-  if (!isEnrolled) redirect(`/${params.locale}/student`);
+    const isEnrolled = (room.session?.class?.enrollments.length ?? 0) > 0;
+    if (!isEnrolled) redirect(`/${params.locale}/student`);
+  } catch (e) {
+    console.error("[student-blackboard-room] DB query failed:", e);
+    redirect(`/${params.locale}/student`);
+  }
 
   const isArchived = !!room.archivedAt;
   const hasPermission = room.permissions.length > 0;

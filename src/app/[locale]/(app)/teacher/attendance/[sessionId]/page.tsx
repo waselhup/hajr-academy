@@ -15,35 +15,43 @@ export default async function TeacherAttendanceSessionPage({
   const session = await requireRole("TEACHER");
   const t = await getTranslations();
 
-  const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
-  if (!profile) notFound();
+  let cs: any = null;
+  let students: any[] = [];
 
-  const cs = await prisma.classSession.findUnique({
-    where: { id: sessionId },
-    include: {
-      class: {
-        include: {
-          enrollments: {
-            where: { status: "ACTIVE" },
-            include: { student: { include: { user: { select: { name: true, nameAr: true } } } } },
+  try {
+    const profile = await prisma.teacherProfile.findUnique({ where: { userId: session.user.id } });
+    if (!profile) notFound();
+
+    cs = await prisma.classSession.findUnique({
+      where: { id: sessionId },
+      include: {
+        class: {
+          include: {
+            enrollments: {
+              where: { status: "ACTIVE" },
+              include: { student: { include: { user: { select: { name: true, nameAr: true } } } } },
+            },
           },
         },
+        attendances: true,
       },
-      attendances: true,
-    },
-  });
-  if (!cs || cs.class.teacherId !== profile.id) notFound();
+    });
+    if (!cs || cs.class.teacherId !== profile.id) notFound();
 
-  const attMap = new Map(cs.attendances.map((a) => [a.studentId, a]));
-  const students = cs.class.enrollments.map((e) => {
-    const att = attMap.get(e.studentId);
-    return {
-      studentId: e.studentId,
-      name: e.student.user.nameAr ?? e.student.user.name,
-      status: att?.status ?? ("PRESENT" as const),
-      autoMarked: !!att?.joinedAt && !att?.markedBy,
-    };
-  });
+    const attMap = new Map<string, any>(cs.attendances.map((a: any) => [a.studentId, a]));
+    students = cs.class.enrollments.map((e: any) => {
+      const att = attMap.get(e.studentId);
+      return {
+        studentId: e.studentId,
+        name: e.student.user.nameAr ?? e.student.user.name,
+        status: att?.status ?? ("PRESENT" as const),
+        autoMarked: !!att?.joinedAt && !att?.markedBy,
+      };
+    });
+  } catch (e) {
+    console.error("[teacher-attendance-session] DB query failed:", e);
+    notFound();
+  }
 
   return (
     <AttendanceGridClient

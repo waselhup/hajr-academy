@@ -16,29 +16,31 @@ export default async function TeacherDashboardPage({
   const session = await requireRole("TEACHER");
   const t = await getTranslations();
 
-  const profile = await prisma.teacherProfile.findUnique({
-    where: { userId: session.user.id },
-    include: { classes: { include: { enrollments: true } } },
-  });
+  let profile: any = null;
+  let todaySessions = 0;
+  let sessions: any[] = [];
 
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setHours(24);
+  try {
+    profile = await prisma.teacherProfile.findUnique({
+      where: { userId: session.user.id },
+      include: { classes: { include: { enrollments: true } } },
+    });
 
-  const todaySessions = profile
-    ? await prisma.classSession.count({
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(todayStart);
+    todayEnd.setHours(24);
+
+    if (profile) {
+      todaySessions = await prisma.classSession.count({
         where: {
           class: { teacherId: profile.id },
           scheduledDate: { gte: todayStart, lt: todayEnd },
         },
-      })
-    : 0;
+      });
 
-  // Upcoming + live sessions for this teacher's classes (next 7 days).
-  const horizon = new Date(Date.now() + 7 * 86400_000);
-  const sessions = profile
-    ? await prisma.classSession.findMany({
+      const horizon = new Date(Date.now() + 7 * 86400_000);
+      sessions = await prisma.classSession.findMany({
         where: {
           class: { teacherId: profile.id },
           OR: [
@@ -52,8 +54,11 @@ export default async function TeacherDashboardPage({
         include: { class: true },
         orderBy: { scheduledDate: "asc" },
         take: 6,
-      })
-    : [];
+      });
+    }
+  } catch (e) {
+    console.error("[teacher-dashboard] DB query failed:", e);
+  }
 
   return (
     <div className="space-y-6">
@@ -87,7 +92,7 @@ export default async function TeacherDashboardPage({
           </CardHeader>
           <CardContent>
             <span className="text-3xl font-bold num">
-              {profile?.classes.reduce((sum, c) => sum + c.enrollments.length, 0) ?? 0}
+              {profile?.classes.reduce((sum: number, c: any) => sum + c.enrollments.length, 0) ?? 0}
             </span>
           </CardContent>
         </Card>
@@ -103,7 +108,7 @@ export default async function TeacherDashboardPage({
           </Card>
         ) : (
           <div className="space-y-3">
-            {sessions.map((s) => (
+            {sessions.map((s: any) => (
               <UpcomingSessionCard
                 key={s.id}
                 mode="start"

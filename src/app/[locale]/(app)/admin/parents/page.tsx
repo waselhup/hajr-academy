@@ -24,50 +24,59 @@ export default async function AdminParentsPage({
     ];
   }
 
-  const [total, rows, allStudents] = await Promise.all([
-    prisma.user.count({ where }),
-    prisma.user.findMany({
-      where,
-      include: {
-        parentProfile: {
-          include: {
-            childLinks: { include: { student: { include: { user: { select: { name: true, nameAr: true } } } } } },
-            _count: { select: { childLinks: true } },
+  let total = 0;
+  let data: any[] = [];
+  let allStudents: any[] = [];
+
+  try {
+    const [_total, rows, _allStudents] = await Promise.all([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        include: {
+          parentProfile: {
+            include: {
+              childLinks: { include: { student: { include: { user: { select: { name: true, nameAr: true } } } } } },
+              _count: { select: { childLinks: true } },
+            },
           },
         },
-      },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * PAGE_SIZE,
-      take: PAGE_SIZE,
-    }),
-    prisma.studentProfile.findMany({ include: { user: { select: { name: true, nameAr: true } } }, take: 200 }),
-  ]);
-
-  const data = rows.map((u) => ({
-    id: u.id,
-    name: u.name,
-    nameAr: u.nameAr,
-    email: u.email,
-    phone: u.phone,
-    isActive: u.isActive,
-    profile: u.parentProfile
-      ? {
-          id: u.parentProfile.id,
-          occupation: u.parentProfile.occupation,
-          inviteCode: u.parentProfile.inviteCode,
-          childCount: u.parentProfile._count.childLinks,
-          childLinks: u.parentProfile.childLinks.map((l) => ({
-            id: l.id,
-            studentId: l.studentId,
-            studentName: l.student.user.name,
-            studentNameAr: l.student.user.nameAr,
-            relation: l.relation,
-            isPrimary: l.isPrimary,
-            canPay: l.canPay,
-          })),
-        }
-      : null,
-  }));
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * PAGE_SIZE,
+        take: PAGE_SIZE,
+      }),
+      prisma.studentProfile.findMany({ include: { user: { select: { name: true, nameAr: true } } }, take: 200 }),
+    ]);
+    total = _total;
+    allStudents = _allStudents;
+    data = rows.map((u) => ({
+      id: u.id,
+      name: u.name,
+      nameAr: u.nameAr,
+      email: u.email,
+      phone: u.phone,
+      isActive: u.isActive,
+      profile: u.parentProfile
+        ? {
+            id: u.parentProfile.id,
+            occupation: u.parentProfile.occupation,
+            inviteCode: u.parentProfile.inviteCode,
+            childCount: u.parentProfile._count.childLinks,
+            childLinks: u.parentProfile.childLinks.map((l) => ({
+              id: l.id,
+              studentId: l.studentId,
+              studentName: l.student.user.name,
+              studentNameAr: l.student.user.nameAr,
+              relation: l.relation,
+              isPrimary: l.isPrimary,
+              canPay: l.canPay,
+            })),
+          }
+        : null,
+    }));
+  } catch (e) {
+    console.error("[admin-parents] DB query failed:", e);
+  }
 
   return (
     <ParentsClient
