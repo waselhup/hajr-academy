@@ -11,6 +11,10 @@ import { generateMarketing } from "./generate-marketing";
 import { querySchedule } from "./query-schedule";
 import { getDashboardStats } from "./get-dashboard-stats";
 import { queryBlackboards } from "./query-blackboards";
+import { queryLabProgress } from "./query-lab-progress";
+import { queryWeakTopics } from "./query-weak-topics";
+import { recommendExercisesTool } from "./recommend-exercises";
+import { generateLabContent } from "./generate-lab-content";
 
 export const adminTools = [
   queryStudents,
@@ -26,4 +30,8 @@ export const adminTools = [
   querySchedule,
   getDashboardStats,
   queryBlackboards,
+  queryLabProgress,
+  queryWeakTopics,
+  recommendExercisesTool,
+  generateLabContent,
 ];

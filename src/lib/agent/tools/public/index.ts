@@ -6,6 +6,10 @@ import { getMySchedule } from "./get-my-schedule";
 import { getMyChildProgress } from "./get-my-child-progress";
 import { getMyInvoices } from "./get-my-invoices";
 import { explainEnglish } from "./explain-english";
+import { getMySkillLevels } from "./get-my-skill-levels";
+import { recommendNextExercise } from "./recommend-next-exercise";
+import { explainQuestion } from "./explain-question";
+import { practiceTopic } from "./practice-topic";
 
 export const publicTools = [
   getPrograms,
@@ -16,4 +20,8 @@ export const publicTools = [
   getMyChildProgress,
   getMyInvoices,
   explainEnglish,
+  getMySkillLevels,
+  recommendNextExercise,
+  explainQuestion,
+  practiceTopic,
 ];

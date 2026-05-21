@@ -179,3 +179,35 @@
 ### D43. Schema migration via Supabase MCP (same as D36)
 - **Decision**: `BlackboardPermission` table and `BlackboardRoom` column additions applied via `apply_migration` MCP tool.
 - **Why**: Same network constraint. Prisma client regenerated locally for type safety.
+
+---
+
+## Phase 6 — English Lab + STEP Test Bank
+
+### D44. 8 new models replace the Phase 1 stub models
+- **Decision**: Phase 6 introduces `LabExercise`, `LabAttempt`, `SkillLevel`, `TestQuestion`, `TestExam`, `ExamQuestion`, `ExamAttempt`, `ExamAnswer` (+ 9 enums). The Phase 1 stubs `LabModule`/`LabProgress`/`StepTestBank`/`StepTestAttempt`/`StepTestAttemptItem` remain in the schema but are superseded.
+- **Why**: The stubs lacked CEFR levels, per-skill tracking, AI evaluation fields, and exam structure. Rewriting beat retrofitting. Old tables left in place to avoid a destructive drop.
+
+### D45. AI evaluation is a separate module, not the chat engine
+- **Decision**: `lib/lab/ai-evaluator.ts` calls the Anthropic SDK directly with strict-JSON prompts, rather than routing through the Phase 4 streaming `runAgentLoop`.
+- **Why**: Evaluation is a synchronous one-shot request returning structured JSON — a different shape from streaming chat. Haiku for short submissions, Sonnet for detailed/essay analysis. Results cached by content hash.
+
+### D46. Graceful degradation when ANTHROPIC_API_KEY is absent
+- **Decision**: The evaluator returns `{ needsManualReview: true }` with a bilingual message instead of throwing when the key is missing or the API fails. MC grading is pure JS and always works.
+- **Why**: The lab must remain usable without AI; teachers can review writing/speaking manually. No hard dependency on the API for core flows.
+
+### D47. Exam timer is server-authoritative
+- **Decision**: `/api/exams/[examId]/start` returns an absolute `deadline` (startedAt + totalMinutes). The client counts down to it but the server clamps `timeSpentSec` on submit and accepts late/auto submissions.
+- **Why**: A client-only timer is trivially bypassed. The deadline is computed once, server-side, from immutable `startedAt`.
+
+### D48. Exam answer key never reaches the client
+- **Decision**: `/start` strips `isCorrect` from options and omits `correctAnswer`/`explanation`. Correct answers are only returned by the results endpoint after submission.
+- **Why**: Prevents cheating via browser devtools during a live exam.
+
+### D49. Seed applied one statement at a time via a resilient applier
+- **Decision**: `prisma/seed-phase-6.ts --emit-chunks` emits idempotent `INSERT ... ON CONFLICT DO NOTHING` SQL; `prisma/apply-chunks.ts` applies each statement individually with retry, resume detection, and skip-if-present.
+- **Why**: The Supabase pgbouncer pooler intermittently drops long jobs (D11). Per-statement inserts complete within any timeout; `ON CONFLICT` makes re-runs safe; resume detection means an outage mid-run continues rather than restarts.
+
+### D50. 8 new agent tools extend Phase 4 (4 admin + 4 public)
+- **Decision**: Admin gains `query_lab_progress`, `query_weak_topics`, `recommend_exercises`, `generate_lab_content`. Public assistant gains `get_my_skill_levels`, `recommend_next_exercise`, `explain_question`, `practice_topic`. All follow the `AgentTool` interface and are registered in the respective `index.ts`.
+- **Why**: Matches the Phase 4 pattern — the AI layer stays the single conversational surface, now lab-aware.
