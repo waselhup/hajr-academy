@@ -43,3 +43,8 @@ next-env.d.ts
 /playwright/.cache/
 
 .vercel
+
+# Phase 6 seed chunk artifacts (regenerated via --emit-chunks)
+prisma/seed-p6-chunk-*.sql
+prisma/seed-phase-6.sql
+prisma/seed-phase-6-stmts.json

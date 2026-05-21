@@ -81,8 +81,9 @@ model StudentProfile {
   attendances      Attendance[]
   submissions      Submission[]
   invoices         Invoice[]
-  labProgress      LabProgress[]
-  stepTestAttempts StepTestAttempt[]
+  labAttempts      LabAttempt[]
+  skillLevels      SkillLevel[]
+  examAttempts     ExamAttempt[]
   privateLessons          PrivateLesson[]
   school                  PartnerSchool?          @relation(fields: [schoolId], references: [id])
   blackboardPermissions   BlackboardPermission[]
@@ -283,75 +284,168 @@ model Submission {
 }
 
 // ─────────────────────── ENGLISH LAB ───────────────────────
-model LabModule {
-  id          String       @id @default(uuid())
-  skill       LabSkill
-  level       EnglishLevel
-  titleEn     String
-  titleAr     String
-  contentJson Json
-  order       Int
-  active      Boolean      @default(true)
-  createdAt   DateTime     @default(now())
+model LabExercise {
+  id               String       @id @default(uuid())
+  type             ExerciseType
+  level            CefrLevel
+  title            String
+  titleAr          String
+  description      String?      @db.Text
+  descriptionAr    String?      @db.Text
+  content          Json
+  estimatedMinutes Int          @default(10)
+  pointsValue      Int          @default(10)
+  tags             String[]
+  isPublished      Boolean      @default(false)
+  createdBy        String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  progress LabProgress[]
+  attempts LabAttempt[]
+
+  @@index([type, level, isPublished])
 }
 
-model LabProgress {
-  id           String         @id @default(uuid())
-  studentId    String
-  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  moduleId     String
-  module       LabModule      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  score        Int?
-  attempts     Int            @default(0)
-  completedAt  DateTime?
-  aiRubricJson Json?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+model LabAttempt {
+  id            String         @id @default(uuid())
+  exerciseId    String
+  exercise      LabExercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  studentId     String
+  student       StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status        AttemptStatus
+  startedAt     DateTime       @default(now())
+  completedAt   DateTime?
+  timeSpentSec  Int            @default(0)
+  submission    Json
+  aiEvaluation  Json?
+  score         Decimal?       @db.Decimal(5, 2)
+  teacherReview String?        @db.Text
+  teacherScore  Decimal?       @db.Decimal(5, 2)
+  reviewedBy    String?
+  reviewedAt    DateTime?
 
-  @@unique([studentId, moduleId])
+  @@index([studentId, completedAt])
+  @@index([exerciseId, score])
 }
 
-// ─────────────────────── STEP TEST PREP ───────────────────────
-model StepTestBank {
-  id          String      @id @default(uuid())
-  section     StepSection
-  difficulty  Int         @default(3)
-  questionEn  String
-  questionAr  String?
-  options     Json
-  explanation String?
-  audioUrl    String?
-  active      Boolean     @default(true)
-  createdAt   DateTime    @default(now())
+model SkillLevel {
+  id             String         @id @default(uuid())
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skill          EnglishSkill
+  currentLevel   CefrLevel      @default(A1)
+  confidence     Decimal        @default(0) @db.Decimal(5, 2)
+  levelHistory   Json           @default("[]")
+  totalAttempts  Int            @default(0)
+  totalPoints    Int            @default(0)
+  lastAssessedAt DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
 
-  attempts StepTestAttemptItem[]
+  @@unique([studentId, skill])
 }
 
-model StepTestAttempt {
-  id              String         @id @default(uuid())
-  studentId       String
-  student         StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  mode            StepTestMode
-  section         StepSection?
-  score           Int?
-  durationSeconds Int?
-  startedAt       DateTime       @default(now())
-  endedAt         DateTime?
+// ─────────────────────── STEP TEST BANK ───────────────────────
+model TestQuestion {
+  id              String       @id @default(uuid())
+  testType        TestType
+  section         TestSection
+  difficulty      Int          @default(3)
+  questionText    String       @db.Text
+  questionAudio   String?
+  passage         String?      @db.Text
+  type            QuestionType
+  options         Json?
+  correctAnswer   Json?
+  explanation     String?      @db.Text
+  explanationAr   String?      @db.Text
+  topic           String?
+  tags            String[]
+  totalAttempts   Int          @default(0)
+  correctAttempts Int          @default(0)
+  avgTimeSec      Int?
+  isActive        Boolean      @default(true)
+  createdBy       String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
 
-  items StepTestAttemptItem[]
+  examQuestions ExamQuestion[]
+  answers       ExamAnswer[]
+
+  @@index([testType, section, difficulty, isActive])
 }
 
-model StepTestAttemptItem {
-  id               String          @id @default(uuid())
-  attemptId        String
-  attempt          StepTestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
-  questionId       String
-  question         StepTestBank    @relation(fields: [questionId], references: [id])
-  selectedAnswer   String?
-  isCorrect        Boolean?
-  timeSpentSeconds Int?
+model TestExam {
+  id               String        @id @default(uuid())
+  type             ExamType
+  testType         TestType
+  title            String
+  titleAr          String
+  description      String?
+  totalQuestions   Int
+  totalMinutes     Int
+  passingScore     Int           @default(60)
+  sectionStructure Json
+  difficulty       Int           @default(3)
+  isPublished      Boolean       @default(true)
+  isAdaptive       Boolean       @default(false)
+  adaptiveConfig   Json?
+  createdBy        String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  questions ExamQuestion[]
+  attempts  ExamAttempt[]
+}
+
+model ExamQuestion {
+  id           String       @id @default(uuid())
+  examId       String
+  exam         TestExam     @relation(fields: [examId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     TestQuestion @relation(fields: [questionId], references: [id])
+  orderIndex   Int
+  sectionOrder Int
+
+  @@unique([examId, orderIndex])
+  @@index([examId])
+}
+
+model ExamAttempt {
+  id            String         @id @default(uuid())
+  examId        String
+  exam          TestExam       @relation(fields: [examId], references: [id])
+  studentId     String
+  student       StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  status        AttemptStatus
+  startedAt     DateTime       @default(now())
+  submittedAt   DateTime?
+  timeSpentSec  Int            @default(0)
+  sectionScores Json           @default("{}")
+  totalScore    Decimal?       @db.Decimal(5, 2)
+  percentile    Int?
+  passed        Boolean?
+  writingEval   Json?
+
+  answers ExamAnswer[]
+
+  @@index([studentId, submittedAt])
+}
+
+model ExamAnswer {
+  id           String       @id @default(uuid())
+  attemptId    String
+  attempt      ExamAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionId   String
+  question     TestQuestion @relation(fields: [questionId], references: [id])
+  answer       Json
+  isCorrect    Boolean?
+  pointsEarned Decimal      @default(0) @db.Decimal(5, 2)
+  timeSpentSec Int          @default(0)
+  aiEval       Json?
+
+  @@unique([attemptId, questionId])
+  @@index([attemptId])
 }
 
 // ─────────────────────── COMMUNICATION ───────────────────────
@@ -617,25 +711,69 @@ enum AttendanceStatus {
   EXCUSED
 }
 
-enum LabSkill {
+enum ExerciseType {
   SPEAKING
   LISTENING
   WRITING
   READING
+  GRAMMAR
+  VOCABULARY
 }
 
-enum StepSection {
+enum CefrLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  COMPLETED
+  ABANDONED
+}
+
+enum EnglishSkill {
+  SPEAKING
+  LISTENING
+  WRITING
+  READING
+  GRAMMAR
+  VOCABULARY
+}
+
+enum TestType {
+  STEP
+  IELTS_PRACTICE
+  TOEFL_PRACTICE
+}
+
+enum TestSection {
   READING
   LISTENING
   GRAMMAR
   VOCABULARY
   WRITING
+  SPEAKING
 }
 
-enum StepTestMode {
-  PRACTICE
+enum QuestionType {
+  MULTIPLE_CHOICE
+  FILL_BLANK
+  MATCHING
+  TRUE_FALSE
+  SHORT_ANSWER
+  ESSAY
+  ORDER
+}
+
+enum ExamType {
   FULL_MOCK
   SECTION_DRILL
+  CUSTOM
+  DAILY_PRACTICE
 }
 
 enum PaymentStatus {
