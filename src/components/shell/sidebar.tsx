@@ -8,7 +8,7 @@ import {
   MessageSquare, ClipboardCheck, FlaskConical, FileText, Building2,
   Radio, ShieldCheck, Settings, BellRing, User as UserIcon, ChevronLeft,
   ListChecks, School, Receipt, BadgeDollarSign, BookText, BarChart3, BookCheck, Video,
-  UserPlus, Bot,
+  UserPlus, Bot, Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Logo, LogoMark } from "@/components/brand/logo";
@@ -34,6 +34,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
     { key: "Nav.live", href: "/admin/live", icon: Radio },
     { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+    { key: "Nav.blackboards", href: "/admin/blackboards", icon: Palette },
     { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
     { key: "Nav.auditLog", href: "/admin/audit-log", icon: ShieldCheck },
     { key: "Nav.settings", href: "/admin/settings", icon: Settings },
@@ -53,13 +54,14 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
     { key: "Nav.live", href: "/admin/live", icon: Radio },
     { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+    { key: "Nav.blackboards", href: "/admin/blackboards", icon: Palette },
     { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
   ],
   TEACHER: [
     { key: "Nav.dashboard", href: "/teacher", icon: LayoutDashboard },
     { key: "Nav.myClasses", href: "/teacher/classes", icon: BookText },
     { key: "Nav.privateLessons", href: "/teacher/private-lessons", icon: BookOpen },
-    { key: "Nav.blackboard", href: "/teacher/blackboard", icon: ListChecks },
+    { key: "Nav.blackboard", href: "/teacher/blackboard", icon: Palette },
     { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
     { key: "Nav.attendance", href: "/teacher/attendance", icon: ClipboardCheck },
     { key: "Nav.messages", href: "/teacher/messages", icon: MessageSquare },

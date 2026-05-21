@@ -1,9 +1,32 @@
 import { requireRole } from "@/lib/rbac";
+import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { TeacherBlackboardList } from "./blackboard-list";
 
 export default async function TeacherBlackboardPage() {
-  await requireRole("TEACHER");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.blackboard")} phase={4} description="tldraw v3 + sync." />;
+  const session = await requireRole("TEACHER");
+  const t = await getTranslations("Blackboard");
+
+  const teacher = await prisma.teacherProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+
+  if (!teacher) {
+    return <div className="p-8 text-center text-muted-foreground">{t("noTeacherProfile")}</div>;
+  }
+
+  const rooms = await prisma.blackboardRoom.findMany({
+    where: { teacherId: teacher.id },
+    include: {
+      session: { include: { class: { select: { name: true, id: true } } } },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const active = rooms.filter((r) => !r.archivedAt);
+  const archived = rooms.filter((r) => !!r.archivedAt);
+
+  return (
+    <TeacherBlackboardList active={active as any} archived={archived as any} />
+  );
 }

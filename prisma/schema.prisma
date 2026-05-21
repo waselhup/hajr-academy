@@ -83,8 +83,9 @@ model StudentProfile {
   invoices         Invoice[]
   labProgress      LabProgress[]
   stepTestAttempts StepTestAttempt[]
-  privateLessons   PrivateLesson[]
-  school           PartnerSchool?      @relation(fields: [schoolId], references: [id])
+  privateLessons          PrivateLesson[]
+  school                  PartnerSchool?          @relation(fields: [schoolId], references: [id])
+  blackboardPermissions   BlackboardPermission[]
 }
 
 model ParentProfile {
@@ -227,10 +228,29 @@ model BlackboardRoom {
   tldrawRoomId     String         @unique
   isActive         Boolean        @default(false)
   allowStudentEdit Boolean        @default(false)
+  description      String?
+  lastEditedBy     String?
+  lastEditedAt     DateTime?
+  totalEdits       Int            @default(0)
+  archivedAt       DateTime?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
-  session ClassSession?
+  session     ClassSession?
+  permissions BlackboardPermission[]
+}
+
+model BlackboardPermission {
+  id        String         @id @default(uuid())
+  roomId    String
+  room      BlackboardRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  grantedBy String
+  grantedAt DateTime       @default(now())
+  revokedAt DateTime?
+
+  @@unique([roomId, studentId])
 }
 
 // ─────────────────────── ASSIGNMENTS ───────────────────────

@@ -147,3 +147,35 @@
 ### D36. Schema applied via Supabase MCP (not prisma db push)
 - **Decision**: New tables (AgentConversation, AgentMessage, TrialRequest) created via `execute_sql` through Supabase MCP.
 - **Why**: `prisma db push` fails from this network (connection pooler unreachable). MCP connects directly to Supabase management API. Same pattern as Phase 2 (D12).
+
+---
+
+## Phase 5 — Blackboard (tldraw v3 + Supabase Realtime)
+
+### D37. tldraw v3 with Supabase Realtime broadcast (no Liveblocks/Yjs/Partykit)
+- **Decision**: Real-time sync uses Supabase Realtime `broadcast` channel per room. `BlackboardSync` class throttles local changes to 50ms, merges remote via `editor.store.mergeRemoteChanges()`.
+- **Why**: Supabase Realtime is already provisioned (free tier, low-latency from MENA via ap-south-1). No extra infra or billing. Broadcast is fire-and-forget — ideal for ephemeral drawing events.
+
+### D38. Snapshot debounce server-side (max 1 DB write per 5s per room)
+- **Decision**: POST `/api/blackboard/[roomId]/snapshot` tracks `lastSavedAt` in-process memory Map. Returns 202 if called within 5s of last save.
+- **Why**: Auto-save fires every 30s from host client. Manual saves can overlap. Debounce prevents DB thrashing without client-side coordination.
+
+### D39. File upload validates magic bytes, not just MIME
+- **Decision**: Upload endpoint reads first 4 bytes and matches against known signatures (PNG 89 50 4E 47, JPEG FF D8 FF, WebP RIFF, PDF %PDF).
+- **Why**: MIME headers are trivially spoofable. Magic byte check catches renamed executables or polyglot files.
+
+### D40. Fullscreen canvas layout overrides app shell
+- **Decision**: `teacher/blackboard/[roomId]/layout.tsx` and `student/blackboard/[roomId]/layout.tsx` render a fixed `z-50` overlay, hiding sidebar/topbar.
+- **Why**: tldraw needs 100vh/100vw canvas. The shell returns when user navigates back.
+
+### D41. BlackboardPermission with per-student granularity + global toggle
+- **Decision**: Two-level permission: `BlackboardRoom.allowStudentEdit` (global) and `BlackboardPermission` (per-student). UI shows both with toggles.
+- **Why**: Teachers need both "everyone draws" (brainstorm) and "only Ali draws" (individual presentation) modes.
+
+### D42. Admin agent tool `query_blackboards` added
+- **Decision**: New tool registered in `adminTools[]` allows natural-language queries about blackboard activity.
+- **Why**: Matches Phase 4 pattern — admin can ask "كم سبورة نشطة عند فاطمة؟" and get structured data back.
+
+### D43. Schema migration via Supabase MCP (same as D36)
+- **Decision**: `BlackboardPermission` table and `BlackboardRoom` column additions applied via `apply_migration` MCP tool.
+- **Why**: Same network constraint. Prisma client regenerated locally for type safety.

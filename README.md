@@ -118,10 +118,10 @@ npm run test:e2e   # playwright e2e (Phase 10)
 ## 🗺️ Build phases
 
 - [x] **Phase 1** — Foundation: auth, i18n, layout, seed
-- [ ] Phase 2 — Admin CRUDs
-- [ ] Phase 3 — Zoom Video Classroom
-- [ ] Phase 4 — Blackboard (tldraw)
-- [ ] Phase 5 — Communication (Supabase Realtime)
+- [x] **Phase 2** — Admin CRUDs
+- [x] **Phase 3** — Zoom Video Classroom
+- [x] **Phase 4** — Hajr AI Layer (Admin Agent + Public Assistant)
+- [x] **Phase 5** — Blackboard (tldraw v3 + Supabase Realtime sync)
 - [ ] Phase 6 — English Lab + STEP Bank
 - [ ] Phase 7 — Finance + ZATCA + Moyasar
 - [ ] Phase 8 — Notifications (Email + SMS + In-App)

@@ -10,6 +10,7 @@ import { draftMessage } from "./draft-message";
 import { generateMarketing } from "./generate-marketing";
 import { querySchedule } from "./query-schedule";
 import { getDashboardStats } from "./get-dashboard-stats";
+import { queryBlackboards } from "./query-blackboards";
 
 export const adminTools = [
   queryStudents,
@@ -24,4 +25,5 @@ export const adminTools = [
   generateMarketing,
   querySchedule,
   getDashboardStats,
+  queryBlackboards,
 ];
