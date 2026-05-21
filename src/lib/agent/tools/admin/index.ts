@@ -15,6 +15,10 @@ import { queryLabProgress } from "./query-lab-progress";
 import { queryWeakTopics } from "./query-weak-topics";
 import { recommendExercisesTool } from "./recommend-exercises";
 import { generateLabContent } from "./generate-lab-content";
+import { sendMessage } from "./send-message";
+import { queryMessageStats } from "./query-message-stats";
+import { broadcastAnnouncement } from "./broadcast-announcement";
+import { queryFailedMessages } from "./query-failed-messages";
 
 export const adminTools = [
   queryStudents,
@@ -34,4 +38,8 @@ export const adminTools = [
   queryWeakTopics,
   recommendExercisesTool,
   generateLabContent,
+  sendMessage,
+  queryMessageStats,
+  broadcastAnnouncement,
+  queryFailedMessages,
 ];

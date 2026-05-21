@@ -10,6 +10,8 @@ import { getMySkillLevels } from "./get-my-skill-levels";
 import { recommendNextExercise } from "./recommend-next-exercise";
 import { explainQuestion } from "./explain-question";
 import { practiceTopic } from "./practice-topic";
+import { checkMyMessages } from "./check-my-messages";
+import { updateMyNotifications } from "./update-my-notifications";
 
 export const publicTools = [
   getPrograms,
@@ -24,4 +26,6 @@ export const publicTools = [
   recommendNextExercise,
   explainQuestion,
   practiceTopic,
+  checkMyMessages,
+  updateMyNotifications,
 ];

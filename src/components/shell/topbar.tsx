@@ -1,11 +1,11 @@
 "use client";
-import { Bell, LogOut, Menu, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LanguageToggle } from "./language-toggle";
 import { MobileSidebar } from "./mobile-sidebar";
+import { NotificationBell } from "@/components/shared/notification-bell";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
@@ -13,10 +13,12 @@ import {
 import type { Role } from "@prisma/client";
 
 export function Topbar({
+  userId,
   name,
   email,
   role,
 }: {
+  userId: string;
   name: string;
   email: string;
   role: Role;
@@ -36,9 +38,7 @@ export function Topbar({
       </div>
       <div className="flex items-center gap-2">
         <LanguageToggle />
-        <Button variant="ghost" size="icon" aria-label="Notifications">
-          <Bell className="h-5 w-5" />
-        </Button>
+        <NotificationBell userId={userId} />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full p-1 hover:bg-muted">

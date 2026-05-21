@@ -66,7 +66,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.lab", href: "/teacher/lab", icon: FlaskConical },
     { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
     { key: "Nav.attendance", href: "/teacher/attendance", icon: ClipboardCheck },
-    { key: "Nav.messages", href: "/teacher/messages", icon: MessageSquare },
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.mySalary", href: "/teacher/salary", icon: BadgeDollarSign },
     { key: "Nav.profile", href: "/teacher/profile", icon: UserIcon },
   ],
@@ -77,7 +77,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.lab", href: "/student/lab", icon: FlaskConical },
     { key: "Nav.mockExams", href: "/student/exams", icon: FileText },
     { key: "Nav.assignments", href: "/student/assignments", icon: BookCheck },
-    { key: "Nav.messages", href: "/student/messages", icon: MessageSquare },
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.myInvoices", href: "/student/finance", icon: Receipt },
     { key: "Nav.progress", href: "/student/progress", icon: BarChart3 },
     { key: "Nav.profile", href: "/student/profile", icon: UserIcon },
@@ -85,6 +85,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   PARENT: [
     { key: "Nav.dashboard", href: "/parent", icon: LayoutDashboard },
     { key: "Nav.children", href: "/parent/link", icon: School },
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
   ],
 };
 

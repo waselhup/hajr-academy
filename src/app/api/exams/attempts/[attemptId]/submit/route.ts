@@ -213,6 +213,18 @@ export async function POST(
       metadata: { examId: attempt.examId, totalScore, passed, percentile },
     });
 
+    // Phase 7: notify the student that their exam results are ready.
+    try {
+      const { triggerExamResultReady } = await import("@/lib/comms/triggers");
+      await triggerExamResultReady(
+        session.user.id,
+        attempt.exam.titleAr ?? attempt.exam.title,
+        params.attemptId
+      );
+    } catch (e) {
+      console.error("[exam-submit] result notification failed:", e);
+    }
+
     return NextResponse.json({
       attemptId: params.attemptId,
       totalScore,

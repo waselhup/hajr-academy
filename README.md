@@ -123,8 +123,8 @@ npm run test:e2e   # playwright e2e (Phase 10)
 - [x] **Phase 4** — Hajr AI Layer (Admin Agent + Public Assistant)
 - [x] **Phase 5** — Blackboard (tldraw v3 + Supabase Realtime sync)
 - [x] **Phase 6** — English Lab + STEP Test Bank (AI evaluation, mock exams, skill tracking)
-- [ ] Phase 7 — Finance + ZATCA + Moyasar
-- [ ] Phase 8 — Notifications (Email + SMS + In-App)
+- [x] **Phase 7** — Communication + Notifications (Resend email, Unifonic SMS, in-app, messaging, auto-triggers)
+- [ ] Phase 8 — Finance + ZATCA + Moyasar
 - [ ] Phase 9 — Parent & School Portals
 - [ ] Phase 10 — Polish + Compliance + Launch
 

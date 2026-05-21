@@ -211,3 +211,39 @@
 ### D50. 8 new agent tools extend Phase 4 (4 admin + 4 public)
 - **Decision**: Admin gains `query_lab_progress`, `query_weak_topics`, `recommend_exercises`, `generate_lab_content`. Public assistant gains `get_my_skill_levels`, `recommend_next_exercise`, `explain_question`, `practice_topic`. All follow the `AgentTool` interface and are registered in the respective `index.ts`.
 - **Why**: Matches the Phase 4 pattern — the AI layer stays the single conversational surface, now lab-aware.
+
+---
+
+## Phase 7 — Communication + Notifications
+
+### D51. Message / Notification / NotificationPreference stub models rebuilt
+- **Decision**: The Phase 1 stub `Message`, `Notification`, and `NotificationPreference` tables (all empty) were dropped and recreated with the full Phase 7 shape. Added `EmailTemplate` + 5 enums (`CommChannel`, `MessageStatus`, `TriggerType`, `TemplateCategory`, `NotificationPriority`); the `NotificationType` enum values were replaced.
+- **Why**: The stubs lacked threading, channel/status tracking, bilingual fields, priority, and quiet hours. Rebuilding empty tables beat a complex migration.
+
+### D52. The dispatcher is the single send entry point
+- **Decision**: `lib/comms/dispatcher.ts` is the only path that sends. It resolves recipients (user/role/class), reads each recipient's `NotificationPreference`, filters channels, enforces quiet hours, renders the bilingual template, persists a `Message` row per channel, calls the channel lib, and writes one audit log.
+- **Why**: Centralising routing means preference enforcement, quiet hours, tracking, and audit happen exactly once and cannot be bypassed by a caller.
+
+### D53. Graceful degradation without provider keys
+- **Decision**: `email.ts` (Resend) and `sms.ts`/`whatsapp.ts` (Unifonic) mock-send — log to console, return `{ success: true, mocked: true }` — when their API key is absent. WhatsApp also falls back to SMS when the WhatsApp API fails.
+- **Why**: Local dev and CI have no keys; the whole communication pipeline must still run end-to-end. Production simply adds the keys.
+
+### D54. Server-side keys only; phone stored as 9665XXXXXXXX
+- **Decision**: `RESEND_API_KEY` / `UNIFONIC_APP_SID` are read only in `lib/comms/*` (server). `normalizeSaudiPhone` accepts 05/5/+966/0096 forms and normalises to `9665XXXXXXXX` before sending.
+- **Why**: Provider keys must never reach the client. Unifonic requires the canonical Saudi format.
+
+### D55. Quiet hours + category opt-out, URGENT bypasses
+- **Decision**: The dispatcher skips SMS/WhatsApp during a recipient's quiet-hours window (Riyadh-local, wrap-past-midnight aware) and skips any channel/category the user opted out of. Priority `URGENT` and explicit `bypassQuietHours` override the quiet-hours skip. `marketingMessages` defaults to FALSE (opt-in).
+- **Why**: Respects the spec's quiet-hours and consent rules; urgent operational messages still get through.
+
+### D56. Cron via Vercel Cron, secret-gated
+- **Decision**: `vercel.json` schedules `/api/cron/comms-tick` every 5 minutes. The endpoint verifies `Authorization: Bearer <CRON_SECRET>` when the secret is set (open in local dev). The tick sends 30-min class reminders and flips overdue invoices to `OVERDUE` (so they aren't re-reminded).
+- **Why**: Vercel Cron is the native scheduler; the secret prevents public abuse; the status flip makes the overdue check idempotent.
+
+### D57. Retry with exponential backoff on transient send failure
+- **Decision**: `sendEmail` and `sendSms` retry up to 3× with exponential backoff before reporting failure. Failed sends persist as `Message` rows with `status = FAILED` and the error message.
+- **Why**: Provider hiccups are common; retries recover most; permanent failures stay visible in the admin log for review.
+
+### D58. 6 new agent tools extend Phase 4
+- **Decision**: Admin gains `send_message`, `query_message_stats`, `broadcast_announcement`, `query_failed_messages`. Public assistant gains `check_my_messages`, `update_my_notifications`. All registered in the respective `index.ts`.
+- **Why**: Keeps the AI layer the single conversational surface — `draft_message` (Phase 4) previews, `send_message` (Phase 7) actually delivers.

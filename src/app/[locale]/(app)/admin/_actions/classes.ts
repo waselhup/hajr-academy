@@ -81,6 +81,24 @@ export async function createClassAction(input: z.infer<typeof createSchema>): Pr
     },
   });
   await logAudit({ userId: session.user.id, action: "CLASS_CREATED", entity: "Class", entityId: created.id, metadata: { cohortCode }, ipAddress: await ip() });
+
+  // Phase 7: notify the assigned teacher.
+  try {
+    const teacher = await prisma.teacherProfile.findUnique({
+      where: { id: parsed.data.teacherId },
+      select: { userId: true },
+    });
+    if (teacher) {
+      const { triggerTeacherAssigned } = await import("@/lib/comms/triggers");
+      await triggerTeacherAssigned(
+        teacher.userId,
+        created.nameAr ?? created.name
+      );
+    }
+  } catch (e) {
+    console.error("[create-class] teacher notification failed:", e);
+  }
+
   revalidatePath("/admin/classes");
   return { ok: true, data: { id: created.id } };
 }
@@ -126,6 +144,30 @@ export async function enrollStudentInClassAction(opts: { classId: string; studen
     update: { status: "ACTIVE" },
   });
   await logAudit({ userId: session.user.id, action: "ENROLLMENT_ADDED", entity: "Enrollment", metadata: opts, ipAddress: await ip() });
+
+  // Phase 7: send the student an enrollment-confirmed notification.
+  try {
+    const [studentRec, classRec] = await Promise.all([
+      prisma.studentProfile.findUnique({
+        where: { id: opts.studentProfileId },
+        select: { userId: true },
+      }),
+      prisma.class.findUnique({
+        where: { id: opts.classId },
+        select: { name: true, nameAr: true },
+      }),
+    ]);
+    if (studentRec && classRec) {
+      const { triggerEnrollmentConfirmed } = await import("@/lib/comms/triggers");
+      await triggerEnrollmentConfirmed(
+        studentRec.userId,
+        classRec.nameAr ?? classRec.name
+      );
+    }
+  } catch (e) {
+    console.error("[enroll] confirmation notification failed:", e);
+  }
+
   revalidatePath(`/admin/classes/${opts.classId}`);
   return { ok: true, data: null };
 }

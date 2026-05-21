@@ -173,6 +173,18 @@ export async function POST(
       },
     });
 
+    // Phase 7: notify the student that their feedback is ready.
+    try {
+      const { triggerLabFeedbackReady } = await import("@/lib/comms/triggers");
+      await triggerLabFeedbackReady(
+        session.user.id,
+        exercise.titleAr ?? exercise.title,
+        exercise.id
+      );
+    } catch (e) {
+      console.error("[lab-submit] feedback notification failed:", e);
+    }
+
     return NextResponse.json({
       attempt: updated,
       score,
