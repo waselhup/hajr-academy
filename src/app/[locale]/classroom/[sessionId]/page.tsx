@@ -88,6 +88,7 @@ export default async function ClassroomPage({
     <ClassroomClient
       meetingNumber={s.meetingId}
       passcode={s.passcode ?? ""}
+      joinUrl={s.joinUrl ?? ""}
       userName={displayName}
       userEmail={session.user.email ?? ""}
       role={access.role!}

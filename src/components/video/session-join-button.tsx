@@ -48,6 +48,12 @@ export function SessionJoinButton({
     return () => clearInterval(id);
   }, []);
 
+  // Prefetch the classroom route so the navigation after "Start"/"Join"
+  // is instant — the only remaining wait is the Zoom meeting setup.
+  useEffect(() => {
+    router.prefetch(`/${locale}/classroom/${sessionId}`);
+  }, [router, locale, sessionId]);
+
   const start = new Date(scheduledDate).getTime();
   const end = start + durationMinutes * 60_000;
   const ended = status === "COMPLETED" || status === "CANCELLED";
@@ -60,17 +66,26 @@ export function SessionJoinButton({
   let open: boolean;
   if (teacherStartsClass) {
     open = true; // anytime, unless ended (handled by `ended` below)
+  } else if (isLive) {
+    // A LIVE session is joinable for as long as it stays LIVE — the
+    // teacher may run long past the scheduled slot. The only thing that
+    // closes it is the session ending (COMPLETED/CANCELLED).
+    open = true;
   } else {
     const lead = mode === "start" ? BEFORE_START : BEFORE_JOIN;
-    // Once a class is LIVE, students can always join while it runs.
-    open =
-      (isLive && now <= end + AFTER) ||
-      (now >= start - lead && now <= end + AFTER);
+    open = now >= start - lead && now <= end + AFTER;
   }
   const enabled = open && !ended && !isPending;
 
-  const label =
+  const baseLabel =
     mode === "start" ? t("startClass") : mode === "observe" ? t("observeClass") : t("joinClass");
+  // While the request is in flight, show a clear progress label rather
+  // than a frozen button — so the teacher knows the class is starting.
+  const label = isPending
+    ? mode === "start"
+      ? t("starting")
+      : t("joining")
+    : baseLabel;
 
   const handleClick = () => {
     startTransition(async () => {
@@ -80,8 +95,7 @@ export function SessionJoinButton({
             // Starting a class: this route creates the Zoom meeting,
             // flips the session LIVE, broadcasts `class_started` on the
             // class Realtime channel, and notifies enrolled students +
-            // their parents. (Replaces the bare zoom/create-meeting call,
-            // which did not broadcast.) Idempotent — safe to re-click.
+            // their parents. Idempotent — safe to re-click.
             const res = await fetch(
               `/api/class-sessions/${sessionId}/start`,
               { method: "POST" }
@@ -106,6 +120,8 @@ export function SessionJoinButton({
             }
           }
         }
+        // join / observe with a meeting already created → no API round
+        // trip; navigate straight into the (prefetched) classroom.
         router.push(`/${locale}/classroom/${sessionId}`);
       } catch {
         toast.error(t("starting"));

@@ -22,6 +22,8 @@ export interface ClassroomAccess {
     title: string;
     meetingId: string | null;
     passcode: string | null;
+    /** Zoom-hosted join URL — used as the "Open in Zoom" fallback. */
+    joinUrl: string | null;
     scheduledDate: Date;
     durationMinutes: number;
     status: string;
@@ -86,6 +88,7 @@ export async function resolveClassroomAccess(
         title: cs.class.nameAr ?? cs.class.name,
         meetingId: cs.zoomMeetingId,
         passcode: cs.zoomPassword,
+        joinUrl: cs.zoomJoinUrl,
         scheduledDate: cs.scheduledDate,
         durationMinutes: cs.class.durationMinutes,
         status: cs.status,
@@ -129,6 +132,7 @@ export async function resolveClassroomAccess(
         title: `Private Lesson — ${pl.student.user.name}`,
         meetingId: pl.zoomMeetingId,
         passcode: pl.zoomPassword,
+        joinUrl: null, // private lessons don't persist a join URL
         scheduledDate: pl.scheduledAt,
         durationMinutes: pl.durationMinutes,
         status: pl.status,
@@ -159,12 +163,15 @@ function checkWindow(
     return { ok: true };
   }
 
-  // A student attendee may enter once the session is LIVE (the teacher
-  // started it) or within the normal join window around the schedule.
-  const closeAt = end + JOIN_WINDOW_AFTER_MS;
+  // A student attendee may enter a LIVE session for as long as it stays
+  // LIVE — a class can run well past its scheduled slot, and the session
+  // status (not the clock) is the source of truth.
   if (status === "LIVE") {
-    return now <= closeAt ? { ok: true } : { ok: false, reason: "ENDED" };
+    return { ok: true };
   }
+  // Not yet LIVE: allow entry within the normal window around the
+  // schedule (so a student can be ready a bit early).
+  const closeAt = end + JOIN_WINDOW_AFTER_MS;
   const openFrom = start - JOIN_WINDOW_BEFORE_MS;
   if (now < openFrom) return { ok: false, reason: "TOO_EARLY" };
   if (now > closeAt) return { ok: false, reason: "ENDED" };
@@ -191,9 +198,11 @@ export function isWithinStartWindow(
  */
 export function isWithinJoinWindow(scheduled: Date, durationMinutes: number, status: string) {
   if (status === "COMPLETED" || status === "CANCELLED") return false;
+  // A LIVE session is joinable for as long as it stays LIVE — status,
+  // not the clock, is the source of truth once a class has started.
+  if (status === "LIVE") return true;
   const now = Date.now();
   const start = scheduled.getTime();
   const closeAt = start + durationMinutes * 60_000 + JOIN_WINDOW_AFTER_MS;
-  if (status === "LIVE") return now <= closeAt;
   return now >= start - JOIN_WINDOW_BEFORE_MS && now <= closeAt;
 }

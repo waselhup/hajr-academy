@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Loader2, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Loader2, AlertTriangle, ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 type Props = {
   meetingNumber: string;
   passcode: string;
+  /** Zoom-hosted join URL — the "Open in Zoom" fallback. */
+  joinUrl: string;
   userName: string;
   userEmail: string;
   role: "host" | "attendee";
@@ -17,9 +19,13 @@ type Props = {
 
 type Phase = "loading" | "joined" | "error";
 
+/** Hard ceiling on the Zoom connect handshake — never circle past this. */
+const JOIN_TIMEOUT_MS = 28_000;
+
 export function ClassroomClient({
   meetingNumber,
   passcode,
+  joinUrl,
   userName,
   userEmail,
   role,
@@ -30,43 +36,71 @@ export function ClassroomClient({
   const containerRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>("loading");
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const startedRef = useRef(false);
+  // Guards against the React 18 Strict-Mode double-invoke without the
+  // old startedRef/cancelled deadlock (which could leave the spinner
+  // stuck forever). A single attempt runs; a remount re-attempts cleanly.
+  const attemptedRef = useRef(false);
 
   useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
+    if (attemptedRef.current) return;
+    attemptedRef.current = true;
 
-    let cancelled = false;
+    // `settled` ensures phase is set exactly once — whichever happens
+    // first: a successful join, a thrown error, or the timeout.
+    let settled = false;
+    const settle = (next: Phase, msg = "") => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeoutId);
+      setErrorMsg(msg);
+      setPhase(next);
+    };
+
+    // The safety net: if the Zoom handshake stalls, surface a real error
+    // with a retry + an "open in Zoom" escape hatch instead of an
+    // infinite spinner.
+    const timeoutId = setTimeout(() => {
+      console.error("[classroom] Zoom join timed out");
+      settle("error", t("errTimeout"));
+    }, JOIN_TIMEOUT_MS);
 
     (async () => {
       try {
-        const { default: ZoomMtgEmbedded } = await import("@zoom/meetingsdk/embedded");
+        const { default: ZoomMtgEmbedded } = await import(
+          "@zoom/meetingsdk/embedded"
+        );
+        if (settled) return;
         const client = ZoomMtgEmbedded.createClient();
 
-        // Fetch a fresh signature from our backend (Zoom secrets stay server-side).
+        // Fresh signature from our backend (Zoom secrets stay server-side).
         const sigRes = await fetch("/api/zoom/signature", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ meetingNumber, role, userName }),
         });
+        if (settled) return;
         if (!sigRes.ok) {
           const body = await sigRes.json().catch(() => ({}));
           throw new Error(body.error ?? `SIGNATURE_${sigRes.status}`);
         }
         const { signature, sdkKey } = await sigRes.json();
-        if (cancelled || !containerRef.current) return;
+        if (settled || !containerRef.current) return;
 
         await client.init({
           zoomAppRoot: containerRef.current,
           language: "en-US",
           patchJsMedia: true,
           customize: {
-            video: { isResizable: true, viewSizes: { default: { width: 0, height: 0 } } },
+            video: {
+              isResizable: true,
+              viewSizes: { default: { width: 0, height: 0 } },
+            },
           },
         });
+        if (settled) return;
 
-        // The meeting number passed to join() must be the same clean digit
-        // string the signature was generated for — strip any spaces/dashes.
+        // The meeting number must be the same clean digit string the
+        // signature was generated for — strip any spaces/dashes.
         const cleanMeetingNumber = meetingNumber.replace(/\D/g, "");
 
         await client.join({
@@ -78,33 +112,32 @@ export function ClassroomClient({
           userEmail,
         });
 
-        if (!cancelled) setPhase("joined");
+        settle("joined");
       } catch (err) {
         console.error("Zoom join failed:", err);
-        if (cancelled) return;
-        const msg = (err as Error).message ?? "";
+        const msg = (err as Error)?.message ?? "";
         const reason = String((err as { reason?: string })?.reason ?? "");
         const combined = `${msg} ${reason}`.toLowerCase();
+        let friendly: string;
         if (combined.includes("signature")) {
-          // SDK key/secret mismatch or the SDK app is not activated.
-          setErrorMsg(t("errSignature"));
+          friendly = t("errSignature");
         } else if (combined.includes("password")) {
-          setErrorMsg(t("errWrongPassword"));
+          friendly = t("errWrongPassword");
         } else if (combined.includes("rate_limited")) {
-          setErrorMsg(t("errRateLimited"));
+          friendly = t("errRateLimited");
         } else if (combined.includes("not_authorized")) {
-          setErrorMsg(t("errNotAuthorized"));
+          friendly = t("errNotAuthorized");
         } else if (combined.includes("meeting_not_found")) {
-          setErrorMsg(t("errNotStarted"));
+          friendly = t("errNotStarted");
         } else {
-          setErrorMsg(t("errGeneric"));
+          friendly = t("errGeneric");
         }
-        setPhase("error");
+        settle("error", friendly);
       }
     })();
 
     return () => {
-      cancelled = true;
+      clearTimeout(timeoutId);
     };
   }, [meetingNumber, passcode, userName, userEmail, role, t]);
 
@@ -127,13 +160,26 @@ export function ClassroomClient({
             <AlertTriangle className="mx-auto h-10 w-10 text-amber-300" />
             <h1 className="mt-4 text-xl font-bold">{t("cannotJoin")}</h1>
             <p className="mt-2 max-w-sm text-sm text-white/80">{errorMsg}</p>
-            <div className="mt-6 flex justify-center gap-3">
+            <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => window.location.reload()}
                 className="rounded-lg bg-brand-rose px-5 py-2 text-sm font-medium"
               >
                 {t("retry")}
               </button>
+              {/* Escape hatch: even if the embedded SDK fails, the class
+                  is reachable through the native Zoom client. */}
+              {joinUrl && (
+                <a
+                  href={joinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white px-5 py-2 text-sm font-medium text-brand-navy"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  {t("openInZoom")}
+                </a>
+              )}
               <Link
                 href={`/${locale}`}
                 className="inline-flex items-center gap-2 rounded-lg border border-white/30 px-5 py-2 text-sm"

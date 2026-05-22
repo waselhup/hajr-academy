@@ -461,7 +461,9 @@
     "errWrongPassword": "Wrong meeting password.",
     "errRateLimited": "Too many attempts — wait a minute and retry.",
     "errSignature": "Could not verify the virtual classroom setup. Please contact the administration.",
-    "errGeneric": "Something went wrong connecting to the classroom."
+    "errGeneric": "Something went wrong connecting to the classroom.",
+    "errTimeout": "Connecting is taking longer than expected. Retry, or open the class in the Zoom app.",
+    "openInZoom": "Open in Zoom"
   },
   "Video": {
     "startClass": "Start Class",
