@@ -13,13 +13,13 @@ export default async function LoginPage() {
       </CardHeader>
       <CardContent>
         <LoginForm />
-        <div className="mt-4 flex flex-col gap-2 text-center text-sm">
-          <Link href="/forgot-password" className="text-brand-rose hover:underline">
+        <div className="mt-5 flex flex-col gap-2 text-center text-sm">
+          <Link href="/forgot-password" className="text-hajr-rose transition-colors hover:underline">
             {t("forgotPassword")}
           </Link>
-          <p className="text-muted-foreground">
+          <p className="text-hajr-gray-500">
             {t("noAccount")}{" "}
-            <Link href="/register" className="font-semibold text-brand-navy hover:underline">
+            <Link href="/register" className="font-semibold text-hajr-rose transition-colors hover:underline">
               {t("registerNow")}
             </Link>
           </p>

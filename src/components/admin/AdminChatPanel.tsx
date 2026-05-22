@@ -77,7 +77,7 @@ export default function AdminChatPanel() {
       <SheetTrigger asChild>
         <button className="fixed bottom-6 end-6 z-40 flex items-center gap-2 bg-brand-navy text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-brand-navy/90 transition-colors">
           <Bot className="h-5 w-5" />
-          <span className="text-sm font-medium">حجر</span>
+          <span className="text-sm font-medium">هجر</span>
         </button>
       </SheetTrigger>
 
@@ -87,7 +87,7 @@ export default function AdminChatPanel() {
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center gap-2 text-brand-navy">
               <Bot className="h-5 w-5" />
-              حجر Admin
+              هجر Admin
             </SheetTitle>
             <button
               onClick={() => { reset(); setInput(""); }}

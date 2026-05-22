@@ -81,7 +81,7 @@ export function useAgentChat(options: UseAgentChatOptions) {
         }
 
         if (res.status === 503) {
-          setError("حجر غير متاح حالياً، حاول لاحقاً");
+          setError("هجر غير متاح حالياً، حاول لاحقاً");
           setMessages((prev) => prev.filter((m) => m.id !== assistantMsgId));
           setIsLoading(false);
           return;

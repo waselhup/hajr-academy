@@ -1,7 +1,7 @@
 {
   "Brand": {
     "name": "HAJR A°",
-    "fullName": "HAJR A° English Academy",
+    "fullName": "HAJR A° Academy",
     "tagline": "Learn your way. Achieve your goals."
   },
   "Common": {
@@ -215,7 +215,28 @@
     "featurePractical": "Practical Training",
     "featureMock": "Mock Tests",
     "contactTitle": "Contact us",
-    "footerRights": "All rights reserved"
+    "footerRights": "All rights reserved",
+    "heroEyebrow": "Premium English Education",
+    "heroSubtitleLong": "Premium English education for Saudi Arabia — structured programs, certified instructors, and an English Lab that adapts to you.",
+    "programsSubtitle": "Pathways built around your goals — from STEP prep to one-on-one tuition.",
+    "packagesSubtitle": "Transparent monthly pricing. No hidden fees. Cancel anytime.",
+    "packageMostPopular": "Most popular",
+    "packageFeatureSessions": "live sessions / month",
+    "packageFeatureLab": "English Lab access",
+    "packageFeatureSupport": "Priority support",
+    "packageFeatureReports": "Progress reports",
+    "testimonialsTitle": "Trusted by learners across the Kingdom",
+    "testimonialsSubtitle": "Real results from students and parents.",
+    "statStudents": "Active students",
+    "statTeachers": "Certified teachers",
+    "statSatisfaction": "Satisfaction rate",
+    "statHours": "Hours taught",
+    "ctaSectionTitle": "Ready to start your English journey?",
+    "ctaSectionSubtitle": "Join HAJR A° Academy today and learn your way.",
+    "footerTagline": "Premium English education, built for Saudi Arabia.",
+    "footerProductsTitle": "Programs",
+    "footerCompanyTitle": "Academy",
+    "footerContactTitle": "Get in touch"
   },
   "Dashboard": {
     "welcome": "Welcome",

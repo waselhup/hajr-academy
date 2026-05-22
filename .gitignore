@@ -36,6 +36,7 @@ next-env.d.ts
 # editor
 .vscode
 .idea
+.claude
 
 # playwright
 /test-results/

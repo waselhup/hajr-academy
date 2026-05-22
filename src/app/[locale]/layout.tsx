@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -9,10 +8,6 @@ import { TopProgressBar } from "@/components/shared/top-progress-bar";
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
-
-export const metadata: Metadata = {
-  title: "HAJR A° English Academy",
-};
 
 export default async function LocaleLayout({
   children,

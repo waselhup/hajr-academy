@@ -78,7 +78,7 @@ export default function HajrChatPanel() {
       <SheetTrigger asChild>
         <button className="fixed bottom-6 end-6 z-40 flex items-center gap-2 bg-brand-rose text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-brand-rose/90 transition-colors">
           <MessageCircle className="h-5 w-5" />
-          <span className="text-sm font-medium">حجر</span>
+          <span className="text-sm font-medium">هجر</span>
         </button>
       </SheetTrigger>
 
@@ -88,7 +88,7 @@ export default function HajrChatPanel() {
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center gap-2 text-brand-navy">
               <MessageCircle className="h-5 w-5 text-brand-rose" />
-              حجر | مساعدك الذكي
+              هجر | مساعدك الذكي
             </SheetTitle>
             <button
               onClick={() => { reset(); setInput(""); }}
@@ -105,7 +105,7 @@ export default function HajrChatPanel() {
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-center text-muted-foreground gap-2 py-12">
               <MessageCircle className="h-10 w-10 text-brand-rose/30" />
-              <p className="text-sm">اسأل حجر أي سؤال</p>
+              <p className="text-sm">اسأل هجر أي سؤال</p>
               <p className="text-xs">Ask Hajr anything</p>
             </div>
           )}

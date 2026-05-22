@@ -1,7 +1,7 @@
 {
   "Brand": {
-    "name": "أكاديمية حجر",
-    "fullName": "أكاديمية حجر للغة الإنجليزية",
+    "name": "أكاديمية هجر",
+    "fullName": "أكاديمية هجر",
     "tagline": "تعلم بطريقتك. حقق أهدافك."
   },
   "Common": {
@@ -90,9 +90,9 @@
     "resetPassword": "إعادة تعيين كلمة المرور",
     "verifyEmail": "تأكيد البريد الإلكتروني",
     "loginTitle": "أهلاً بعودتك",
-    "loginSubtitle": "ادخل بياناتك للوصول إلى أكاديمية حجر",
+    "loginSubtitle": "ادخل بياناتك للوصول إلى أكاديمية هجر",
     "registerTitle": "ابدأ رحلتك معنا",
-    "registerSubtitle": "أنشئ حساباً جديداً للانضمام إلى أكاديمية حجر",
+    "registerSubtitle": "أنشئ حساباً جديداً للانضمام إلى أكاديمية هجر",
     "iAm": "أنا",
     "student": "طالب",
     "parent": "ولي أمر",
@@ -148,7 +148,7 @@
     "trials": "الحصص التجريبية",
     "testBank": "بنك الأسئلة",
     "mockExams": "الاختبارات التجريبية",
-    "hajrAI": "حجر AI"
+    "hajrAI": "هجر AI"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",
@@ -199,7 +199,7 @@
   },
   "Landing": {
     "heroTitle": "تعلم الإنجليزية بثقة",
-    "heroSubtitle": "أكاديمية حجر — تعلم بطريقتك، حقق أهدافك",
+    "heroSubtitle": "أكاديمية هجر — تعلم بطريقتك، حقق أهدافك",
     "ctaJoin": "ابدأ الآن",
     "ctaLogin": "تسجيل الدخول",
     "programsTitle": "برامجنا",
@@ -209,13 +209,34 @@
     "privateDesc": "16 حصة فردية + مختبر",
     "schoolDesc": "حلول مخصصة للمدارس",
     "sarPerMonth": "ر.س / شهرياً",
-    "featuresTitle": "لماذا حجر؟",
+    "featuresTitle": "لماذا هجر؟",
     "featureFlex": "جدول مرن",
     "featureCert": "مدربون معتمدون",
     "featurePractical": "تدريب عملي",
     "featureMock": "اختبارات محاكية",
     "contactTitle": "تواصل معنا",
-    "footerRights": "جميع الحقوق محفوظة"
+    "footerRights": "جميع الحقوق محفوظة",
+    "heroEyebrow": "تعليم إنجليزي بمعايير عالية",
+    "heroSubtitleLong": "تعليم إنجليزي متميّز للمملكة العربية السعودية — برامج منظّمة، ومدربون معتمدون، ومختبر لغة يتكيّف معك.",
+    "programsSubtitle": "مسارات مصمّمة حول أهدافك — من الإعداد لاختبار ستيب إلى الدروس الفردية.",
+    "packagesSubtitle": "أسعار شهرية واضحة. بدون رسوم خفية. ألغِ في أي وقت.",
+    "packageMostPopular": "الأكثر طلباً",
+    "packageFeatureSessions": "حصة مباشرة / شهرياً",
+    "packageFeatureLab": "الوصول إلى مختبر اللغة",
+    "packageFeatureSupport": "دعم ذو أولوية",
+    "packageFeatureReports": "تقارير التقدّم",
+    "testimonialsTitle": "موثوق من المتعلّمين في جميع أنحاء المملكة",
+    "testimonialsSubtitle": "نتائج حقيقية من الطلاب وأولياء الأمور.",
+    "statStudents": "طالب نشط",
+    "statTeachers": "مدرّب معتمد",
+    "statSatisfaction": "نسبة الرضا",
+    "statHours": "ساعة تدريس",
+    "ctaSectionTitle": "هل أنت مستعد لبدء رحلتك في الإنجليزية؟",
+    "ctaSectionSubtitle": "انضم إلى أكاديمية هجر اليوم وتعلّم بطريقتك.",
+    "footerTagline": "تعليم إنجليزي متميّز، مصمّم للمملكة العربية السعودية.",
+    "footerProductsTitle": "البرامج",
+    "footerCompanyTitle": "الأكاديمية",
+    "footerContactTitle": "تواصل معنا"
   },
   "Dashboard": {
     "welcome": "أهلاً بك",
@@ -462,7 +483,7 @@
     "manual": "يدوي"
   },
   "HajrAI": {
-    "title": "حجر — لوحة تحكم الذكاء الاصطناعي",
+    "title": "هجر — لوحة تحكم الذكاء الاصطناعي",
     "conversations": "المحادثات",
     "today": "اليوم",
     "thisWeek": "هذا الأسبوع",

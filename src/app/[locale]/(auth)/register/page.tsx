@@ -13,9 +13,9 @@ export default async function RegisterPage() {
       </CardHeader>
       <CardContent>
         <RegisterForm />
-        <p className="mt-4 text-center text-sm text-muted-foreground">
+        <p className="mt-5 text-center text-sm text-hajr-gray-500">
           {t("haveAccount")}{" "}
-          <Link href="/login" className="font-semibold text-brand-navy hover:underline">
+          <Link href="/login" className="font-semibold text-hajr-rose transition-colors hover:underline">
             {t("loginNow")}
           </Link>
         </p>

@@ -77,8 +77,8 @@ export default function ChatBubble() {
   const quickReplies = isArabic ? QUICK_REPLIES_AR : QUICK_REPLIES_EN;
 
   const welcomeMessage = isArabic
-    ? "مرحبا! 👋 أنا حجر، مساعدك في أكاديمية حجر للغة الإنجليزية.\n\nكيف أقدر أساعدك اليوم؟"
-    : "Hello! 👋 I'm Hajr, your assistant at Hajr Academy for English.\n\nHow can I help you today?";
+    ? "مرحبا! 👋 أنا هجر، مساعدك في أكاديمية هجر.\n\nكيف أقدر أساعدك اليوم؟"
+    : "Hello! 👋 I'm Hajr, your assistant at Hajr A° Academy.\n\nHow can I help you today?";
 
   /* scroll on new messages */
   useEffect(() => {
@@ -141,7 +141,7 @@ export default function ChatBubble() {
         <div className="flex flex-col h-full bg-white rounded-[inherit] overflow-hidden">
           {/* header */}
           <div className="flex items-center justify-between bg-brand-rose text-white px-4 py-3">
-            <span className="font-semibold text-sm">حجر | مساعدك الذكي</span>
+            <span className="font-semibold text-sm">هجر | مساعدك الذكي</span>
             <button
               onClick={() => setOpen(false)}
               className="hover:bg-white/20 rounded-lg p-1 transition-colors"
@@ -256,7 +256,7 @@ export default function ChatBubble() {
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground text-center">
-              powered by حجر AI
+              powered by هجر AI
             </p>
           </div>
         </div>

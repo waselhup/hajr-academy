@@ -32,28 +32,31 @@ export function Topbar({
     .toUpperCase();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-hajr-gray-200 bg-white px-4 shadow-sm sm:px-6">
       <div className="flex items-center gap-2">
         <MobileSidebar role={role} />
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <LanguageToggle />
         <NotificationBell userId={userId} />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-full p-1 hover:bg-muted">
-              <Avatar className="h-9 w-9">
+            <button className="flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-hajr-gray-100">
+              <Avatar className="h-9 w-9 ring-2 ring-hajr-gray-200">
                 <AvatarImage src="" />
-                <AvatarFallback>{initials}</AvatarFallback>
+                <AvatarFallback className="bg-hajr-navy text-sm font-semibold text-white">{initials}</AvatarFallback>
               </Avatar>
+              <span className="hidden text-sm font-medium text-hajr-navy sm:inline">{name}</span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-60">
             <DropdownMenuLabel>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium">{name}</span>
-                <span className="text-xs text-muted-foreground">{email}</span>
-                <span className="mt-1 text-xs text-brand-rose">{t("Roles." + role as any)}</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-sm font-semibold text-hajr-navy">{name}</span>
+                <span className="text-xs text-hajr-gray-500">{email}</span>
+                <span className="mt-1.5 inline-flex w-fit items-center rounded-full bg-hajr-rose/10 px-2 py-0.5 text-xs font-medium text-hajr-rose">
+                  {t("Roles." + role as any)}
+                </span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />

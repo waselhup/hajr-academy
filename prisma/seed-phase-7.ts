@@ -14,9 +14,9 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-/** A rose CTA button — email-safe table. */
+/** A rose CTA button — email-safe table (rounded-full pill). */
 function btn(label: string, url: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0;"><tr><td style="background:#C97B8A;border-radius:8px;"><a href="${url}" style="display:inline-block;padding:12px 28px;color:#ffffff;font-weight:600;text-decoration:none;">${label}</a></td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#C97B8A;border-radius:999px;"><a href="${url}" style="display:inline-block;padding:13px 32px;color:#ffffff;font-weight:600;text-decoration:none;border-radius:999px;">${label}</a></td></tr></table>`;
 }
 
 const APP = "https://hajr-academy.vercel.app";
@@ -36,16 +36,16 @@ const templates: T[] = [
     key: "welcome_student",
     category: "TRANSACTIONAL",
     subjectEn: "Welcome to Hajr Academy!",
-    subjectAr: "أهلاً بك في أكاديمية حجر!",
+    subjectAr: "أهلاً بك في أكاديمية هجر!",
     bodyEn: `<h2 style="color:#2C3E50;">Welcome, {{name}}!</h2><p>Your Hajr Academy account is ready. Log in to see your classes, the English Lab, and STEP mock exams.</p>${btn("Go to my dashboard", `${APP}/en/student`)}<p>We're glad to have you with us.</p>`,
-    bodyAr: `<h2 style="color:#2C3E50;">أهلاً بك يا {{name}}!</h2><p>تم تجهيز حسابك في أكاديمية حجر. سجّل الدخول لمشاهدة فصولك ومختبر اللغة والاختبارات التجريبية لاختبار ستيب.</p>${btn("الذهاب إلى لوحتي", `${APP}/ar/student`)}<p>سعداء بانضمامك إلينا.</p>`,
+    bodyAr: `<h2 style="color:#2C3E50;">أهلاً بك يا {{name}}!</h2><p>تم تجهيز حسابك في أكاديمية هجر. سجّل الدخول لمشاهدة فصولك ومختبر اللغة والاختبارات التجريبية لاختبار ستيب.</p>${btn("الذهاب إلى لوحتي", `${APP}/ar/student`)}<p>سعداء بانضمامك إلينا.</p>`,
     variables: ["name"],
   },
   {
     key: "welcome_parent",
     category: "TRANSACTIONAL",
     subjectEn: "Welcome to Hajr Academy — Parent Account",
-    subjectAr: "أهلاً بك في أكاديمية حجر — حساب ولي الأمر",
+    subjectAr: "أهلاً بك في أكاديمية هجر — حساب ولي الأمر",
     bodyEn: `<h2 style="color:#2C3E50;">Welcome, {{name}}!</h2><p>Your parent account lets you follow your children's classes, schedules, and progress. Use your invite code to link a child.</p>${btn("Open parent portal", `${APP}/en/parent`)}`,
     bodyAr: `<h2 style="color:#2C3E50;">أهلاً بك يا {{name}}!</h2><p>يتيح لك حساب ولي الأمر متابعة فصول أبنائك وجداولهم وتقدّمهم. استخدم رمز الدعوة لربط ابنك بحسابك.</p>${btn("فتح بوابة ولي الأمر", `${APP}/ar/parent`)}`,
     variables: ["name"],
@@ -171,7 +171,7 @@ const templates: T[] = [
     key: "password_reset",
     category: "TRANSACTIONAL",
     subjectEn: "Reset your Hajr Academy password",
-    subjectAr: "إعادة تعيين كلمة مرور أكاديمية حجر",
+    subjectAr: "إعادة تعيين كلمة مرور أكاديمية هجر",
     bodyEn: `<h2 style="color:#2C3E50;">Password reset</h2><p>We received a request to reset your password. Click below to choose a new one. If you didn't request this, ignore this email.</p>${btn("Reset password", "{{resetUrl}}")}`,
     bodyAr: `<h2 style="color:#2C3E50;">إعادة تعيين كلمة المرور</h2><p>استلمنا طلباً لإعادة تعيين كلمة مرورك. اضغط أدناه لاختيار كلمة مرور جديدة. إذا لم تطلب ذلك، تجاهل هذه الرسالة.</p>${btn("إعادة تعيين كلمة المرور", "{{resetUrl}}")}`,
     variables: ["resetUrl"],

@@ -7,8 +7,8 @@ export default async function VerifyEmailPage() {
   return (
     <Card>
       <CardHeader className="items-center text-center">
-        <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-brand-mint">
-          <Mail className="h-6 w-6 text-brand-navy" />
+        <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-2xl bg-hajr-mint/50">
+          <Mail className="h-7 w-7 text-hajr-navy" />
         </div>
         <CardTitle>{t("checkEmail")}</CardTitle>
       </CardHeader>

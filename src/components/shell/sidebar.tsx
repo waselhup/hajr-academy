@@ -11,7 +11,7 @@ import {
   UserPlus, Bot, Palette,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Logo, LogoMark } from "@/components/brand/logo";
+import { HajrLogo } from "@/components/brand/logo";
 import type { Role } from "@prisma/client";
 
 type NavItem = { key: string; href: string; icon: React.ComponentType<{ className?: string }> };
@@ -98,22 +98,26 @@ export function Sidebar({ role }: { role: Role }) {
   return (
     <aside
       className={cn(
-        "hidden lg:flex h-screen sticky top-0 flex-col bg-brand-navy text-white transition-all",
+        "hidden lg:flex h-screen sticky top-0 flex-col bg-hajr-navy text-white transition-all duration-200",
         collapsed ? "w-16" : "w-60"
       )}
     >
       <div className="flex h-16 items-center justify-between px-4 border-b border-white/10">
-        {collapsed ? <LogoMark /> : <Logo light />}
+        {collapsed ? (
+          <HajrLogo size="sm" variant="mark" light />
+        ) : (
+          <HajrLogo size="sm" variant="full" light />
+        )}
         <button
           aria-label="Collapse"
           onClick={() => setCollapsed((c) => !c)}
-          className="rounded p-1 text-white/70 hover:bg-white/10"
+          className="rounded-md p-1 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform rtl-flip", collapsed && "rotate-180")} />
         </button>
       </div>
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        <ul className="space-y-1">
+        <ul className="space-y-0.5">
           {items.map((item) => {
             const isActive = pathname.endsWith(item.href) || pathname.includes(`${item.href}/`);
             const Icon = item.icon;
@@ -121,26 +125,30 @@ export function Sidebar({ role }: { role: Role }) {
               <li key={item.key}>
                 <Link
                   href={item.href}
+                  title={collapsed ? t(item.key as any) : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                    "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
                     isActive
-                      ? "bg-brand-rose text-white"
-                      : "text-white/85 hover:bg-white/10"
+                      ? "bg-hajr-rose text-white shadow-sm"
+                      : "text-white/75 hover:bg-hajr-rose/10 hover:text-white"
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  {!collapsed && <span>{t(item.key as any)}</span>}
+                  <Icon className={cn("h-[1.1rem] w-[1.1rem] shrink-0", isActive ? "text-white" : "text-white/70 group-hover:text-white")} />
+                  {!collapsed && <span className="truncate">{t(item.key as any)}</span>}
                 </Link>
               </li>
             );
           })}
         </ul>
       </nav>
-      <div className="border-t border-white/10 px-3 py-2 text-xs text-white/60">
-        {!collapsed && (
-          <span>
-            {t("Roles." + role as any)}
-          </span>
+      <div className="border-t border-white/10 px-4 py-3">
+        {!collapsed ? (
+          <div className="flex items-center gap-2">
+            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-hajr-mint" />
+            <span className="text-xs font-medium text-white/60">{t("Roles." + role as any)}</span>
+          </div>
+        ) : (
+          <span className="mx-auto block h-1.5 w-1.5 rounded-full bg-hajr-mint" />
         )}
       </div>
     </aside>

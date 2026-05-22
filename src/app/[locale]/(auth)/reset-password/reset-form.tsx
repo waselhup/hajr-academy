@@ -45,7 +45,7 @@ export function ResetForm() {
         <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
         {errors.confirmPassword && <p className="text-xs text-destructive">{t("Validation.passwordsMatch")}</p>}
       </div>
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button type="submit" variant="cta" className="w-full" disabled={isPending}>
         {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
         {t("Auth.resetPassword")}
       </Button>

@@ -308,7 +308,7 @@ export async function dispatch(params: DispatchParams): Promise<DispatchResult> 
             userId: r.userId,
             type: notifType,
             title: subject || "Hajr Academy",
-            titleAr: subject || "أكاديمية حجر",
+            titleAr: subject || "أكاديمية هجر",
             body: bodyText,
             bodyAr: bodyText,
             actionUrl: params.actionUrl,

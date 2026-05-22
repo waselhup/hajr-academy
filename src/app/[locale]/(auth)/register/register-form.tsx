@@ -92,8 +92,10 @@ export function RegisterForm() {
           <button
             type="button"
             onClick={() => setValue("role", "STUDENT")}
-            className={`rounded-md border px-3 py-2 text-sm font-medium ${
-              role === "STUDENT" ? "border-brand-rose bg-brand-rose/10 text-brand-navy" : "border-input"
+            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              role === "STUDENT"
+                ? "border-hajr-rose bg-hajr-rose/10 text-hajr-navy"
+                : "border-hajr-gray-200 text-hajr-gray-500 hover:border-hajr-gray-300"
             }`}
           >
             {t("Auth.student")}
@@ -101,8 +103,10 @@ export function RegisterForm() {
           <button
             type="button"
             onClick={() => setValue("role", "PARENT")}
-            className={`rounded-md border px-3 py-2 text-sm font-medium ${
-              role === "PARENT" ? "border-brand-rose bg-brand-rose/10 text-brand-navy" : "border-input"
+            className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+              role === "PARENT"
+                ? "border-hajr-rose bg-hajr-rose/10 text-hajr-navy"
+                : "border-hajr-gray-200 text-hajr-gray-500 hover:border-hajr-gray-300"
             }`}
           >
             {t("Auth.parent")}
@@ -139,7 +143,7 @@ export function RegisterForm() {
         {errors.confirmPassword && <p className="text-xs text-destructive">{t("Validation.passwordsMatch")}</p>}
       </div>
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button type="submit" variant="cta" className="w-full" disabled={isPending}>
         {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
         {t("Auth.registerNow")}
       </Button>

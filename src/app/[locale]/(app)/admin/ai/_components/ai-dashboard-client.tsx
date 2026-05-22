@@ -187,7 +187,7 @@ export function AIDashboardClient() {
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">
           {locale === "ar"
-            ? "حجر — لوحة تحكم الذكاء الاصطناعي"
+            ? "هجر — لوحة تحكم الذكاء الاصطناعي"
             : "Hajr — AI Dashboard"}
         </h1>
         <Card className="p-12 text-center">
@@ -209,7 +209,7 @@ export function AIDashboardClient() {
         <div>
           <h1 className="text-2xl font-bold">
             {locale === "ar"
-              ? "حجر — لوحة تحكم الذكاء الاصطناعي"
+              ? "هجر — لوحة تحكم الذكاء الاصطناعي"
               : "Hajr — AI Dashboard"}
           </h1>
           <p className="text-sm text-muted-foreground">

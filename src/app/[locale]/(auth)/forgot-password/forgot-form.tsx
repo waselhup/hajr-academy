@@ -33,7 +33,7 @@ export function ForgotForm() {
 
   if (sent) {
     return (
-      <div className="rounded-md bg-brand-mint/30 p-4 text-sm text-brand-navy">
+      <div className="rounded-lg border border-hajr-mint bg-hajr-mint/30 p-4 text-sm text-hajr-navy">
         {t("Auth.resetSent")}
       </div>
     );
@@ -46,7 +46,7 @@ export function ForgotForm() {
         <Input id="email" type="email" {...register("email")} />
         {errors.email && <p className="text-xs text-destructive">{t("Validation.emailInvalid")}</p>}
       </div>
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button type="submit" variant="cta" className="w-full" disabled={isPending}>
         {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
         {t("Auth.sendResetLink")}
       </Button>

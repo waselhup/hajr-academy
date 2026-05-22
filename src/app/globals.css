@@ -4,25 +4,42 @@
 
 @layer base {
   :root {
-    --background: 39 56% 96%;
-    --foreground: 217 33% 17%;
+    /* ── HAJR A° brand palette (raw values) ───────────── */
+    --hajr-navy: #2C3E50;
+    --hajr-rose: #C97B8A;
+    --hajr-ivory: #FAF6EE;
+    --hajr-mint: #B5E5D8;
+    --hajr-lavender: #D4C5E2;
+    --hajr-white: #FFFFFF;
+    --hajr-black: #1A1A2E;
+    --hajr-gray-100: #F8F7F4;
+    --hajr-gray-200: #E8E5DF;
+    --hajr-gray-300: #D1CCC4;
+    --hajr-gray-500: #8A8580;
+    --hajr-error: #E74C3C;
+    --hajr-warning: #F39C12;
+    --hajr-success: #27AE60;
+
+    /* ── shadcn/ui tokens, mapped to the brand palette ── */
+    --background: 39 56% 96%;        /* ivory */
+    --foreground: 240 27% 14%;       /* near-black #1A1A2E */
     --card: 0 0% 100%;
-    --card-foreground: 217 33% 17%;
+    --card-foreground: 240 27% 14%;
     --popover: 0 0% 100%;
-    --popover-foreground: 217 33% 17%;
-    --primary: 213 32% 24%;
+    --popover-foreground: 240 27% 14%;
+    --primary: 354 39% 64%;          /* rose — primary action */
     --primary-foreground: 0 0% 100%;
-    --secondary: 354 39% 64%;
+    --secondary: 213 32% 24%;        /* navy */
     --secondary-foreground: 0 0% 100%;
-    --muted: 39 30% 92%;
-    --muted-foreground: 215 16% 47%;
-    --accent: 165 51% 80%;
+    --muted: 40 18% 95%;             /* gray-100 */
+    --muted-foreground: 36 4% 52%;   /* gray-500 */
+    --accent: 165 51% 80%;           /* mint */
     --accent-foreground: 213 32% 24%;
-    --destructive: 0 84% 60%;
+    --destructive: 6 78% 57%;        /* #E74C3C */
     --destructive-foreground: 0 0% 100%;
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 354 39% 64%;
+    --border: 40 14% 89%;            /* gray-200 */
+    --input: 40 14% 89%;
+    --ring: 354 39% 64%;             /* rose focus ring */
     --radius: 0.75rem;
   }
 
@@ -35,7 +52,7 @@
   }
 
   body {
-    @apply bg-brand-ivory text-foreground antialiased;
+    @apply bg-hajr-ivory text-hajr-black antialiased;
     font-family: var(--font-en), Inter, sans-serif;
   }
 
@@ -45,7 +62,7 @@
 
   /* Headings: condensed, tight tracking to match HAJR logo */
   h1, h2, h3, h4 {
-    @apply font-bold tracking-tight text-brand-navy;
+    @apply font-bold tracking-tight text-hajr-navy;
     letter-spacing: -0.02em;
   }
 
@@ -63,15 +80,30 @@
 }
 
 @layer components {
+  /* Card: white surface on ivory page, soft shadow, lifts on hover */
   .card-base {
-    @apply rounded-xl border border-gray-100 bg-white p-6 shadow-sm;
+    @apply rounded-xl border border-hajr-gray-200 bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-card-hover;
   }
 
+  /* Buttons — primary action is rose per brand spec */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand-navy px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg bg-hajr-rose px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
   }
 
+  .btn-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-hajr-navy bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-navy/5 disabled:opacity-50;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-gray-100 disabled:opacity-50;
+  }
+
+  .btn-destructive {
+    @apply inline-flex items-center justify-center rounded-lg bg-hajr-error px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50;
+  }
+
+  /* kept for backward compat — same as btn-primary */
   .btn-cta {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand-rose px-4 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg bg-hajr-rose px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
   }
 }

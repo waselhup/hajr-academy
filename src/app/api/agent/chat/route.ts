@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       (err.message.includes("API key") || err.message.includes("authentication"))
     ) {
       return Response.json(
-        { error: "ai_unavailable", message: "حجر غير متاح حالياً، حاول لاحقاً" },
+        { error: "ai_unavailable", message: "هجر غير متاح حالياً، حاول لاحقاً" },
         { status: 503 }
       );
     }

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
-import { Logo } from "@/components/brand/logo";
+import { HajrLogo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
 import type { Role } from "@prisma/client";
 import {
@@ -61,16 +61,20 @@ export function MobileSidebar({ role }: { role: Role }) {
       </Button>
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setOpen(false)} />
-          <div className="absolute start-0 top-0 h-full w-64 bg-brand-navy text-white">
+          <div className="absolute inset-0 bg-hajr-black/50 animate-fade-in" onClick={() => setOpen(false)} />
+          <div className="absolute start-0 top-0 h-full w-64 bg-hajr-navy text-white shadow-xl">
             <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
-              <Logo light />
-              <button onClick={() => setOpen(false)} aria-label="Close">
+              <HajrLogo size="sm" variant="full" light />
+              <button
+                onClick={() => setOpen(false)}
+                aria-label="Close"
+                className="rounded-md p-1 text-white/60 transition-colors hover:bg-white/10 hover:text-white"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <nav className="p-2">
-              <ul className="space-y-1">
+              <ul className="space-y-0.5">
                 {NAV_BY_ROLE[role].map((item) => {
                   const Icon = item.icon;
                   const isActive = pathname.endsWith(item.href);
@@ -80,11 +84,13 @@ export function MobileSidebar({ role }: { role: Role }) {
                         href={item.href}
                         onClick={() => setOpen(false)}
                         className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm",
-                          isActive ? "bg-brand-rose text-white" : "text-white/85 hover:bg-white/10"
+                          "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
+                          isActive
+                            ? "bg-hajr-rose text-white shadow-sm"
+                            : "text-white/75 hover:bg-hajr-rose/10 hover:text-white"
                         )}
                       >
-                        <Icon className="h-4 w-4" />
+                        <Icon className={cn("h-[1.1rem] w-[1.1rem]", isActive ? "text-white" : "text-white/70 group-hover:text-white")} />
                         <span>{t(item.key as any)}</span>
                       </Link>
                     </li>

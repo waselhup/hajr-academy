@@ -73,7 +73,7 @@ export function LoginForm() {
         {errors.password && <p className="text-xs text-destructive">{t("Validation.passwordMin")}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" className="w-full" disabled={isPending}>
+      <Button type="submit" variant="cta" className="w-full" disabled={isPending}>
         {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
         {t("Auth.loginNow")}
       </Button>
