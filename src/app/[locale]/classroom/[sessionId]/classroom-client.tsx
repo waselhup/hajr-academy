@@ -83,11 +83,22 @@ export function ClassroomClient({
         console.error("Zoom join failed:", err);
         if (cancelled) return;
         const msg = (err as Error).message ?? "";
-        if (msg.includes("password") || msg.includes("Password")) setErrorMsg(t("errWrongPassword"));
-        else if (msg.includes("RATE_LIMITED")) setErrorMsg(t("errRateLimited"));
-        else if (msg.includes("NOT_AUTHORIZED")) setErrorMsg(t("errNotAuthorized"));
-        else if (msg.includes("MEETING_NOT_FOUND")) setErrorMsg(t("errNotStarted"));
-        else setErrorMsg(t("errGeneric"));
+        const reason = String((err as { reason?: string })?.reason ?? "");
+        const combined = `${msg} ${reason}`.toLowerCase();
+        if (combined.includes("signature")) {
+          // SDK key/secret mismatch or the SDK app is not activated.
+          setErrorMsg(t("errSignature"));
+        } else if (combined.includes("password")) {
+          setErrorMsg(t("errWrongPassword"));
+        } else if (combined.includes("rate_limited")) {
+          setErrorMsg(t("errRateLimited"));
+        } else if (combined.includes("not_authorized")) {
+          setErrorMsg(t("errNotAuthorized"));
+        } else if (combined.includes("meeting_not_found")) {
+          setErrorMsg(t("errNotStarted"));
+        } else {
+          setErrorMsg(t("errGeneric"));
+        }
         setPhase("error");
       }
     })();

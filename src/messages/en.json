@@ -392,6 +392,7 @@
     "errNotStarted": "The teacher has not started the class yet.",
     "errWrongPassword": "Wrong meeting password.",
     "errRateLimited": "Too many attempts — wait a minute and retry.",
+    "errSignature": "Could not verify the virtual classroom setup. Please contact the administration.",
     "errGeneric": "Something went wrong connecting to the classroom."
   },
   "Video": {

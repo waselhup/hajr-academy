@@ -193,6 +193,7 @@ model ClassSession {
   scheduledDate    DateTime
   zoomMeetingId    String?
   zoomJoinUrl      String?
+  zoomPassword     String?
   zoomRecordingUrl String?
   blackboardRoomId String?       @unique
   status           SessionStatus @default(SCHEDULED)

@@ -78,9 +78,15 @@ export async function POST(req: Request) {
         autoRecording: true,
       });
 
+      // Persist the passcode Zoom actually assigned (it may normalise ours)
+      // so the classroom join can supply the correct password.
       await prisma.classSession.update({
         where: { id: cs.id },
-        data: { zoomMeetingId: meeting.meetingId, zoomJoinUrl: meeting.joinUrl },
+        data: {
+          zoomMeetingId: meeting.meetingId,
+          zoomJoinUrl: meeting.joinUrl,
+          zoomPassword: meeting.password ?? passcode,
+        },
       });
 
       await logAudit({
@@ -130,7 +136,10 @@ export async function POST(req: Request) {
 
     await prisma.privateLesson.update({
       where: { id: pl.id },
-      data: { zoomMeetingId: meeting.meetingId, zoomPassword: passcode },
+      data: {
+        zoomMeetingId: meeting.meetingId,
+        zoomPassword: meeting.password ?? passcode,
+      },
     });
 
     await logAudit({

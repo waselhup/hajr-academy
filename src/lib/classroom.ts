@@ -85,7 +85,7 @@ export async function resolveClassroomAccess(
         kind: "class",
         title: cs.class.nameAr ?? cs.class.name,
         meetingId: cs.zoomMeetingId,
-        passcode: null,
+        passcode: cs.zoomPassword,
         scheduledDate: cs.scheduledDate,
         durationMinutes: cs.class.durationMinutes,
         status: cs.status,
