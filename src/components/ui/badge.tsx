@@ -7,13 +7,16 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-transparent bg-hajr-navy text-white",
-        success: "border-transparent bg-hajr-mint text-hajr-navy",
-        info: "border-transparent bg-hajr-lavender text-hajr-navy",
+        default: "border-transparent bg-slate-100 text-hajr-navy",
+        success: "border-transparent bg-emerald-50 text-emerald-700",
+        info: "border-transparent bg-blue-50 text-blue-700",
+        // `rose` badge — small accent only (unread counts, "popular" tag)
         rose: "border-transparent bg-hajr-rose text-white",
-        outline: "border-hajr-navy text-hajr-navy",
-        danger: "border-transparent bg-hajr-rose text-white",
-        warning: "border-transparent bg-hajr-warning/15 text-hajr-warning",
+        navy: "border-transparent bg-hajr-deep-navy text-white",
+        outline: "border-hajr-border text-hajr-navy",
+        danger: "border-transparent bg-red-50 text-red-700",
+        warning: "border-transparent bg-amber-50 text-amber-700",
+        draft: "border-transparent bg-slate-100 text-slate-600",
       },
     },
     defaultVariants: { variant: "default" },

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { broadcastRead } from "@/lib/chat/realtime";
 
 export const dynamic = "force-dynamic";
 
 /**
  * GET /api/messages/[threadId] — all messages in a thread.
  *
- * Only a participant (sender or recipient of a message in the thread)
- * may read it. Reading also marks the user's inbound messages as READ.
+ * Only a participant may read it. Reading also marks the user's inbound
+ * messages READ and broadcasts a `read` event so the sender's UI can
+ * flip its receipts live.
  */
 export async function GET(
   _req: NextRequest,
@@ -25,8 +27,8 @@ export async function GET(
       where: { threadId: params.threadId, channel: "IN_APP" },
       orderBy: { createdAt: "asc" },
       include: {
-        fromUser: { select: { id: true, name: true, role: true } },
-        toUser: { select: { id: true, name: true } },
+        fromUser: { select: { id: true, name: true, role: true, avatar: true } },
+        toUser: { select: { id: true, name: true, role: true, avatar: true } },
       },
     });
 
@@ -34,7 +36,6 @@ export async function GET(
       return NextResponse.json({ error: "Thread not found" }, { status: 404 });
     }
 
-    // Authorisation: the user must be a participant.
     const isParticipant = messages.some(
       (m) => m.fromUserId === uid || m.toUserId === uid
     );
@@ -42,30 +43,46 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Mark this user's inbound messages in the thread as read.
-    await prisma.message.updateMany({
-      where: {
+    // Mark this user's inbound messages as read.
+    const unreadIds = messages
+      .filter((m) => m.toUserId === uid && m.readAt === null)
+      .map((m) => m.id);
+    if (unreadIds.length > 0) {
+      const readAt = new Date();
+      await prisma.message.updateMany({
+        where: { id: { in: unreadIds } },
+        data: { status: "READ", readAt },
+      });
+      // Tell the other party their messages were seen.
+      broadcastRead(params.threadId, {
         threadId: params.threadId,
-        toUserId: uid,
-        readAt: null,
-      },
-      data: { status: "READ", readAt: new Date() },
-    });
+        readerUserId: uid,
+        readAt: readAt.toISOString(),
+      }).catch(() => {});
+    }
 
-    const other =
-      messages[0].fromUserId === uid ? messages[0].toUser : messages[0].fromUser;
+    const first = messages[0];
+    const other = first.fromUserId === uid ? first.toUser : first.fromUser;
 
     return NextResponse.json({
       threadId: params.threadId,
-      other: other ? { id: other.id, name: other.name } : null,
+      other: other
+        ? { id: other.id, name: other.name, role: other.role, avatar: other.avatar }
+        : null,
       messages: messages.map((m) => ({
         id: m.id,
         fromUserId: m.fromUserId,
         fromName: m.fromUser.name,
         body: m.body,
         subject: m.subject,
+        attachmentUrl: m.attachmentUrl,
+        attachmentName: m.attachmentName,
+        attachmentType: m.attachmentType,
+        attachmentSize: m.attachmentSize,
         createdAt: m.createdAt.toISOString(),
         readAt: m.readAt?.toISOString() ?? null,
+        deliveredAt: m.deliveredAt?.toISOString() ?? null,
+        status: m.status,
         mine: m.fromUserId === uid,
       })),
     });

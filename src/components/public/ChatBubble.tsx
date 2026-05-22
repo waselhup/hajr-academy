@@ -107,20 +107,21 @@ export default function ChatBubble() {
 
   return (
     <>
-      {/* floating button */}
+      {/* floating button — NAVY circle per brand v2 */}
       {!open && (
         <button
           onClick={() => setOpen(true)}
+          aria-label="Open chat"
           className={cn(
             "fixed z-50 bottom-6 end-6",
-            "h-14 w-14 rounded-full bg-brand-rose text-white shadow-lg",
+            "h-14 w-14 rounded-full bg-hajr-deep-navy text-white shadow-lg",
             "flex items-center justify-center",
             "hover:scale-105 transition-transform",
             "animate-[hajr-pulse_2s_ease-in-out_infinite]"
           )}
         >
           <MessageCircle className="h-6 w-6" />
-          <style>{`@keyframes hajr-pulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--brand-rose-rgb,220 70 100),0.4)}70%{box-shadow:0 0 0 12px rgba(var(--brand-rose-rgb,220 70 100),0)}}`}</style>
+          <style>{`@keyframes hajr-pulse{0%,100%{box-shadow:0 0 0 0 rgba(30,42,54,0.35)}70%{box-shadow:0 0 0 12px rgba(30,42,54,0)}}`}</style>
         </button>
       )}
 
@@ -139,8 +140,8 @@ export default function ChatBubble() {
         )}
       >
         <div className="flex flex-col h-full bg-white rounded-[inherit] overflow-hidden">
-          {/* header */}
-          <div className="flex items-center justify-between bg-brand-rose text-white px-4 py-3">
+          {/* header — deep navy */}
+          <div className="flex items-center justify-between bg-hajr-deep-navy text-white px-4 py-3">
             <span className="font-semibold text-sm">هجر | مساعدك الذكي</span>
             <button
               onClick={() => setOpen(false)}
@@ -154,7 +155,7 @@ export default function ChatBubble() {
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 min-h-0">
             {/* welcome */}
             {showedWelcome && (
-              <div className="bg-brand-ivory text-brand-navy rounded-2xl px-4 py-2.5 text-sm max-w-[85%]">
+              <div className="bg-white border border-hajr-border text-hajr-navy rounded-2xl px-4 py-2.5 text-sm max-w-[85%]">
                 {renderInlineMarkdown(welcomeMessage)}
               </div>
             )}
@@ -166,7 +167,7 @@ export default function ChatBubble() {
                   <button
                     key={qr.action}
                     onClick={() => handleSend(qr.action)}
-                    className="bg-brand-rose/10 hover:bg-brand-rose/20 text-brand-rose text-xs rounded-full px-3 py-1.5 transition-colors"
+                    className="bg-hajr-surface hover:bg-hajr-hover border border-hajr-border text-hajr-navy text-xs rounded-full px-3 py-1.5 transition-colors"
                   >
                     {qr.label}
                   </button>
@@ -181,12 +182,12 @@ export default function ChatBubble() {
                 className={cn(
                   "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
                   msg.role === "user"
-                    ? "bg-brand-rose text-white ms-auto"
-                    : "bg-brand-ivory text-brand-navy"
+                    ? "bg-slate-100 text-hajr-navy ms-auto"
+                    : "bg-white border border-hajr-border text-hajr-navy"
                 )}
               >
                 {msg.role === "assistant" && !msg.content && isLoading ? (
-                  <BouncingDots className="text-brand-rose" />
+                  <BouncingDots className="text-hajr-navy" />
                 ) : (
                   renderInlineMarkdown(msg.content)
                 )}
@@ -213,7 +214,7 @@ export default function ChatBubble() {
                   <button
                     key={a.action}
                     onClick={() => handleSend(a.action)}
-                    className="bg-brand-rose/10 hover:bg-brand-rose/20 text-brand-rose text-xs rounded-full px-3 py-1.5 transition-colors"
+                    className="bg-hajr-surface hover:bg-hajr-hover border border-hajr-border text-hajr-navy text-xs rounded-full px-3 py-1.5 transition-colors"
                   >
                     {a.label}
                   </button>
@@ -244,15 +245,16 @@ export default function ChatBubble() {
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
                 placeholder={isArabic ? "اكتب رسالتك..." : "Type your message..."}
-                className="flex-1 rounded-xl border border-input bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-brand-rose/30"
+                className="flex-1 rounded-xl border border-hajr-border bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-hajr-navy/25"
                 disabled={remaining === 0}
               />
               <button
                 onClick={() => handleSend()}
                 disabled={isLoading || !input.trim() || remaining === 0}
-                className="bg-brand-rose hover:bg-brand-rose/80 disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
+                aria-label="Send"
+                className="bg-hajr-deep-navy hover:bg-hajr-navy disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
               >
-                <Send className="h-4 w-4" />
+                <Send className="h-4 w-4 rtl-flip" />
               </button>
             </div>
             <p className="text-[10px] text-muted-foreground text-center">

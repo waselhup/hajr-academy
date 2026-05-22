@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, Mail, MessageSquare, AlertTriangle, Wallet, FileText, ScrollText } from "lucide-react";
+import { Loader2, Mail, MessageSquare, AlertTriangle, Wallet, FileText, ScrollText, MessagesSquare, Inbox } from "lucide-react";
 
 interface Stats {
   volume: { today: number; week: number; month: number };
@@ -65,6 +65,18 @@ export function AdminCommsClient() {
     <div className="space-y-6">
       {/* Quick links */}
       <div className="flex flex-wrap gap-2">
+        <Button asChild variant="default" size="sm">
+          <Link href={`/${locale}/admin/communications/chats`}>
+            <MessagesSquare className="me-2 h-4 w-4" />
+            {t("chatsLink")}
+          </Link>
+        </Button>
+        <Button asChild variant="default" size="sm">
+          <Link href={`/${locale}/admin/communications/contacts`}>
+            <Inbox className="me-2 h-4 w-4" />
+            {t("contactsLink")}
+          </Link>
+        </Button>
         <Button asChild variant="outline" size="sm">
           <Link href={`/${locale}/admin/communications/templates`}>
             <FileText className="me-2 h-4 w-4" />

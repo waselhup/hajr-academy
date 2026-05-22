@@ -1,9 +1,6 @@
-import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default async function StudentMessagesPage() {
-  await requireRole("STUDENT");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.messages")} phase={5} description="Chat with my teachers." />;
+/** Legacy route — the universal chat lives at /messages. */
+export default function StudentMessagesPage() {
+  redirect("/messages");
 }

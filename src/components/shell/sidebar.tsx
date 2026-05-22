@@ -8,15 +8,15 @@ import {
   MessageSquare, ClipboardCheck, FlaskConical, FileText, Building2,
   Radio, ShieldCheck, Settings, BellRing, User as UserIcon, ChevronLeft,
   ListChecks, School, Receipt, BadgeDollarSign, BookText, BarChart3, BookCheck, Video,
-  UserPlus, Bot, Palette,
+  UserPlus, Bot, Palette, Inbox, MessagesSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HajrLogo } from "@/components/brand/logo";
 import type { Role } from "@prisma/client";
 
-type NavItem = { key: string; href: string; icon: React.ComponentType<{ className?: string }> };
+export type NavItem = { key: string; href: string; icon: React.ComponentType<{ className?: string }> };
 
-const NAV_BY_ROLE: Record<Role, NavItem[]> = {
+export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   SUPER_ADMIN: [
     { key: "Nav.dashboard", href: "/admin", icon: LayoutDashboard },
     { key: "Nav.students", href: "/admin/students", icon: Users },
@@ -28,6 +28,9 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
     { key: "Nav.finance", href: "/admin/finance", icon: Wallet },
     { key: "Nav.communications", href: "/admin/communications", icon: MessageSquare },
+    { key: "Nav.adminChats", href: "/admin/communications/chats", icon: MessagesSquare },
+    { key: "Nav.contactRequests", href: "/admin/communications/contacts", icon: Inbox },
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
     { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardCheck },
     { key: "Nav.lab", href: "/admin/lab/exercises", icon: FlaskConical },
@@ -51,6 +54,9 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
     { key: "Nav.finance", href: "/admin/finance", icon: Wallet },
     { key: "Nav.communications", href: "/admin/communications", icon: MessageSquare },
+    { key: "Nav.adminChats", href: "/admin/communications/chats", icon: MessagesSquare },
+    { key: "Nav.contactRequests", href: "/admin/communications/contacts", icon: Inbox },
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
     { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardCheck },
     { key: "Nav.lab", href: "/admin/lab", icon: FlaskConical },
@@ -95,6 +101,28 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   ],
 };
 
+/**
+ * Whether `href` is the active nav item for `pathname`.
+ *
+ * Strips the `/ar` | `/en` locale prefix, then matches a route prefix.
+ * Among sibling items, the longest matching href wins — so on
+ * `/admin/communications/chats` only "Chats" lights up, not its parent.
+ */
+export function isNavActive(
+  pathname: string,
+  href: string,
+  siblings: NavItem[]
+): boolean {
+  const path = pathname.replace(/^\/(ar|en)(?=\/|$)/, "") || "/";
+  const matches = (h: string) => path === h || path.startsWith(`${h}/`);
+  if (!matches(href)) return false;
+  // If a longer sibling href also matches, defer to it.
+  const longer = siblings
+    .map((s) => s.href)
+    .filter((h) => h.length > href.length && matches(h));
+  return longer.length === 0;
+}
+
 export function Sidebar({ role }: { role: Role }) {
   const t = useTranslations();
   const pathname = usePathname();
@@ -104,7 +132,7 @@ export function Sidebar({ role }: { role: Role }) {
   return (
     <aside
       className={cn(
-        "hidden lg:flex h-screen sticky top-0 flex-col bg-hajr-navy text-white transition-all duration-200",
+        "hidden lg:flex h-screen sticky top-0 flex-col bg-hajr-deep-navy text-white transition-all duration-200",
         collapsed ? "w-16" : "w-60"
       )}
     >
@@ -125,7 +153,7 @@ export function Sidebar({ role }: { role: Role }) {
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         <ul className="space-y-0.5">
           {items.map((item) => {
-            const isActive = pathname.endsWith(item.href) || pathname.includes(`${item.href}/`);
+            const isActive = isNavActive(pathname, item.href, items);
             const Icon = item.icon;
             return (
               <li key={item.key}>
@@ -135,10 +163,14 @@ export function Sidebar({ role }: { role: Role }) {
                   className={cn(
                     "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200",
                     isActive
-                      ? "bg-hajr-rose text-white shadow-sm"
-                      : "text-white/75 hover:bg-hajr-rose/10 hover:text-white"
+                      ? "bg-white/[0.08] text-white"
+                      : "text-white/70 hover:bg-white/[0.05] hover:text-white"
                   )}
                 >
+                  {/* active indicator — a thin rose bar on the leading edge */}
+                  {isActive && (
+                    <span className="absolute inset-y-1 start-0 w-[3px] rounded-full bg-hajr-rose" />
+                  )}
                   <Icon className={cn("h-[1.1rem] w-[1.1rem] shrink-0", isActive ? "text-white" : "text-white/70 group-hover:text-white")} />
                   {!collapsed && <span className="truncate">{t(item.key as any)}</span>}
                 </Link>

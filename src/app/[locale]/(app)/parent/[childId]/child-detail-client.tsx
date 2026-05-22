@@ -142,7 +142,7 @@ export function ChildDetailClient({
                   </div>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
                     <div
-                      className="h-full bg-hajr-rose"
+                      className="h-full bg-hajr-mint"
                       style={{
                         width: `${Math.min(100, s.confidence)}%`,
                       }}

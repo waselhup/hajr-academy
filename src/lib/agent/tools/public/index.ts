@@ -17,6 +17,7 @@ import { applyPromoCode } from "./apply-promo-code";
 import { getChildProgress } from "./get-child-progress";
 import { getChildAttendance } from "./get-child-attendance";
 import { getChildNextClass } from "./get-child-next-class";
+import { submitContactMessage } from "./submit-contact-message";
 
 export const publicTools = [
   getPrograms,
@@ -40,4 +41,6 @@ export const publicTools = [
   getChildProgress,
   getChildAttendance,
   getChildNextClass,
+  // Communication system — visitor → contact request
+  submitContactMessage,
 ];

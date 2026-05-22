@@ -57,7 +57,7 @@ export function wrapEmailShell(opts: {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#FAF6EE;padding:32px 0;">
     <tr><td align="center">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 8px rgba(44,62,80,0.08);">
-        <tr><td style="background:#2C3E50;padding:24px 32px;" align="${dir === "rtl" ? "right" : "left"}">
+        <tr><td style="background:#1E2A36;padding:24px 32px;" align="${dir === "rtl" ? "right" : "left"}">
           <span style="color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">HAJR</span>
           <span style="color:#C97B8A;font-size:24px;font-weight:800;">&nbsp;|&nbsp;</span>
           <span style="color:#C97B8A;font-size:22px;font-weight:600;">A&deg;</span>

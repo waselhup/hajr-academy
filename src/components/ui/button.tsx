@@ -4,16 +4,18 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hajr-rose focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-hajr-navy focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
-        default: "bg-hajr-navy text-white shadow-sm hover:bg-hajr-navy/90",
+        // DEFAULT (secondary) — deep navy. The everyday button.
+        default: "bg-hajr-deep-navy text-white shadow-sm hover:bg-hajr-navy",
+        // CTA — rose. Reserve for the 1–2 most important actions per page.
         cta: "bg-hajr-rose text-white shadow-sm hover:bg-hajr-rose/90",
         destructive: "bg-hajr-error text-white shadow-sm hover:bg-hajr-error/90",
         outline: "border border-hajr-navy bg-transparent text-hajr-navy hover:bg-hajr-navy/5",
-        secondary: "bg-hajr-lavender text-hajr-navy hover:bg-hajr-lavender/80",
-        ghost: "text-hajr-navy hover:bg-hajr-gray-100",
+        secondary: "bg-hajr-deep-navy text-white shadow-sm hover:bg-hajr-navy",
+        ghost: "text-hajr-navy hover:bg-hajr-hover",
         link: "text-hajr-rose underline-offset-4 hover:underline",
       },
       size: {

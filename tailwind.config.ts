@@ -16,27 +16,44 @@ const config: Config = {
     extend: {
       colors: {
         hajr: {
-          navy: "#2C3E50",
-          rose: "#C97B8A",
-          ivory: "#FAF6EE",
-          mint: "#B5E5D8",
-          lavender: "#D4C5E2",
-          white: "#FFFFFF",
-          black: "#1A1A2E",
-          error: "#E74C3C",
-          warning: "#F39C12",
-          success: "#27AE60",
+          // ── BRAND v2 — "Premium, not pink" — navy-dominant ──
+          "deep-navy": "#1E2A36", // PRIMARY — hero, sidebar, footer, headers
+          navy: "#2C3E50", // headings, card titles, body text
+          ivory: "#FAF6EE", // page backgrounds
+          white: "#FFFFFF", // cards, inputs
+          rose: "#C97B8A", // ACCENT ONLY — CTA buttons, active links, badges
+          mint: "#B5E5D8", // success states, progress bars
+          lavender: "#D4C5E2", // legacy accent (kept for compat)
+          black: "#1E2A36",
+          // text scale
+          text: "#1E2A36",
+          body: "#2C3E50",
+          muted: "#64748B",
+          light: "#94A3B8",
+          // surfaces & lines
+          border: "#E2E8F0",
+          surface: "#F8FAFC",
+          hover: "#F1F5F9",
+          // status
+          error: "#DC2626",
+          warning: "#F59E0B",
+          success: "#059669",
+          info: "#2563EB",
           gray: {
-            100: "#F8F7F4",
-            200: "#E8E5DF",
-            300: "#D1CCC4",
-            500: "#8A8580",
+            100: "#F8FAFC",
+            200: "#E2E8F0",
+            300: "#CBD5E1",
+            500: "#64748B",
           },
         },
-        // alias kept so existing brand-* utilities continue to work
+        // alias kept so existing brand-* utilities continue to work.
+        // brand.rose now resolves to navy so legacy `bg-brand-rose`
+        // surfaces never paint pink — true CTAs use `variant="cta"`.
         brand: {
+          "deep-navy": "#1E2A36",
           navy: "#2C3E50",
-          rose: "#C97B8A",
+          rose: "#2C3E50",
+          accent: "#C97B8A",
           mint: "#B5E5D8",
           lavender: "#D4C5E2",
           ivory: "#FAF6EE",

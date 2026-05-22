@@ -4,42 +4,58 @@
 
 @layer base {
   :root {
-    /* ── HAJR A° brand palette (raw values) ───────────── */
-    --hajr-navy: #2C3E50;
-    --hajr-rose: #C97B8A;
-    --hajr-ivory: #FAF6EE;
-    --hajr-mint: #B5E5D8;
-    --hajr-lavender: #D4C5E2;
-    --hajr-white: #FFFFFF;
-    --hajr-black: #1A1A2E;
-    --hajr-gray-100: #F8F7F4;
-    --hajr-gray-200: #E8E5DF;
-    --hajr-gray-300: #D1CCC4;
-    --hajr-gray-500: #8A8580;
-    --hajr-error: #E74C3C;
-    --hajr-warning: #F39C12;
-    --hajr-success: #27AE60;
+    /* ── HAJR A° brand palette v2 — "Premium, not pink" ──────────
+       Navy-dominant. Rose is an ACCENT ONLY (CTAs, active states). */
+    --hajr-deep-navy: #1E2A36; /* PRIMARY — hero, sidebar, footer, headers */
+    --hajr-navy: #2C3E50;      /* headings, card titles, body text */
+    --hajr-ivory: #FAF6EE;     /* page backgrounds */
+    --hajr-white: #FFFFFF;     /* cards, inputs */
+    --hajr-rose: #C97B8A;      /* ACCENT ONLY — CTA buttons, active links */
+    --hajr-mint: #B5E5D8;      /* success states, progress bars */
+    --hajr-lavender: #D4C5E2;  /* legacy accent */
 
-    /* ── shadcn/ui tokens, mapped to the brand palette ── */
+    --hajr-text-primary: #1E2A36;
+    --hajr-text-body: #2C3E50;
+    --hajr-text-muted: #64748B;
+    --hajr-text-light: #94A3B8;
+
+    --hajr-border: #E2E8F0;
+    --hajr-surface: #F8FAFC;
+    --hajr-hover: #F1F5F9;
+
+    --hajr-error: #DC2626;
+    --hajr-warning: #F59E0B;
+    --hajr-success: #059669;
+    --hajr-info: #2563EB;
+
+    /* legacy aliases */
+    --hajr-black: #1E2A36;
+    --hajr-gray-100: #F8FAFC;
+    --hajr-gray-200: #E2E8F0;
+    --hajr-gray-300: #CBD5E1;
+    --hajr-gray-500: #64748B;
+
+    /* ── shadcn/ui tokens, mapped to the brand palette ──────────
+       primary = navy (the DEFAULT action); rose stays reserved. */
     --background: 39 56% 96%;        /* ivory */
-    --foreground: 240 27% 14%;       /* near-black #1A1A2E */
+    --foreground: 211 31% 17%;       /* deep navy #1E2A36 */
     --card: 0 0% 100%;
-    --card-foreground: 240 27% 14%;
+    --card-foreground: 211 31% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 27% 14%;
-    --primary: 354 39% 64%;          /* rose — primary action */
+    --popover-foreground: 211 31% 17%;
+    --primary: 211 31% 17%;          /* deep navy — primary action */
     --primary-foreground: 0 0% 100%;
     --secondary: 213 32% 24%;        /* navy */
     --secondary-foreground: 0 0% 100%;
-    --muted: 40 18% 95%;             /* gray-100 */
-    --muted-foreground: 36 4% 52%;   /* gray-500 */
+    --muted: 210 40% 98%;            /* surface */
+    --muted-foreground: 215 16% 47%; /* text-muted */
     --accent: 165 51% 80%;           /* mint */
     --accent-foreground: 213 32% 24%;
-    --destructive: 6 78% 57%;        /* #E74C3C */
+    --destructive: 0 72% 51%;        /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
-    --border: 40 14% 89%;            /* gray-200 */
-    --input: 40 14% 89%;
-    --ring: 354 39% 64%;             /* rose focus ring */
+    --border: 214 32% 91%;           /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 211 31% 17%;             /* navy focus ring */
     --radius: 0.75rem;
   }
 
@@ -52,7 +68,9 @@
   }
 
   body {
-    @apply bg-hajr-ivory text-hajr-black antialiased;
+    @apply antialiased;
+    background: #FAF6EE;
+    color: #2C3E50;
     font-family: var(--font-en), Inter, sans-serif;
   }
 
@@ -62,7 +80,8 @@
 
   /* Headings: condensed, tight tracking to match HAJR logo */
   h1, h2, h3, h4 {
-    @apply font-bold tracking-tight text-hajr-navy;
+    @apply font-bold tracking-tight;
+    color: #1E2A36;
     letter-spacing: -0.02em;
   }
 
@@ -82,11 +101,18 @@
 @layer components {
   /* Card: white surface on ivory page, soft shadow, lifts on hover */
   .card-base {
-    @apply rounded-xl border border-hajr-gray-200 bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-card-hover;
+    @apply rounded-xl border border-hajr-border bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-card-hover;
   }
 
-  /* Buttons — primary action is rose per brand spec */
+  /* ── Buttons ──────────────────────────────────────────────────
+     Primary (DEFAULT) is deep navy. CTA (rose) is reserved for the
+     1–2 most important actions per page. */
   .btn-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-hajr-deep-navy px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-navy disabled:opacity-50;
+  }
+
+  /* CTA — the ONLY place rose is a fill */
+  .btn-cta {
     @apply inline-flex items-center justify-center rounded-lg bg-hajr-rose px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
   }
 
@@ -95,15 +121,21 @@
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-gray-100 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-hover disabled:opacity-50;
   }
 
   .btn-destructive {
     @apply inline-flex items-center justify-center rounded-lg bg-hajr-error px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50;
   }
+}
 
-  /* kept for backward compat — same as btn-primary */
-  .btn-cta {
-    @apply inline-flex items-center justify-center rounded-lg bg-hajr-rose px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
+@layer utilities {
+  /* Typing-indicator dots used by the chat composer */
+  @keyframes hajr-typing {
+    0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+    30% { transform: translateY(-4px); opacity: 1; }
+  }
+  .animate-typing-dot {
+    animation: hajr-typing 1.2s ease-in-out infinite;
   }
 }

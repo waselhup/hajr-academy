@@ -1,9 +1,6 @@
-import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default async function TeacherMessagesPage() {
-  await requireRole("TEACHER");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.messages")} phase={5} description="Supabase Realtime chat." />;
+/** Legacy route — the universal chat lives at /messages. */
+export default function TeacherMessagesPage() {
+  redirect("/messages");
 }

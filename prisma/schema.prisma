@@ -478,12 +478,27 @@ model Message {
   parentMessageId String?
   parentMessage   Message?      @relation("MessageThread", fields: [parentMessageId], references: [id])
   replies         Message[]     @relation("MessageThread")
+
+  // ── Chat attachment (Supabase Storage, bucket `chat-attachments`) ──
+  attachmentUrl  String?
+  attachmentName String?
+  attachmentType String? // mime type
+  attachmentSize Int? // bytes
+
+  // ── Admin moderation ──
+  flagged       Boolean   @default(false)
+  flagReason    String?
+  flaggedById   String?
+  flaggedAt     DateTime?
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
   @@index([threadId])
+  @@index([threadId, createdAt])
   @@index([toUserId, status])
   @@index([fromUserId, createdAt])
+  @@index([flagged])
 }
 
 model EmailTemplate {
@@ -498,6 +513,25 @@ model EmailTemplate {
   isActive  Boolean          @default(true)
   createdAt DateTime         @default(now())
   updatedAt DateTime         @updatedAt
+}
+
+/// ContactSubmission — a message from a non-enrolled visitor via the
+/// public /contact form or the Hajr public assistant.
+model ContactSubmission {
+  id        String        @id @default(uuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String        @db.Text
+  status    ContactStatus @default(NEW)
+  source    String        @default("contact_form") // contact_form | public_assistant
+  repliedBy String?
+  repliedAt DateTime?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([status, createdAt])
 }
 
 // ─────────────────────── FINANCE ───────────────────────
@@ -1188,4 +1222,10 @@ enum TrialStatus {
   COMPLETED
   CONVERTED
   DECLINED
+}
+
+enum ContactStatus {
+  NEW
+  REPLIED
+  CLOSED
 }

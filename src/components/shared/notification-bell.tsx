@@ -117,12 +117,12 @@ export function NotificationBell({ userId }: { userId: string }) {
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button
-          className="relative rounded-md p-2 text-gray-600 hover:bg-muted"
+          className="relative rounded-md p-2 text-hajr-navy transition-colors hover:bg-hajr-hover"
           aria-label="Notifications"
         >
           <Bell className="h-5 w-5" />
           {unread > 0 && (
-            <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-brand-rose px-1 text-[10px] font-bold text-white num">
+            <span className="absolute -end-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-hajr-rose px-1 text-[10px] font-bold text-white num">
               {unread > 9 ? "9+" : unread}
             </span>
           )}

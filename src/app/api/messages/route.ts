@@ -5,15 +5,15 @@ import { logAudit } from "@/lib/audit";
 import { canMessage } from "@/lib/comms/permissions";
 import { sendEmail } from "@/lib/comms/email";
 import { createNotification } from "@/lib/comms/in-app";
+import { broadcastNewMessage } from "@/lib/chat/realtime";
 
 export const dynamic = "force-dynamic";
 
 /**
- * GET /api/messages — list the current user's conversations.
+ * GET /api/messages — list the current user's conversation threads.
  *
- * A "conversation" is a thread; we return the latest message of each
- * IN_APP thread the user is part of, plus the unread count and the
- * other party's identity.
+ * Each thread carries the latest message, the other party's identity,
+ * and the unread count (messages addressed to this user, not yet read).
  */
 export async function GET(_req: NextRequest) {
   const session = await auth();
@@ -23,7 +23,6 @@ export async function GET(_req: NextRequest) {
   const uid = session.user.id;
 
   try {
-    // Direct (IN_APP, user-to-user) messages this user sent or received.
     const messages = await prisma.message.findMany({
       where: {
         channel: "IN_APP",
@@ -32,21 +31,22 @@ export async function GET(_req: NextRequest) {
       },
       orderBy: { createdAt: "desc" },
       include: {
-        fromUser: { select: { id: true, name: true, role: true } },
-        toUser: { select: { id: true, name: true, role: true } },
+        fromUser: { select: { id: true, name: true, role: true, avatar: true } },
+        toUser: { select: { id: true, name: true, role: true, avatar: true } },
       },
     });
 
-    // Group by thread; keep the latest message and count unread.
     const threads = new Map<
       string,
       {
         threadId: string;
         lastMessage: string;
         lastAt: string;
+        lastFromMe: boolean;
         otherUserId: string;
         otherName: string;
         otherRole: string;
+        otherAvatar: string | null;
         unread: number;
       }
     >();
@@ -54,17 +54,22 @@ export async function GET(_req: NextRequest) {
     for (const m of messages) {
       const other = m.fromUserId === uid ? m.toUser : m.fromUser;
       if (!other) continue;
-      const existing = threads.get(m.threadId);
       const isUnreadForMe =
         m.toUserId === uid && m.status !== "READ" && m.readAt === null;
+      const preview = m.attachmentUrl && !m.body
+        ? `📎 ${m.attachmentName ?? "attachment"}`
+        : m.body.slice(0, 120);
+      const existing = threads.get(m.threadId);
       if (!existing) {
         threads.set(m.threadId, {
           threadId: m.threadId,
-          lastMessage: m.body.slice(0, 120),
+          lastMessage: preview,
           lastAt: m.createdAt.toISOString(),
+          lastFromMe: m.fromUserId === uid,
           otherUserId: other.id,
           otherName: other.name,
           otherRole: other.role,
+          otherAvatar: other.avatar,
           unread: isUnreadForMe ? 1 : 0,
         });
       } else if (isUnreadForMe) {
@@ -87,12 +92,14 @@ export async function GET(_req: NextRequest) {
 }
 
 /**
- * POST /api/messages — send a new message (or a reply).
+ * POST /api/messages — send a message (new conversation or a reply).
  *
- * Body: { toUserId, subject?, body, threadId? }
+ * Body: { toUserId, subject?, body, threadId?, attachment? }
+ * `attachment` = { url, name, type, size } from /api/messages/upload.
  *
- * Creates an IN_APP Message, an in-app Notification for the recipient,
- * and a best-effort email copy.
+ * Persists an IN_APP Message, notifies the recipient, broadcasts the
+ * message on the thread's Realtime channel, and sends a best-effort
+ * email copy.
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
@@ -101,6 +108,7 @@ export async function POST(req: NextRequest) {
   }
   const uid = session.user.id;
   const role = session.user.role;
+  const senderName = session.user.name ?? "Hajr A° user";
 
   try {
     const body = await req.json();
@@ -112,14 +120,24 @@ export async function POST(req: NextRequest) {
       ? String(body.parentMessageId)
       : null;
 
-    if (!toUserId || !text) {
+    const attachment =
+      body.attachment && typeof body.attachment === "object"
+        ? {
+            url: String(body.attachment.url ?? ""),
+            name: String(body.attachment.name ?? "file"),
+            type: String(body.attachment.type ?? ""),
+            size: Number(body.attachment.size ?? 0),
+          }
+        : null;
+
+    if (!toUserId || (!text && !attachment)) {
       return NextResponse.json(
-        { error: "toUserId and body are required" },
+        { error: "toUserId and a body or attachment are required" },
         { status: 400 }
       );
     }
 
-    // Permission check.
+    // Server-side permission check — never trust the client.
     const allowed = await canMessage(uid, role, toUserId);
     if (!allowed) {
       return NextResponse.json(
@@ -148,17 +166,36 @@ export async function POST(req: NextRequest) {
         sentAt: new Date(),
         triggerType: "MANUAL",
         parentMessageId,
+        attachmentUrl: attachment?.url || null,
+        attachmentName: attachment?.name || null,
+        attachmentType: attachment?.type || null,
+        attachmentSize: attachment?.size || null,
       },
     });
 
+    // Live broadcast on the thread channel.
+    await broadcastNewMessage(threadId, {
+      id: message.id,
+      threadId,
+      fromUserId: uid,
+      fromName: senderName,
+      body: text,
+      attachmentUrl: message.attachmentUrl,
+      attachmentName: message.attachmentName,
+      attachmentType: message.attachmentType,
+      attachmentSize: message.attachmentSize,
+      createdAt: message.createdAt.toISOString(),
+    });
+
     // In-app notification for the recipient.
+    const preview = text ? text.slice(0, 140) : `📎 ${attachment?.name ?? "attachment"}`;
     await createNotification({
       userId: toUserId,
       type: "NEW_MESSAGE",
-      title: `New message from ${session.user.name}`,
-      titleAr: `رسالة جديدة من ${session.user.name}`,
-      body: text.slice(0, 140),
-      bodyAr: text.slice(0, 140),
+      title: `New message from ${senderName}`,
+      titleAr: `رسالة جديدة من ${senderName}`,
+      body: preview,
+      bodyAr: preview,
       actionUrl: "/messages",
       actionLabel: "Open messages",
       actionLabelAr: "فتح الرسائل",
@@ -166,11 +203,11 @@ export async function POST(req: NextRequest) {
       refId: message.id,
     });
 
-    // Best-effort email copy (mock-sent if no key).
-    if (recipient.email) {
+    // Best-effort email copy.
+    if (recipient.email && text) {
       sendEmail({
         to: recipient.email,
-        subject: subject ?? `New message from ${session.user.name}`,
+        subject: subject ?? `New message from ${senderName}`,
         html: `<p>${text.replace(/\n/g, "<br/>")}</p>`,
       }).catch(() => {});
     }
@@ -180,10 +217,16 @@ export async function POST(req: NextRequest) {
       action: "MESSAGE_SENT",
       entity: "Message",
       entityId: message.id,
-      metadata: { toUserId, channel: "IN_APP" },
+      metadata: { toUserId, channel: "IN_APP", hasAttachment: !!attachment },
     });
 
-    return NextResponse.json({ message: { id: message.id, threadId } });
+    return NextResponse.json({
+      message: {
+        id: message.id,
+        threadId,
+        createdAt: message.createdAt.toISOString(),
+      },
+    });
   } catch (e) {
     console.error("[api/messages] POST failed:", e);
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
