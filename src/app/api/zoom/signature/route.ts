@@ -117,7 +117,22 @@ export async function POST(req: Request) {
       role,
       userName,
     });
-    return NextResponse.json({ ok: true, signature, sdkKey });
+    // Debug logging — confirms which SDK Key signed the token and for which
+    // meeting/role. Never logs the secret or the full signature.
+    console.log("[zoom/signature] issued", {
+      sdkKeyPrefix: sdkKey ? sdkKey.slice(0, 6) : "MISSING",
+      meetingNumber,
+      role,
+      userId,
+    });
+    return NextResponse.json({
+      ok: true,
+      signature,
+      sdkKey,
+      meetingNumber,
+      role,
+      userName,
+    });
   } catch (e) {
     console.error("[zoom/signature]", e);
     return NextResponse.json({ ok: false, error: "SIGNATURE_ERROR" }, { status: 500 });

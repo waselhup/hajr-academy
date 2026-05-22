@@ -65,10 +65,14 @@ export function ClassroomClient({
           },
         });
 
+        // The meeting number passed to join() must be the same clean digit
+        // string the signature was generated for — strip any spaces/dashes.
+        const cleanMeetingNumber = meetingNumber.replace(/\D/g, "");
+
         await client.join({
           sdkKey,
           signature,
-          meetingNumber,
+          meetingNumber: cleanMeetingNumber,
           password: passcode,
           userName,
           userEmail,

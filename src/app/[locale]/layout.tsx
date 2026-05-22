@@ -4,6 +4,7 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/toaster";
+import { TopProgressBar } from "@/components/shared/top-progress-bar";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -29,6 +30,7 @@ export default async function LocaleLayout({
   return (
     <div lang={locale} dir={dir} className={dir === "rtl" ? "font-ar" : "font-en"}>
       <NextIntlClientProvider messages={messages} locale={locale} timeZone="Asia/Riyadh">
+        <TopProgressBar />
         {children}
         <Toaster />
       </NextIntlClientProvider>

@@ -136,21 +136,42 @@ export class ZoomProvider implements VideoProvider {
   }
 
   // ─────────────────────── SDK signature ───────────────────────
+  /**
+   * Generate a Zoom Meeting SDK join signature.
+   *
+   * For @zoom/meetingsdk 6.x the JWT payload must contain EXACTLY these
+   * claims — `sdkKey`, `mn`, `role`, `iat`, `exp`, `tokenExp` — signed
+   * HS256 with the Meeting SDK app's Client Secret. Any extra claim
+   * (e.g. the legacy `appKey`) makes Zoom reject it as "Signature is
+   * invalid". `exp` must be 1800–172800s after `iat`, and `tokenExp`
+   * must be >= `exp`.
+   */
   async generateJoinSignature(opts: SignatureOpts): Promise<SignatureResult> {
     if (!this.sdkKey || !this.sdkSecret) throw new Error("ZOOM_SDK_NOT_CONFIGURED");
+
     const iat = Math.floor(Date.now() / 1000) - 30;
-    const exp = iat + (opts.expirationSeconds ?? 2 * 60 * 60);
+    // Clamp the lifetime to Zoom's allowed window (30 min – 48 h).
+    const requested = opts.expirationSeconds ?? 2 * 60 * 60;
+    const lifetime = Math.min(48 * 60 * 60, Math.max(30 * 60, requested));
+    const exp = iat + lifetime;
     const roleNum = opts.role === "host" ? 1 : 0;
+
+    // The meeting number must be a clean digit string (no spaces/dashes).
+    const mn = String(opts.meetingNumber).replace(/\D/g, "");
+
     const payload = {
-      appKey: this.sdkKey,
       sdkKey: this.sdkKey,
-      mn: opts.meetingNumber,
+      mn,
       role: roleNum,
       iat,
       exp,
       tokenExp: exp,
     };
-    const signature = jwt.sign(payload, this.sdkSecret, { algorithm: "HS256" });
+
+    const signature = jwt.sign(payload, this.sdkSecret, {
+      algorithm: "HS256",
+      header: { alg: "HS256", typ: "JWT" },
+    });
     return { signature, sdkKey: this.sdkKey };
   }
 

@@ -37,6 +37,11 @@ const credsSchema = z.object({
 });
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  // Explicit secret so JWT signing never silently depends on which of the
+  // two env-var names happens to be set. NextAuth v5 reads AUTH_SECRET by
+  // default; we also accept the legacy NEXTAUTH_SECRET. Both should be set
+  // to the same value in Vercel.
+  secret: process.env.AUTH_SECRET ?? process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/ar/login" },
   trustHost: true,
