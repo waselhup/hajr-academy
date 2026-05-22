@@ -152,25 +152,48 @@ function checkWindow(
   if (status === "COMPLETED" || status === "CANCELLED") {
     return { ok: false, reason: "ENDED" };
   }
-  const openFrom = start - (role === "host" ? START_WINDOW_BEFORE_MS : JOIN_WINDOW_BEFORE_MS);
+
+  // A host (teacher / admin) may enter their classroom AT ANY TIME —
+  // they decide when the class starts, and may join early to prepare.
+  if (role === "host") {
+    return { ok: true };
+  }
+
+  // A student attendee may enter once the session is LIVE (the teacher
+  // started it) or within the normal join window around the schedule.
   const closeAt = end + JOIN_WINDOW_AFTER_MS;
+  if (status === "LIVE") {
+    return now <= closeAt ? { ok: true } : { ok: false, reason: "ENDED" };
+  }
+  const openFrom = start - JOIN_WINDOW_BEFORE_MS;
   if (now < openFrom) return { ok: false, reason: "TOO_EARLY" };
   if (now > closeAt) return { ok: false, reason: "ENDED" };
   return { ok: true };
 }
 
-/** True when a teacher's "Start Class" button should be enabled. */
-export function isWithinStartWindow(scheduled: Date, durationMinutes: number, status: string) {
-  if (status === "COMPLETED" || status === "CANCELLED") return false;
-  const now = Date.now();
-  const start = scheduled.getTime();
-  return now >= start - START_WINDOW_BEFORE_MS && now <= start + durationMinutes * 60_000 + JOIN_WINDOW_AFTER_MS;
+/**
+ * True when a teacher's "Start Class" button should be enabled.
+ * A teacher may start their class at any time — only an ended/cancelled
+ * session disables it.
+ */
+export function isWithinStartWindow(
+  _scheduled: Date,
+  _durationMinutes: number,
+  status: string
+) {
+  return status !== "COMPLETED" && status !== "CANCELLED";
 }
 
-/** True when a student's "Join Class" button should be enabled. */
+/**
+ * True when a student's "Join Class" button should be enabled.
+ * A LIVE session is always joinable while it runs (the teacher may have
+ * started it before the scheduled time).
+ */
 export function isWithinJoinWindow(scheduled: Date, durationMinutes: number, status: string) {
   if (status === "COMPLETED" || status === "CANCELLED") return false;
   const now = Date.now();
   const start = scheduled.getTime();
-  return now >= start - JOIN_WINDOW_BEFORE_MS && now <= start + durationMinutes * 60_000 + JOIN_WINDOW_AFTER_MS;
+  const closeAt = start + durationMinutes * 60_000 + JOIN_WINDOW_AFTER_MS;
+  if (status === "LIVE") return now <= closeAt;
+  return now >= start - JOIN_WINDOW_BEFORE_MS && now <= closeAt;
 }

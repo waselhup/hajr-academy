@@ -50,9 +50,23 @@ export function SessionJoinButton({
 
   const start = new Date(scheduledDate).getTime();
   const end = start + durationMinutes * 60_000;
-  const lead = mode === "start" ? BEFORE_START : BEFORE_JOIN;
-  const open = now >= start - lead && now <= end + AFTER;
   const ended = status === "COMPLETED" || status === "CANCELLED";
+  const isLive = status === "LIVE";
+
+  // A teacher (or admin) may start their class session at ANY time —
+  // there is no early window. Private lessons and the student/parent
+  // join still use the timed window.
+  const teacherStartsClass = mode === "start" && kind === "classSession";
+  let open: boolean;
+  if (teacherStartsClass) {
+    open = true; // anytime, unless ended (handled by `ended` below)
+  } else {
+    const lead = mode === "start" ? BEFORE_START : BEFORE_JOIN;
+    // Once a class is LIVE, students can always join while it runs.
+    open =
+      (isLive && now <= end + AFTER) ||
+      (now >= start - lead && now <= end + AFTER);
+  }
   const enabled = open && !ended && !isPending;
 
   const label =
@@ -99,9 +113,10 @@ export function SessionJoinButton({
     });
   };
 
-  // Countdown text when not yet open.
+  // Countdown text when the session has not opened yet. The teacher's
+  // "start" button has no window, so no countdown is shown there.
   let hint = "";
-  if (!ended && now < start - lead) {
+  if (!teacherStartsClass && !ended && !open && now < start) {
     const diff = start - now;
     const h = Math.floor(diff / 3_600_000);
     const m = Math.floor((diff % 3_600_000) / 60_000);

@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Video } from "lucide-react";
+import { RecordingPlayer } from "@/components/video/recording-player";
 
 export const dynamic = "force-dynamic";
 
@@ -75,15 +76,10 @@ export default async function AdminRecordingsPage({
                       <TableCell>{r.class.teacher.user.nameAr ?? r.class.teacher.user.name}</TableCell>
                       <TableCell className="num">{dur}m</TableCell>
                       <TableCell className="text-end">
-                        <a
-                          href={r.zoomRecordingUrl!}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-md bg-brand-navy px-3 py-1.5 text-xs text-white"
-                        >
-                          <Video className="h-3.5 w-3.5" />
-                          {t("Video.watchRecording")}
-                        </a>
+                        <RecordingPlayer
+                          url={r.zoomRecordingUrl!}
+                          title={r.class.nameAr ?? r.class.name}
+                        />
                       </TableCell>
                     </TableRow>
                   );

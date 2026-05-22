@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
+import { RescheduleSessionButton } from "@/components/video/reschedule-session-button";
 import { ClipboardCheck, Users } from "lucide-react";
 
 function initials(name: string): string {
@@ -111,19 +112,28 @@ export default async function TeacherClassesPage({
                   </div>
 
                   {next ? (
-                    <UpcomingSessionCard
-                      mode="start"
-                      locale={locale}
-                      session={{
-                        id: next.id,
-                        kind: "classSession",
-                        title: c.nameAr ?? c.name,
-                        scheduledDate: next.scheduledDate.toISOString(),
-                        durationMinutes: c.durationMinutes,
-                        status: next.status,
-                        hasMeeting: !!next.zoomMeetingId,
-                      }}
-                    />
+                    <div className="space-y-2">
+                      <UpcomingSessionCard
+                        mode="start"
+                        locale={locale}
+                        session={{
+                          id: next.id,
+                          kind: "classSession",
+                          title: c.nameAr ?? c.name,
+                          scheduledDate: next.scheduledDate.toISOString(),
+                          durationMinutes: c.durationMinutes,
+                          status: next.status,
+                          hasMeeting: !!next.zoomMeetingId,
+                        }}
+                      />
+                      {/* Teacher may reschedule their own upcoming session. */}
+                      {next.status === "SCHEDULED" && (
+                        <RescheduleSessionButton
+                          sessionId={next.id}
+                          scheduledDate={next.scheduledDate.toISOString()}
+                        />
+                      )}
+                    </div>
                   ) : (
                     <p className="text-xs text-muted-foreground">{t("Video.noUpcoming")}</p>
                   )}

@@ -78,19 +78,26 @@ describe("zoom webhook: HMAC verification", () => {
 });
 
 describe("classroom: join/start windows", () => {
-  it("teacher can start 15 min before scheduled time", () => {
-    const inTen = new Date(Date.now() + 10 * 60_000);
-    expect(isWithinStartWindow(inTen, 60, "SCHEDULED")).toBe(true);
+  it("teacher can start a class anytime — even hours early", () => {
+    const inThreeHours = new Date(Date.now() + 3 * 3600_000);
+    expect(isWithinStartWindow(inThreeHours, 60, "SCHEDULED")).toBe(true);
   });
 
-  it("teacher cannot start 30 min before scheduled time", () => {
-    const inThirty = new Date(Date.now() + 30 * 60_000);
-    expect(isWithinStartWindow(inThirty, 60, "SCHEDULED")).toBe(false);
+  it("teacher cannot start an ended/cancelled session", () => {
+    const now = new Date();
+    expect(isWithinStartWindow(now, 60, "COMPLETED")).toBe(false);
+    expect(isWithinStartWindow(now, 60, "CANCELLED")).toBe(false);
   });
 
   it("student can join 10 min before", () => {
     const inTen = new Date(Date.now() + 10 * 60_000);
     expect(isWithinJoinWindow(inTen, 60, "SCHEDULED")).toBe(true);
+  });
+
+  it("student can join a LIVE session that started early", () => {
+    // Scheduled an hour out, but the teacher already started it.
+    const inOneHour = new Date(Date.now() + 3600_000);
+    expect(isWithinJoinWindow(inOneHour, 60, "LIVE")).toBe(true);
   });
 
   it("nobody can join a COMPLETED session", () => {

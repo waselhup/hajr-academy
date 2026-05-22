@@ -2,8 +2,9 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { Radio, Loader2, Users } from "lucide-react";
+import Link from "next/link";
+import { useTranslations, useLocale } from "next-intl";
+import { Radio, Loader2, Video } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,6 +37,7 @@ interface LiveRow {
 
 export function LiveMonitorClient({ rows }: { rows: LiveRow[] }) {
   const t = useTranslations("Video");
+  const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [tick, setTick] = useState(0);
@@ -117,7 +119,14 @@ export function LiveMonitorClient({ rows }: { rows: LiveRow[] }) {
                     </div>
                   </div>
                   <p className="text-xs text-muted-foreground">{r.teacherName}</p>
-                  <div className="flex justify-end">
+                  <div className="flex justify-end gap-2">
+                    {/* Admin may join any live class as host/observer. */}
+                    <Button asChild variant="cta" size="sm">
+                      <Link href={`/${locale}/classroom/${r.id}`}>
+                        <Video className="me-2 h-4 w-4" />
+                        {t("joinClass")}
+                      </Link>
+                    </Button>
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm" disabled={isPending}>

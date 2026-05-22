@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { ClassDetailActions } from "./_components/class-detail-actions";
+import { RescheduleSessionButton } from "@/components/video/reschedule-session-button";
 import { fmtRiyadh, fmtSAR } from "@/lib/format";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -139,15 +140,24 @@ export default async function ClassDetailPage({
                   <TableRow>
                     <TableHead>Date</TableHead>
                     <TableHead>{t("Common.status")}</TableHead>
+                    <TableHead className="text-end">{t("Common.actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {cls.sessions.length === 0 ? (
-                    <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground p-6">{t("Common.noData")}</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground p-6">{t("Common.noData")}</TableCell></TableRow>
                   ) : cls.sessions.map((s: any) => (
                     <TableRow key={s.id}>
                       <TableCell className="num">{fmtRiyadh(s.scheduledDate, "yyyy-MM-dd HH:mm")}</TableCell>
                       <TableCell><Badge variant={s.status === "LIVE" ? "rose" : "info"}>{s.status}</Badge></TableCell>
+                      <TableCell className="text-end">
+                        {s.status === "SCHEDULED" && (
+                          <RescheduleSessionButton
+                            sessionId={s.id}
+                            scheduledDate={s.scheduledDate.toISOString()}
+                          />
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
