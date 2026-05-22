@@ -20,6 +20,27 @@ export async function POST(req: NextRequest) {
   const name = typeof body.name === "string" ? body.name.trim() : "";
   if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
 
+  // If a class session is supplied, verify the teacher owns that class —
+  // the blackboard is gated by the session's class roster, so a teacher
+  // must not be able to attach a board to another teacher's class.
+  let linkSessionId: string | null = null;
+  if (typeof body.sessionId === "string" && body.sessionId) {
+    const cs = await prisma.classSession.findUnique({
+      where: { id: body.sessionId },
+      include: { class: { select: { teacherId: true } } },
+    });
+    if (!cs) {
+      return NextResponse.json({ error: "Session not found" }, { status: 404 });
+    }
+    if (cs.class.teacherId !== teacher.id) {
+      return NextResponse.json(
+        { error: "This is not your class session" },
+        { status: 403 }
+      );
+    }
+    linkSessionId = cs.id;
+  }
+
   const room = await prisma.blackboardRoom.create({
     data: {
       name,
@@ -30,11 +51,11 @@ export async function POST(req: NextRequest) {
     },
   });
 
-  if (body.sessionId) {
+  if (linkSessionId) {
     await prisma.classSession.update({
-      where: { id: body.sessionId },
+      where: { id: linkSessionId },
       data: { blackboardRoomId: room.id },
-    }).catch(() => {});
+    });
   }
 
   await logAudit({
@@ -42,7 +63,7 @@ export async function POST(req: NextRequest) {
     action: "BLACKBOARD_ROOM_CREATED",
     entity: "BlackboardRoom",
     entityId: room.id,
-    metadata: { name, sessionId: body.sessionId ?? null },
+    metadata: { name, sessionId: linkSessionId },
   });
 
   return NextResponse.json({ roomId: room.id });

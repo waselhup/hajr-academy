@@ -5,8 +5,17 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck, Users } from "lucide-react";
+
+function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join("");
+}
 
 export const dynamic = "force-dynamic";
 
@@ -37,6 +46,17 @@ export default async function TeacherClassesPage({
       include: {
         program: true,
         _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+        // Full roster of active students for each class.
+        enrollments: {
+          where: { status: "ACTIVE" },
+          include: {
+            student: {
+              include: {
+                user: { select: { name: true, nameAr: true, email: true } },
+              },
+            },
+          },
+        },
         sessions: {
           where: {
             OR: [
@@ -107,6 +127,44 @@ export default async function TeacherClassesPage({
                   ) : (
                     <p className="text-xs text-muted-foreground">{t("Video.noUpcoming")}</p>
                   )}
+
+                  {/* Student roster — who is in this class. */}
+                  <div className="rounded-lg border bg-muted/30 p-3">
+                    <div className="mb-2 flex items-center gap-1.5 text-xs font-semibold text-brand-navy">
+                      <Users className="h-3.5 w-3.5" />
+                      {t("Classes.roster")}
+                      <span className="num text-muted-foreground">
+                        ({c.enrollments.length})
+                      </span>
+                    </div>
+                    {c.enrollments.length === 0 ? (
+                      <p className="text-xs text-muted-foreground">
+                        {locale === "ar"
+                          ? "لا يوجد طلاب مسجّلون بعد"
+                          : "No students enrolled yet"}
+                      </p>
+                    ) : (
+                      <div className="space-y-1">
+                        {c.enrollments.map((en: any) => (
+                          <div
+                            key={en.id}
+                            className="flex items-center gap-2 text-sm"
+                          >
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-[10px]">
+                                {initials(en.student.user.name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>
+                              {locale === "ar" && en.student.user.nameAr
+                                ? en.student.user.nameAr
+                                : en.student.user.name}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex gap-2 pt-1">
                     <Button asChild variant="outline" size="sm">

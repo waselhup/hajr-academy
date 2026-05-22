@@ -66,7 +66,14 @@ export default async function ClassDetailPage({
             <span className="text-muted-foreground">{t("Programs." + cls.program.code as any)}</span>
           </div>
         </div>
-        <ClassDetailActions classId={cls.id} />
+        <ClassDetailActions
+          classId={cls.id}
+          availableStudents={availableStudents.map((s: any) => ({
+            id: s.id,
+            name: s.user.name,
+            nameAr: s.user.nameAr ?? null,
+          }))}
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -158,9 +165,6 @@ export default async function ClassDetailPage({
           </Card>
         </TabsContent>
       </Tabs>
-
-      {/* Bulk invoicing UI mounted in actions component (Sheet-based) */}
-      <input type="hidden" id="available-students-count" defaultValue={String(availableStudents.length)} />
     </div>
   );
 }

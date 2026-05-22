@@ -61,20 +61,35 @@ export function SessionJoinButton({
   const handleClick = () => {
     startTransition(async () => {
       try {
-        if (mode === "start" && !hasMeeting) {
-          const res = await fetch("/api/zoom/create-meeting", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(
-              kind === "classSession"
-                ? { classSessionId: sessionId }
-                : { privateLessonId: sessionId }
-            ),
-          });
-          const data = await res.json();
-          if (!res.ok || !data.ok) {
-            toast.error(data.error ?? "ZOOM_ERROR");
-            return;
+        if (mode === "start") {
+          if (kind === "classSession") {
+            // Starting a class: this route creates the Zoom meeting,
+            // flips the session LIVE, broadcasts `class_started` on the
+            // class Realtime channel, and notifies enrolled students +
+            // their parents. (Replaces the bare zoom/create-meeting call,
+            // which did not broadcast.) Idempotent — safe to re-click.
+            const res = await fetch(
+              `/api/class-sessions/${sessionId}/start`,
+              { method: "POST" }
+            );
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              toast.error(data.error ?? "Could not start the class");
+              return;
+            }
+          } else if (!hasMeeting) {
+            // Private lesson: no class roster to broadcast to — just
+            // ensure the Zoom meeting exists.
+            const res = await fetch("/api/zoom/create-meeting", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ privateLessonId: sessionId }),
+            });
+            const data = await res.json();
+            if (!res.ok || !data.ok) {
+              toast.error(data.error ?? "ZOOM_ERROR");
+              return;
+            }
           }
         }
         router.push(`/${locale}/classroom/${sessionId}`);
