@@ -178,11 +178,13 @@ export class ZoomProvider implements VideoProvider {
   // ─────────────────────── Recordings ───────────────────────
   async getMeetingRecording(meetingId: string): Promise<RecordingResult | null> {
     try {
+      // 400 is tolerated too: if the S2S app lacks the recording-read scope
+      // we degrade gracefully (no recording) instead of throwing.
       const data = await this.api<{
         share_url?: string;
         password?: string;
         recording_files?: { play_url?: string; download_url?: string }[];
-      }>(`/meetings/${meetingId}/recordings`, { okStatuses: [200, 404] });
+      }>(`/meetings/${meetingId}/recordings`, { okStatuses: [200, 400, 404] });
       if (!data) return null;
       const file = data.recording_files?.find((f) => f.play_url);
       const url = data.share_url ?? file?.play_url ?? file?.download_url;
@@ -196,9 +198,10 @@ export class ZoomProvider implements VideoProvider {
   // ─────────────────────── Live participants ───────────────────────
   async getLiveParticipantCount(meetingId: string): Promise<number | null> {
     try {
+      // 400 tolerated (missing dashboard/metrics scope) → return null.
       const data = await this.api<{ participants?: unknown[] }>(
         `/metrics/meetings/${meetingId}/participants?type=live&page_size=300`,
-        { okStatuses: [200, 404] }
+        { okStatuses: [200, 400, 404] }
       );
       if (!data?.participants) return null;
       return data.participants.length;
