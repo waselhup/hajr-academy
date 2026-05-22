@@ -20,6 +20,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   SUPER_ADMIN: [
     { key: "Nav.dashboard", href: "/admin", icon: LayoutDashboard },
     { key: "Nav.students", href: "/admin/students", icon: Users },
+    { key: "Nav.parentInvites", href: "/admin/parent-invites", icon: UserPlus },
     { key: "Nav.teachers", href: "/admin/teachers", icon: GraduationCap },
     { key: "Nav.parents", href: "/admin/parents", icon: UserIcon },
     { key: "Nav.programs", href: "/admin/programs", icon: BookOpen },
@@ -43,6 +44,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   ADMIN: [
     { key: "Nav.dashboard", href: "/admin", icon: LayoutDashboard },
     { key: "Nav.students", href: "/admin/students", icon: Users },
+    { key: "Nav.parentInvites", href: "/admin/parent-invites", icon: UserPlus },
     { key: "Nav.teachers", href: "/admin/teachers", icon: GraduationCap },
     { key: "Nav.parents", href: "/admin/parents", icon: UserIcon },
     { key: "Nav.classes", href: "/admin/classes", icon: BookText },
@@ -85,7 +87,11 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   PARENT: [
     { key: "Nav.dashboard", href: "/parent", icon: LayoutDashboard },
     { key: "Nav.children", href: "/parent/link", icon: School },
+    { key: "Nav.attendance", href: "/parent/attendance", icon: Calendar },
+    { key: "Nav.progress", href: "/parent/progress", icon: BarChart3 },
+    { key: "Nav.finance", href: "/parent/finance", icon: Wallet },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
+    { key: "Nav.settings", href: "/settings/notifications", icon: Settings },
   ],
 };
 

@@ -23,6 +23,9 @@ import { queryRevenue } from "./query-revenue";
 import { queryOverdueInvoices } from "./query-overdue-invoices";
 import { processRefundTool } from "./process-refund";
 import { generatePromoCode } from "./generate-promo-code";
+import { queryParentEngagement } from "./query-parent-engagement";
+import { querySchoolContracts } from "./query-school-contracts";
+import { transferStudent } from "./transfer-student";
 
 export const adminTools = [
   queryStudents,
@@ -51,4 +54,8 @@ export const adminTools = [
   queryOverdueInvoices,
   processRefundTool,
   generatePromoCode,
+  // Phase 9 — parent + school
+  queryParentEngagement,
+  querySchoolContracts,
+  transferStudent,
 ];

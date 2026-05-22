@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
+import { LiveClassBanner } from "@/components/class/live-class-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +59,11 @@ export default async function StudentDashboardPage({
         </h1>
         <Badge variant="info">{t("Roles.STUDENT")}</Badge>
       </div>
+
+      {/* Real-time "your class is live" banner (Supabase Realtime). */}
+      <LiveClassBanner
+        classIds={(profile?.enrollments ?? []).map((e: any) => e.classId)}
+      />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>

@@ -17,7 +17,14 @@ interface InvoiceData {
   lineItems: InvoiceLineItem[];
 }
 
-export function PayInvoiceClient({ invoice }: { invoice: InvoiceData }) {
+export function PayInvoiceClient({
+  invoice,
+  successPath,
+}: {
+  invoice: InvoiceData;
+  /** Path the user lands on once paid. Defaults to the student success page. */
+  successPath?: string;
+}) {
   const t = useTranslations("Billing");
   const locale = useLocale();
   const isAr = locale === "ar";
@@ -92,7 +99,7 @@ export function PayInvoiceClient({ invoice }: { invoice: InvoiceData }) {
             amountHalalas={Math.round(invoice.totalAmount * 100)}
             description={`HAJR Academy — ${invoice.invoiceNumber}`}
             invoiceId={invoice.id}
-            successUrl={`/${locale}/student/billing/success`}
+            successUrl={successPath ?? `/${locale}/student/billing/success`}
           />
         </CardContent>
       </Card>

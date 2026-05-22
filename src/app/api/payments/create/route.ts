@@ -32,9 +32,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invoice not found" }, { status: 404 });
     }
 
-    // Ownership: students may only pay their own invoices.
+    // Ownership: students pay their own invoices; a linked parent may pay
+    // on a child's behalf; admins may pay any invoice.
     const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session.user.role);
-    if (!isAdmin && invoice.student.userId !== session.user.id) {
+    let allowed = isAdmin || invoice.student.userId === session.user.id;
+    if (!allowed && session.user.role === "PARENT") {
+      const link = await prisma.parentStudentLink.findFirst({
+        where: {
+          studentId: invoice.studentId,
+          parent: { userId: session.user.id },
+          canPay: true,
+        },
+        select: { id: true },
+      });
+      allowed = !!link;
+    }
+    if (!allowed) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

@@ -289,3 +289,37 @@
 ### D68. 6 new agent tools, 20 finance API routes
 - **Decision**: Admin gains `query_revenue`, `query_overdue_invoices`, `process_refund`, `generate_promo_code`; public gains `check_my_billing`, `apply_promo_code`. 20 REST routes cover payments, subscriptions, invoices, promo codes, refunds, and admin finance reports.
 - **Why**: Keeps the AI layer the single conversational surface for finance; the REST routes back both the student billing pages and the admin finance dashboard.
+
+## Phase 9 — Parent + School Portals
+
+### D69. ParentInvite is a separate single-use code, distinct from ParentProfile.inviteCode
+- **Decision**: Parent↔child linking uses a new `ParentInvite` model (6-char code, 7-day TTL, single-use, statuses PENDING/ACCEPTED/EXPIRED/REVOKED) issued per-student by an admin. The pre-existing `ParentProfile.inviteCode` (a permanent cuid) was left untouched.
+- **Why**: Linking must be per-student, expiring, and auditable. A permanent per-parent code can't express "this code links *this* child" and can't expire.
+
+### D70. SchoolContract attaches to PartnerSchool (the real model name)
+- **Decision**: The spec referenced a `School` model; the schema's actual model is `PartnerSchool`. `SchoolContract` (B2B contract: dates, student count, price/student, server-computed VAT totals, DRAFT→ACTIVE→COMPLETED→CANCELLED) FKs to `PartnerSchool`. A `crNumber` column was added to `PartnerSchool`.
+- **Why**: Adapt to the existing schema rather than rename a model used across Phase 1–8.
+
+### D71. Permanent student↔teacher assignment is the existing Enrollment
+- **Decision**: No new "assignment" model. A student's permanent link to a teacher is the existing `Enrollment` row (`status = ACTIVE`) pointing at a `Class`, whose `teacherId` is the teacher. Transfer = flip the old enrollment to `DROPPED`, create/reactivate one for the new class.
+- **Why**: `Enrollment` already models exactly this. A parallel model would duplicate state and risk divergence.
+
+### D72. Class-start is realtime via Supabase broadcast, folded onto the existing channel pattern
+- **Decision**: `POST /api/class-sessions/[id]/start` flips the session to LIVE, ensures a Zoom meeting exists, and broadcasts `class_started` on the Supabase Realtime channel `class:{classId}`. The student dashboard's `LiveClassBanner` subscribes and shows a join banner within ~1–2s. A realtime/notification failure never fails the start (the session is already LIVE + a push notification is sent).
+- **Why**: Matches the Phase 5 blackboard realtime pattern; broadcast (not polling) meets the spec's latency goal; best-effort side-effects keep the critical path reliable.
+
+### D73. Parent data access is gated by a single ownership helper
+- **Decision**: `lib/parent/children.ts` exposes `parentOwnsChild(userId, studentId)`; every parent API route and the parent AI tools check it before returning a child's data. The parent portal pages re-verify via `parentOwnsChild` server-side.
+- **Why**: PDPL — a parent must see only their own children. One choke-point is auditable and impossible to forget.
+
+### D74. Parents pay on a child's behalf through a dedicated parent pay route
+- **Decision**: `/parent/pay/[invoiceId]` reuses the Phase 8 `PayInvoiceClient` (now parametrised with an optional `successPath`). The `payments/create` and `invoices/[id]/pdf` routes were extended to allow a linked parent (with `canPay`) alongside the owning student.
+- **Why**: The student pay page is `requireRole("STUDENT")`; a parent needs a role-appropriate entry. Reusing the client avoids duplicating the Moyasar form.
+
+### D75. School reports + contracts render as bilingual HTML, consistent with Phase 8 invoices
+- **Decision**: `lib/school/report.ts` produces a print-optimised RTL bilingual HTML document (attendance + CEFR progress + financial summary). Served by `/api/admin/schools/[id]/report`.
+- **Why**: Same rationale as D63 — HTML renders Arabic correctly everywhere and converts cleanly to PDF; jsPDF cannot shape Arabic.
+
+### D76. 6 new agent tools; transfer + refund-style tools require explicit confirmation
+- **Decision**: Admin gains `query_parent_engagement`, `query_school_contracts`, `transfer_student`; the public assistant gains `get_child_progress`, `get_child_attendance`, `get_child_next_class`. `transfer_student` is two-step (preview, then `confirm=true`), mirroring Phase 8's `process_refund`.
+- **Why**: Read-only tools are safe to run directly; a state-changing transfer needs a human confirmation step.

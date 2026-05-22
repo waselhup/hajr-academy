@@ -78,6 +78,7 @@ model StudentProfile {
   createdAt        DateTime     @default(now())
 
   parentLinks           ParentStudentLink[]
+  parentInvites         ParentInvite[]
   enrollments           Enrollment[]
   attendances           Attendance[]
   submissions           Submission[]
@@ -703,6 +704,7 @@ model PartnerSchool {
   contactEmail  String
   contactPhone  String
   city          String
+  crNumber      String?
   contractStart DateTime
   contractEnd   DateTime
   monthlyFeeSar Decimal  @db.Decimal(10, 2)
@@ -711,7 +713,69 @@ model PartnerSchool {
   notes         String?
   createdAt     DateTime @default(now())
 
-  students StudentProfile[]
+  students  StudentProfile[]
+  contracts SchoolContract[]
+}
+
+// ─────────────────────── PHASE 9 — PARENT + SCHOOL ───────────────────────
+
+/// ParentInvite — a one-time code an admin issues so a parent can self-link
+/// to a specific student during registration.
+model ParentInvite {
+  id         String         @id @default(uuid())
+  studentId  String
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  email      String?
+  phone      String?
+  inviteCode String         @unique
+  status     InviteStatus   @default(PENDING)
+  acceptedBy String? // ParentProfile.id once accepted
+  expiresAt  DateTime
+  createdBy  String?
+  createdAt  DateTime       @default(now())
+
+  @@index([inviteCode])
+  @@index([studentId, status])
+}
+
+/// SchoolContract — a B2B contract between Hajr and a partner school.
+model SchoolContract {
+  id              String         @id @default(uuid())
+  schoolId        String
+  school          PartnerSchool  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  programId       String?
+
+  startDate       DateTime
+  endDate         DateTime
+
+  totalStudents   Int
+  pricePerStudent Decimal        @db.Decimal(10, 2)
+  totalAmount     Decimal        @db.Decimal(10, 2)
+  vatAmount       Decimal        @db.Decimal(10, 2)
+
+  status          ContractStatus @default(DRAFT)
+  signedAt        DateTime?
+
+  notes           String?        @db.Text
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([schoolId, status])
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
 }
 
 // ─────────────────────── NOTIFICATIONS ───────────────────────

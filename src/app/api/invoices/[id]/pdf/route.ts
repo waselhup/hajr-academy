@@ -45,7 +45,19 @@ export async function GET(
         where: { id: inv.studentId },
         select: { userId: true },
       });
-      if (owner?.userId !== session.user.id) {
+      let allowed = owner?.userId === session.user.id;
+      // A linked parent may also view their child's invoice.
+      if (!allowed && session.user.role === "PARENT") {
+        const link = await prisma.parentStudentLink.findFirst({
+          where: {
+            studentId: inv.studentId,
+            parent: { userId: session.user.id },
+          },
+          select: { id: true },
+        });
+        allowed = !!link;
+      }
+      if (!allowed) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
     }

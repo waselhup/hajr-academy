@@ -14,6 +14,9 @@ import { checkMyMessages } from "./check-my-messages";
 import { updateMyNotifications } from "./update-my-notifications";
 import { checkMyBilling } from "./check-my-billing";
 import { applyPromoCode } from "./apply-promo-code";
+import { getChildProgress } from "./get-child-progress";
+import { getChildAttendance } from "./get-child-attendance";
+import { getChildNextClass } from "./get-child-next-class";
 
 export const publicTools = [
   getPrograms,
@@ -33,4 +36,8 @@ export const publicTools = [
   // Phase 8 — finance
   checkMyBilling,
   applyPromoCode,
+  // Phase 9 — parent
+  getChildProgress,
+  getChildAttendance,
+  getChildNextClass,
 ];

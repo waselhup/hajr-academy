@@ -65,6 +65,67 @@ export async function triggerClassReminder(classSessionId: string) {
   return { ok: true };
 }
 
+/**
+ * A teacher started a class session → notify enrolled students AND the
+ * parents of those students that the class is live now.
+ */
+export async function triggerClassStarted(classSessionId: string) {
+  const cs = await prisma.classSession.findUnique({
+    where: { id: classSessionId },
+    include: {
+      class: {
+        include: {
+          enrollments: { where: { status: "ACTIVE" } },
+        },
+      },
+    },
+  });
+  if (!cs) return { sent: 0, failed: 0 };
+
+  const className = cs.class.nameAr ?? cs.class.name;
+
+  // Students — in-app + SMS so they can join immediately.
+  await dispatch({
+    toClassId: cs.classId,
+    trigger: "CLASS_STARTING",
+    templateKey: "class_started_student",
+    notificationType: "CLASS_STARTING",
+    priority: "URGENT",
+    channels: ["IN_APP", "SMS"],
+    bypassQuietHours: true,
+    variables: { className },
+    actionUrl: `/classroom/${cs.id}`,
+  });
+
+  // Parents of those students.
+  const studentIds = cs.class.enrollments.map((e) => e.studentId);
+  if (studentIds.length > 0) {
+    const parentLinks = await prisma.parentStudentLink.findMany({
+      where: { studentId: { in: studentIds } },
+      include: {
+        parent: { select: { userId: true } },
+        student: { include: { user: { select: { name: true, nameAr: true } } } },
+      },
+    });
+    for (const link of parentLinks) {
+      await dispatch({
+        toUserId: link.parent.userId,
+        trigger: "CLASS_STARTING",
+        templateKey: "class_started_parent",
+        notificationType: "CLASS_STARTING",
+        priority: "HIGH",
+        channels: ["IN_APP"],
+        variables: {
+          studentName: link.student.user.nameAr ?? link.student.user.name,
+          className,
+        },
+        actionUrl: "/parent",
+      });
+    }
+  }
+  return { ok: true };
+}
+
 /** A class session was cancelled → notify enrolled students. */
 export async function triggerClassCancelled(classSessionId: string) {
   const cs = await prisma.classSession.findUnique({
@@ -375,4 +436,70 @@ export async function triggerExamResultReady(
     variables: { examTitle },
     actionUrl: `/student/exams/results/${attemptId}`,
   });
+}
+
+/**
+ * A student was transferred between classes → notify the student, the
+ * parents, and (best-effort) the receiving teacher.
+ */
+export async function triggerStudentTransferred(params: {
+  studentProfileId: string;
+  newClassName: string;
+  newTeacherUserId?: string | null;
+}) {
+  const student = await prisma.studentProfile.findUnique({
+    where: { id: params.studentProfileId },
+    select: { userId: true, user: { select: { name: true, nameAr: true } } },
+  });
+  if (!student) return;
+
+  // Student.
+  await dispatch({
+    toUserId: student.userId,
+    trigger: "ENROLLMENT_CONFIRMED",
+    templateKey: "student_transferred",
+    notificationType: "ENROLLMENT_UPDATE",
+    priority: "HIGH",
+    channels: ["EMAIL", "IN_APP"],
+    variables: { className: params.newClassName },
+    actionUrl: "/student/classes",
+  });
+
+  // Parents.
+  const links = await prisma.parentStudentLink.findMany({
+    where: { studentId: params.studentProfileId },
+    include: { parent: { select: { userId: true } } },
+  });
+  for (const link of links) {
+    await dispatch({
+      toUserId: link.parent.userId,
+      trigger: "ENROLLMENT_CONFIRMED",
+      templateKey: "student_transferred_parent",
+      notificationType: "ENROLLMENT_UPDATE",
+      priority: "NORMAL",
+      channels: ["IN_APP"],
+      variables: {
+        studentName: student.user.nameAr ?? student.user.name,
+        className: params.newClassName,
+      },
+      actionUrl: "/parent",
+    });
+  }
+
+  // Receiving teacher.
+  if (params.newTeacherUserId) {
+    await dispatch({
+      toUserId: params.newTeacherUserId,
+      trigger: "TEACHER_ASSIGNED",
+      templateKey: "teacher_assigned",
+      notificationType: "ENROLLMENT_UPDATE",
+      priority: "NORMAL",
+      channels: ["IN_APP"],
+      variables: {
+        name: student.user.name,
+        className: params.newClassName,
+      },
+      actionUrl: "/teacher/classes",
+    });
+  }
 }

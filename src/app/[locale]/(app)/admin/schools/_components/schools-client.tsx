@@ -2,12 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Pencil, MoreHorizontal, Power, Loader2, Calendar } from "lucide-react";
+import { Plus, Pencil, MoreHorizontal, Power, Loader2, Calendar, Eye } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +114,11 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/${locale}/admin/schools/${r.id}`}>
+                            <Eye className="me-2 h-4 w-4" />{t("Schools.viewDetails")}
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setEditing(r)}><Pencil className="me-2 h-4 w-4" />{t("Schools.edit")}</DropdownMenuItem>
                         <DropdownMenuItem onClick={async () => {
                           const res = await toggleSchoolActiveAction(r.id);
