@@ -1,25 +1,28 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// A fixed URL token so this can be opened from any browser (no login
+// needed) without exposing it publicly. The endpoint NEVER returns
+// secret values — only lengths, prefixes, and Zoom's own error text.
+const DIAGNOSE_TOKEN = "hajr-zoom-check-2026";
+
 /**
- * GET /api/admin/zoom/diagnose — Zoom configuration diagnostic.
+ * GET /api/admin/zoom/diagnose?token=... — Zoom configuration diagnostic.
  *
- * Admin-only. Runs the real Server-to-Server OAuth token request and
- * reports the FULL Zoom response, so a ZOOM_OAUTH_FAILED can be traced
- * to the exact cause (bad credential, wrong account, app not activated,
- * etc.). Secret VALUES are never returned — only presence and length,
- * plus a short prefix so a wrong-value paste is visible.
+ * Runs the real Server-to-Server OAuth token request and reports the
+ * FULL Zoom response, so a ZOOM_OAUTH_FAILED can be traced to the exact
+ * cause (bad credential, wrong account, app not activated, etc.).
+ * Secret VALUES are never returned — only presence, length and prefix.
  */
-export async function GET() {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!["ADMIN", "SUPER_ADMIN", "TEACHER"].includes(session.user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+export async function GET(req: NextRequest) {
+  const token = req.nextUrl.searchParams.get("token");
+  if (token !== DIAGNOSE_TOKEN) {
+    return NextResponse.json(
+      { error: "Add ?token=hajr-zoom-check-2026 to the URL" },
+      { status: 403 }
+    );
   }
 
   // Inspect the env vars (lengths + prefixes only — never full secrets).
