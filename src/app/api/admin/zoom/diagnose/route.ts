@@ -52,7 +52,11 @@ export async function GET(req: NextRequest) {
   const clientSecret = raw.ZOOM_CLIENT_SECRET.trim();
 
   let oauth: Record<string, unknown> = { attempted: false };
+  let createMeeting: Record<string, unknown> = { attempted: false };
+
   if (accountId && clientId && clientSecret) {
+    let accessToken = "";
+    let apiBase = "https://api.zoom.us";
     try {
       const basic = Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
       const res = await fetch(
@@ -60,24 +64,86 @@ export async function GET(req: NextRequest) {
         { method: "POST", headers: { Authorization: `Basic ${basic}` } }
       );
       const bodyText = await res.text();
-      let body: unknown;
+      let body: Record<string, unknown> | string;
       try {
-        body = JSON.parse(bodyText);
+        body = JSON.parse(bodyText) as Record<string, unknown>;
       } catch {
         body = bodyText.slice(0, 300);
+      }
+      if (res.ok && typeof body === "object") {
+        accessToken = String(body.access_token ?? "");
+        if (body.api_url) apiBase = String(body.api_url).replace(/\/+$/, "");
       }
       oauth = {
         attempted: true,
         httpStatus: res.status,
         ok: res.ok,
-        // The full Zoom response — this is the actual diagnosis.
-        zoomResponse: body,
+        apiUrlFromZoom: typeof body === "object" ? body.api_url ?? null : null,
+        scope: typeof body === "object" ? body.scope ?? null : null,
       };
     } catch (e) {
       oauth = {
         attempted: true,
         networkError: e instanceof Error ? e.message : "fetch failed",
       };
+    }
+
+    // Step 2 — actually create a meeting (then delete it), exactly as
+    // ZoomProvider does, against the resolved regional API host.
+    if (accessToken) {
+      const hostEmail = raw.ZOOM_HOST_EMAIL.trim();
+      try {
+        const cm = await fetch(
+          `${apiBase}/v2/users/${encodeURIComponent(hostEmail)}/meetings`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              topic: "Hajr diagnostic — auto-deleted",
+              type: 2,
+              start_time: new Date(Date.now() + 3600_000).toISOString(),
+              duration: 30,
+              password: "hajr01",
+              settings: {
+                join_before_host: false,
+                waiting_room: false,
+                auto_recording: "cloud",
+              },
+            }),
+          }
+        );
+        const cmText = await cm.text();
+        let cmBody: Record<string, unknown> | string;
+        try {
+          cmBody = JSON.parse(cmText) as Record<string, unknown>;
+        } catch {
+          cmBody = cmText.slice(0, 400);
+        }
+        if (cm.ok && typeof cmBody === "object" && cmBody.id) {
+          // Clean up the test meeting.
+          await fetch(`${apiBase}/v2/meetings/${cmBody.id}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }).catch(() => {});
+        }
+        createMeeting = {
+          attempted: true,
+          apiHostUsed: apiBase,
+          hostEmailUsed: hostEmail,
+          httpStatus: cm.status,
+          ok: cm.ok,
+          // On failure this holds Zoom's exact error code + message.
+          zoomResponse: cm.ok ? "meeting created + deleted OK" : cmBody,
+        };
+      } catch (e) {
+        createMeeting = {
+          attempted: true,
+          networkError: e instanceof Error ? e.message : "fetch failed",
+        };
+      }
     }
   } else {
     oauth = { attempted: false, reason: "missing one of the 3 S2S env vars" };
@@ -88,5 +154,6 @@ export async function GET(req: NextRequest) {
     note: "Zoom config diagnostic — secret values are NOT shown, only lengths/prefixes.",
     env: envReport,
     oauth,
+    createMeeting,
   });
 }

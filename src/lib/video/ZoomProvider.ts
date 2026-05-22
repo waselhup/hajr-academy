@@ -8,7 +8,10 @@ import type {
   RecordingResult,
 } from "./types";
 
-const ZOOM_API = "https://api.zoom.us/v2";
+// Default API base. Newer / regional Zoom accounts return their own
+// `api_url` in the OAuth token response (e.g. https://api-us.zoom.us);
+// when present that value is used instead of this default.
+const ZOOM_API_DEFAULT = "https://api.zoom.us";
 const ZOOM_OAUTH = "https://zoom.us/oauth/token";
 
 /**
@@ -31,6 +34,10 @@ export class ZoomProvider implements VideoProvider {
   private sdkSecret = (process.env.ZOOM_SDK_SECRET ?? "").trim();
 
   private tokenCache: { token: string; expiresAt: number } | null = null;
+  // The API base for this account. Defaults to api.zoom.us but is
+  // overwritten with the `api_url` Zoom returns in the token response
+  // (regional accounts use api-us.zoom.us, api-eu.zoom.us, etc.).
+  private apiBase = ZOOM_API_DEFAULT;
 
   // ─────────────────────── OAuth token ───────────────────────
   private async getAccessToken(): Promise<string> {
@@ -50,7 +57,15 @@ export class ZoomProvider implements VideoProvider {
       const body = await res.text();
       throw new Error(`ZOOM_OAUTH_FAILED: ${res.status} ${body}`);
     }
-    const data = (await res.json()) as { access_token: string; expires_in: number };
+    const data = (await res.json()) as {
+      access_token: string;
+      expires_in: number;
+      api_url?: string;
+    };
+    // Zoom tells us the correct regional API host — honour it.
+    if (data.api_url) {
+      this.apiBase = data.api_url.replace(/\/+$/, "");
+    }
     this.tokenCache = {
       token: data.access_token,
       expiresAt: now + data.expires_in * 1000,
@@ -62,8 +77,10 @@ export class ZoomProvider implements VideoProvider {
     path: string,
     init: RequestInit & { okStatuses?: number[] } = {}
   ): Promise<T> {
+    // getAccessToken() also resolves this.apiBase from Zoom's api_url,
+    // so it must run before the request URL is built.
     const token = await this.getAccessToken();
-    const res = await fetch(`${ZOOM_API}${path}`, {
+    const res = await fetch(`${this.apiBase}/v2${path}`, {
       ...init,
       headers: {
         Authorization: `Bearer ${token}`,
