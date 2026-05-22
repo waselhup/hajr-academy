@@ -38,7 +38,8 @@ export async function POST(req: Request) {
   }
 
   const provider = getVideoProvider();
-  const hostEmail = process.env.ZOOM_HOST_EMAIL ?? "";
+  // .trim() guards against a trailing space/newline in the env var.
+  const hostEmail = (process.env.ZOOM_HOST_EMAIL ?? "").trim();
   if (!hostEmail) {
     return NextResponse.json({ ok: false, error: "ZOOM_HOST_NOT_CONFIGURED" }, { status: 500 });
   }
@@ -155,9 +156,22 @@ export async function POST(req: Request) {
       data: { meetingId: meeting.meetingId, privateLessonId: pl.id },
     });
   } catch (e) {
-    console.error("[zoom/create-meeting]", e);
+    const raw = e instanceof Error ? e.message : String(e);
+    // Classify the failure so logs/clients can tell a credential problem
+    // (OAuth) apart from an API problem (scopes, settings, host account).
+    let code = "ZOOM_ERROR";
+    if (/ZOOM_OAUTH_FAILED|invalid_client|account_id/i.test(raw)) {
+      code = "ZOOM_OAUTH_FAILED";
+    } else if (/ZOOM_NOT_CONFIGURED/i.test(raw)) {
+      code = "ZOOM_NOT_CONFIGURED";
+    } else if (/ZOOM_API_ERROR/i.test(raw)) {
+      code = "ZOOM_API_ERROR";
+    }
+    // Log the full message on its own line so it is not truncated.
+    console.error("[zoom/create-meeting] FAILED", code);
+    console.error("[zoom/create-meeting] detail:", raw);
     return NextResponse.json(
-      { ok: false, error: "ZOOM_ERROR", message: (e as Error).message },
+      { ok: false, error: code, message: raw },
       { status: 502 }
     );
   }

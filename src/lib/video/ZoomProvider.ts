@@ -22,11 +22,13 @@ const ZOOM_OAUTH = "https://zoom.us/oauth/token";
  * refreshed automatically ~5 min before expiry.
  */
 export class ZoomProvider implements VideoProvider {
-  private accountId = process.env.ZOOM_ACCOUNT_ID ?? "";
-  private clientId = process.env.ZOOM_CLIENT_ID ?? "";
-  private clientSecret = process.env.ZOOM_CLIENT_SECRET ?? "";
-  private sdkKey = process.env.ZOOM_SDK_KEY ?? "";
-  private sdkSecret = process.env.ZOOM_SDK_SECRET ?? "";
+  // .trim() defends against the #1 cause of OAuth failures: an env var
+  // pasted into the dashboard with a trailing space or newline.
+  private accountId = (process.env.ZOOM_ACCOUNT_ID ?? "").trim();
+  private clientId = (process.env.ZOOM_CLIENT_ID ?? "").trim();
+  private clientSecret = (process.env.ZOOM_CLIENT_SECRET ?? "").trim();
+  private sdkKey = (process.env.ZOOM_SDK_KEY ?? "").trim();
+  private sdkSecret = (process.env.ZOOM_SDK_SECRET ?? "").trim();
 
   private tokenCache: { token: string; expiresAt: number } | null = null;
 
