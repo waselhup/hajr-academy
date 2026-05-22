@@ -42,7 +42,7 @@ const NAV_BY_ROLE: Record<Role, { key: string; href: string; icon: React.Compone
     { key: "Nav.myClasses", href: "/student/classes", icon: BookText },
     { key: "Nav.lab", href: "/student/lab", icon: FlaskConical },
     { key: "Nav.step", href: "/student/step", icon: FileText },
-    { key: "Nav.myInvoices", href: "/student/finance", icon: Receipt },
+    { key: "Nav.myInvoices", href: "/student/billing", icon: Receipt },
   ],
   PARENT: [
     { key: "Nav.dashboard", href: "/parent", icon: LayoutDashboard },

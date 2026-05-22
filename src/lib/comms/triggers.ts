@@ -129,7 +129,7 @@ export async function triggerPaymentOverdue(invoiceId: string, daysOverdue: numb
   });
 }
 
-/** A payment was received → thank-you to the student. */
+/** A payment was received → thank-you / receipt to the student. */
 export async function triggerPaymentReceived(invoiceId: string) {
   const inv = await prisma.invoice.findUnique({
     where: { id: invoiceId },
@@ -145,7 +145,99 @@ export async function triggerPaymentReceived(invoiceId: string) {
       invoiceNumber: inv.invoiceNumber,
       amount: Number(inv.totalSar).toFixed(2),
     },
-    actionUrl: "/student/finance",
+    actionUrl: "/student/billing",
+  });
+}
+
+/** A payment attempt failed → ask the student to update their card. */
+export async function triggerPaymentFailed(invoiceId: string) {
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { student: { select: { userId: true } } },
+  });
+  if (!inv) return;
+  await dispatch({
+    toUserId: inv.student.userId,
+    trigger: "PAYMENT_DUE",
+    templateKey: "payment_failed",
+    notificationType: "PAYMENT_DUE",
+    priority: "URGENT",
+    channels: ["EMAIL", "SMS", "IN_APP"],
+    variables: {
+      invoiceNumber: inv.invoiceNumber,
+      amount: Number(inv.totalSar).toFixed(2),
+    },
+    actionUrl: `/student/billing/pay/${inv.id}`,
+  });
+}
+
+/** An invoice was created → send the invoice + amount to the student. */
+export async function triggerInvoiceCreated(invoiceId: string) {
+  const inv = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    include: { student: { select: { userId: true } } },
+  });
+  if (!inv) return;
+  await dispatch({
+    toUserId: inv.student.userId,
+    trigger: "PAYMENT_DUE",
+    templateKey: "invoice_created",
+    notificationType: "PAYMENT_DUE",
+    priority: "NORMAL",
+    channels: ["EMAIL", "IN_APP"],
+    variables: {
+      invoiceNumber: inv.invoiceNumber,
+      amount: Number(inv.totalSar).toFixed(2),
+      dueDate: fmtRiyadh(inv.dueDate, "yyyy-MM-dd"),
+    },
+    actionUrl: `/student/billing/pay/${inv.id}`,
+  });
+}
+
+/** A subscription was cancelled → confirmation to the student. */
+export async function triggerSubscriptionCancelled(subscriptionId: string) {
+  const sub = await prisma.subscription.findUnique({
+    where: { id: subscriptionId },
+    include: { student: { select: { userId: true } } },
+  });
+  if (!sub) return;
+  await dispatch({
+    toUserId: sub.student.userId,
+    trigger: "PAYMENT_RECEIVED",
+    templateKey: "subscription_cancelled",
+    notificationType: "SYSTEM_ANNOUNCEMENT",
+    priority: "NORMAL",
+    channels: ["EMAIL", "IN_APP"],
+    variables: {
+      endDate: fmtRiyadh(sub.currentPeriodEnd, "yyyy-MM-dd"),
+    },
+    actionUrl: "/student/billing",
+  });
+}
+
+/** A subscription renews in N days → heads-up to the student. */
+export async function triggerSubscriptionExpiring(
+  subscriptionId: string,
+  daysUntil: number
+) {
+  const sub = await prisma.subscription.findUnique({
+    where: { id: subscriptionId },
+    include: { student: { select: { userId: true } } },
+  });
+  if (!sub) return;
+  await dispatch({
+    toUserId: sub.student.userId,
+    trigger: "PAYMENT_DUE",
+    templateKey: "subscription_expiring",
+    notificationType: "PAYMENT_DUE",
+    priority: "NORMAL",
+    channels: ["EMAIL", "IN_APP"],
+    variables: {
+      daysUntil: String(daysUntil),
+      renewDate: fmtRiyadh(sub.currentPeriodEnd, "yyyy-MM-dd"),
+      amount: Number(sub.totalWithVat).toFixed(2),
+    },
+    actionUrl: "/student/billing",
   });
 }
 

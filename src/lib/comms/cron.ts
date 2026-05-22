@@ -3,6 +3,7 @@
  *
  *  - Class sessions starting in ~30 min → class reminder
  *  - Invoices that became overdue (1+ days) → payment-overdue reminder
+ *  - Phase 8 finance tick: subscription renewals, auto-charge, expiry
  *
  * Each check is idempotent within reason: reminders use a time window so a
  * session is only caught in one tick, and overdue invoices flip to OVERDUE
@@ -10,10 +11,12 @@
  */
 import { prisma } from "@/lib/prisma";
 import { triggerClassReminder, triggerPaymentOverdue } from "./triggers";
+import { runFinanceTick, type FinanceCronSummary } from "@/lib/finance/cron";
 
 export interface CronSummary {
   classReminders: number;
   overdueReminders: number;
+  finance: FinanceCronSummary;
   errors: string[];
 }
 
@@ -22,6 +25,14 @@ export async function runCommsTick(): Promise<CronSummary> {
   const summary: CronSummary = {
     classReminders: 0,
     overdueReminders: 0,
+    finance: {
+      renewalsBilled: 0,
+      autoCharged: 0,
+      autoChargeFailed: 0,
+      expired: 0,
+      renewalReminders: 0,
+      errors: [],
+    },
     errors: [],
   };
 
@@ -82,6 +93,15 @@ export async function runCommsTick(): Promise<CronSummary> {
   } catch (e) {
     summary.errors.push(
       `overdue scan: ${e instanceof Error ? e.message : "failed"}`
+    );
+  }
+
+  // ── Phase 8 finance tick: renewals, auto-charge, expiry, reminders ──
+  try {
+    summary.finance = await runFinanceTick();
+  } catch (e) {
+    summary.errors.push(
+      `finance tick: ${e instanceof Error ? e.message : "failed"}`
     );
   }
 

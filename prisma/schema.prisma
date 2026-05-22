@@ -77,17 +77,18 @@ model StudentProfile {
   packageExpiresAt DateTime?
   createdAt        DateTime     @default(now())
 
-  parentLinks      ParentStudentLink[]
-  enrollments      Enrollment[]
-  attendances      Attendance[]
-  submissions      Submission[]
-  invoices         Invoice[]
-  labAttempts      LabAttempt[]
-  skillLevels      SkillLevel[]
-  examAttempts     ExamAttempt[]
-  privateLessons          PrivateLesson[]
-  school                  PartnerSchool?          @relation(fields: [schoolId], references: [id])
-  blackboardPermissions   BlackboardPermission[]
+  parentLinks           ParentStudentLink[]
+  enrollments           Enrollment[]
+  attendances           Attendance[]
+  submissions           Submission[]
+  invoices              Invoice[]
+  subscriptions         Subscription[]
+  labAttempts           LabAttempt[]
+  skillLevels           SkillLevel[]
+  examAttempts          ExamAttempt[]
+  privateLessons        PrivateLesson[]
+  school                PartnerSchool?         @relation(fields: [schoolId], references: [id])
+  blackboardPermissions BlackboardPermission[]
 }
 
 model ParentProfile {
@@ -127,7 +128,8 @@ model Program {
   durationHours   Int?
   active          Boolean     @default(true)
 
-  classes Class[]
+  classes       Class[]
+  subscriptions Subscription[]
 }
 
 model Class {
@@ -258,15 +260,15 @@ model BlackboardPermission {
 
 // ─────────────────────── ASSIGNMENTS ───────────────────────
 model Assignment {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   classId     String
-  class       Class    @relation(fields: [classId], references: [id], onDelete: Cascade)
+  class       Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
   title       String
   titleAr     String?
   description String?
   dueDate     DateTime?
   attachments String[]
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
   submissions Submission[]
 }
@@ -378,7 +380,7 @@ model TestQuestion {
 }
 
 model TestExam {
-  id               String        @id @default(uuid())
+  id               String   @id @default(uuid())
   type             ExamType
   testType         TestType
   title            String
@@ -386,15 +388,15 @@ model TestExam {
   description      String?
   totalQuestions   Int
   totalMinutes     Int
-  passingScore     Int           @default(60)
+  passingScore     Int      @default(60)
   sectionStructure Json
-  difficulty       Int           @default(3)
-  isPublished      Boolean       @default(true)
-  isAdaptive       Boolean       @default(false)
+  difficulty       Int      @default(3)
+  isPublished      Boolean  @default(true)
+  isAdaptive       Boolean  @default(false)
   adaptiveConfig   Json?
   createdBy        String?
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   questions ExamQuestion[]
   attempts  ExamAttempt[]
@@ -498,30 +500,179 @@ model EmailTemplate {
 }
 
 // ─────────────────────── FINANCE ───────────────────────
+
+/// Subscription — a student's recurring billing plan for a package.
+model Subscription {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  packageType PackageType
+  programId   String?
+  program     Program?    @relation(fields: [programId], references: [id])
+
+  status SubStatus @default(ACTIVE)
+
+  // Pricing (SAR)
+  pricePerMonth Decimal @db.Decimal(10, 2)
+  vatRate       Decimal @default(0.15) @db.Decimal(5, 4)
+  totalWithVat  Decimal @db.Decimal(10, 2)
+
+  // Billing cycle
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  nextBillingDate    DateTime?
+  autoRenew          Boolean   @default(false)
+
+  // Moyasar
+  moyasarSubscriptionId String?
+  paymentMethodId       String?
+
+  // Promo
+  promoCodeId    String?
+  promoCode      PromoCode? @relation(fields: [promoCodeId], references: [id])
+  discountAmount Decimal    @default(0) @db.Decimal(10, 2)
+
+  cancelledAt  DateTime?
+  cancelReason String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoices Invoice[]
+
+  @@index([studentId, status])
+}
+
+/// Invoice — extended in Phase 8. Legacy month/year/*Sar columns retained
+/// for back-compat with Phase 1 tools; Phase 8 fields are nullable additions.
 model Invoice {
-  id               String         @id @default(uuid())
-  invoiceNumber    String         @unique
-  studentId        String
-  student          StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  packageType      PackageType?
-  classId          String?
-  month            Int
-  year             Int
-  subtotalSar      Decimal        @db.Decimal(10, 2)
-  vatSar           Decimal        @db.Decimal(10, 2)
-  totalSar         Decimal        @db.Decimal(10, 2)
-  status           PaymentStatus  @default(PENDING)
-  dueDate          DateTime
-  paidAt           DateTime?
+  id            String @id @default(uuid())
+  invoiceNumber String @unique
+
+  subscriptionId String?
+  subscription   Subscription?  @relation(fields: [subscriptionId], references: [id])
+  studentId      String
+  student        StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  schoolId       String?
+
+  packageType PackageType?
+  classId     String?
+
+  // Legacy period columns (Phase 1) — kept for existing tools.
+  month Int
+  year  Int
+
+  type InvoiceType @default(SUBSCRIPTION)
+
+  // Legacy status (PaymentStatus) — kept for existing tools/cron.
+  status        PaymentStatus @default(PENDING)
+  // Phase 8 richer status (DRAFT/PENDING/PAID/OVERDUE/CANCELLED/REFUNDED).
+  invoiceStatus InvoiceStatus @default(PENDING)
+
+  // Amounts (SAR). Legacy *Sar columns + Phase 8 aliases (kept in sync).
+  subtotalSar Decimal @db.Decimal(10, 2)
+  vatSar      Decimal @db.Decimal(10, 2)
+  totalSar    Decimal @db.Decimal(10, 2)
+  discountSar Decimal @default(0) @db.Decimal(10, 2)
+
+  // ZATCA compliance
+  zatcaQrData String? @db.Text
+  zatcaUuid   String?
+  vatNumber   String?
+
+  // Dates
+  issuedAt DateTime  @default(now())
+  dueDate  DateTime
+  paidAt   DateTime?
+
   paymentMethod    PaymentMethod?
   moyasarPaymentId String?
   bankRef          String?
-  zatcaQrData      String?
-  zatcaUuid        String?
-  pdfUrl           String?
-  notes            String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+
+  pdfUrl String?
+
+  // Line items: [{ description, descriptionAr, quantity, unitPrice, vatRate, total }]
+  lineItems Json?
+
+  notes   String?
+  notesAr String?
+
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([studentId, status])
+  @@index([invoiceNumber])
+}
+
+/// Payment — a Moyasar (or manual) payment attempt against an invoice.
+model Payment {
+  id        String  @id @default(uuid())
+  invoiceId String
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  amount   Decimal @db.Decimal(10, 2)
+  currency String  @default("SAR")
+
+  // Moyasar
+  moyasarPaymentId String?
+  moyasarSource    Json?
+
+  status PayStatus @default(INITIATED)
+
+  // Card info (masked — never store full PAN)
+  cardBrand String?
+  cardLast4 String?
+
+  // Refund tracking
+  refundedAmount Decimal   @default(0) @db.Decimal(10, 2)
+  refundReason   String?
+  refundedAt     DateTime?
+
+  paidAt         DateTime?
+  failedAt       DateTime?
+  failureMessage String?
+
+  createdAt DateTime @default(now())
+
+  @@index([invoiceId])
+  @@index([moyasarPaymentId])
+}
+
+/// PromoCode — discount coupons applicable to subscriptions.
+model PromoCode {
+  id   String @id @default(uuid())
+  code String @unique
+
+  type  PromoType
+  value Decimal   @db.Decimal(10, 2)
+
+  // Constraints
+  maxUses        Int?
+  currentUses    Int  @default(0)
+  maxUsesPerUser Int  @default(1)
+
+  // Applicability
+  applicablePackages PackageType[]
+  applicablePrograms String[]
+
+  // Validity
+  startsAt  DateTime
+  expiresAt DateTime?
+  isActive  Boolean   @default(true)
+
+  description   String?
+  descriptionAr String?
+  createdBy     String?
+
+  subscriptions Subscription[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code, isActive])
 }
 
 model SalaryPayment {
@@ -844,6 +995,49 @@ enum PaymentMethod {
   STC_PAY
   BANK_TRANSFER
   CASH
+}
+
+// ─────────────────────── PHASE 8 — FINANCE ───────────────────────
+
+enum SubStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+  TRIAL
+}
+
+enum InvoiceType {
+  SUBSCRIPTION
+  ONE_TIME
+  B2B_CONTRACT
+  REFUND_CREDIT
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  REFUNDED
+}
+
+/// Payment lifecycle status (distinct from the legacy PaymentStatus enum
+/// used by Invoice — that one is an invoice-level status).
+enum PayStatus {
+  INITIATED
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PromoType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_MONTHS
 }
 
 enum NotificationType {

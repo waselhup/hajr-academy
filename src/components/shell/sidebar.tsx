@@ -78,7 +78,7 @@ const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.mockExams", href: "/student/exams", icon: FileText },
     { key: "Nav.assignments", href: "/student/assignments", icon: BookCheck },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
-    { key: "Nav.myInvoices", href: "/student/finance", icon: Receipt },
+    { key: "Nav.myInvoices", href: "/student/billing", icon: Receipt },
     { key: "Nav.progress", href: "/student/progress", icon: BarChart3 },
     { key: "Nav.profile", href: "/student/profile", icon: UserIcon },
   ],

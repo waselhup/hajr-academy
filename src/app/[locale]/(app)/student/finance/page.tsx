@@ -1,9 +1,10 @@
-import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default async function StudentFinancePage() {
-  await requireRole("STUDENT");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.myInvoices")} phase={7} description="My invoices + Pay Now (Moyasar)." />;
+/** /student/finance — superseded by the Phase 8 billing page. */
+export default function StudentFinancePage({
+  params,
+}: {
+  params: { locale: string };
+}) {
+  redirect(`/${params.locale}/student/billing`);
 }

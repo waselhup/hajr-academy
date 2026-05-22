@@ -247,3 +247,45 @@
 ### D58. 6 new agent tools extend Phase 4
 - **Decision**: Admin gains `send_message`, `query_message_stats`, `broadcast_announcement`, `query_failed_messages`. Public assistant gains `check_my_messages`, `update_my_notifications`. All registered in the respective `index.ts`.
 - **Why**: Keeps the AI layer the single conversational surface — `draft_message` (Phase 4) previews, `send_message` (Phase 7) actually delivers.
+
+## Phase 8 — Finance + Moyasar + ZATCA E-Invoicing
+
+### D59. Invoice model extended, not replaced
+- **Decision**: The Phase 1 `Invoice` table was kept and extended with nullable Phase 8 columns (`subscriptionId`, `type`, `invoiceStatus`, `discountSar`, `lineItems`, `notesAr`, `issuedAt`, `vatNumber`, `schoolId`) rather than dropped/recreated. The legacy `month`/`year`/`*Sar`/`status` columns remain; `createInvoice` populates both legacy and new fields on every write.
+- **Why**: Existing Phase 1/4 tooling (`query-invoices`, `get-revenue-stats`, `triggers.ts`) reads the legacy columns. Extending keeps that code working with no migration of live data.
+
+### D60. Two status enums on Invoice (legacy + Phase 8)
+- **Decision**: `Invoice.status` keeps the legacy `PaymentStatus` enum; a new `invoiceStatus` field uses a richer `InvoiceStatus` enum (adds `DRAFT`/`CANCELLED`). The new `Payment` model uses a distinct `PayStatus` enum (the name `PaymentStatus` was already taken). `markInvoicePaid`/`setInvoiceStatus` keep both columns in sync.
+- **Why**: The spec's invoice statuses don't map 1:1 to the legacy enum; a parallel field avoids breaking the legacy enum's consumers while giving Phase 8 the states it needs.
+
+### D61. Moyasar via REST + fetch, not the npm SDK
+- **Decision**: `lib/finance/moyasar.ts` wraps the Moyasar REST API (`api.moyasar.com/v1`) with `fetch`. Amounts cross the boundary in halalas (`sarToHalalas`/`halalasToSar`); the rest of the app works in SAR.
+- **Why**: The Moyasar surface used here (create/get/refund/list payment) is small; a fetch wrapper avoids an extra dependency and keeps full control over typing and mock mode.
+
+### D62. Mock mode when no Moyasar key
+- **Decision**: With `MOYASAR_SECRET_KEY` unset, `MoyasarClient` synthesises deterministic "paid" responses; the embedded `MoyasarPaymentForm` renders a "mock pay" button instead of the hosted form. Webhook verification is skipped when `MOYASAR_WEBHOOK_SECRET` is absent.
+- **Why**: The whole billing flow (subscribe → invoice → pay → refund) must run end-to-end in dev and CI with no credentials. Production simply adds the keys.
+
+### D63. Invoice document is print-optimised HTML, not jsPDF
+- **Decision**: `generateInvoicePdf` produces a self-contained, RTL, bilingual HTML document (Cairo/Inter web fonts, embedded ZATCA QR data-URL) returned as a `Buffer`, stored as `.html` in the `invoices` bucket. `/api/invoices/[id]/pdf` serves it inline; the browser's "Save as PDF" yields the PDF.
+- **Why**: jsPDF cannot shape Arabic script without embedding a large TTF and still mishandles RTL. HTML renders Arabic perfectly everywhere and converts cleanly to PDF. The bucket allows `text/html` alongside `application/pdf`.
+
+### D64. ZATCA Phase 1 QR on every invoice
+- **Decision**: `lib/finance/zatca.ts` TLV-encodes the five mandatory fields (seller name, VAT number, timestamp, VAT-inclusive total, VAT amount) to Base64, generated for every invoice including in mock mode. Seller identity comes from `ZATCA_*` env vars with Hajr defaults.
+- **Why**: ZATCA Phase 1 compliance is mandatory for Saudi simplified tax invoices; generating it always (not just in production) keeps test invoices realistic and the code path exercised.
+
+### D65. Finance cron folded into the existing comms tick
+- **Decision**: `lib/finance/cron.ts` (`runFinanceTick`) is invoked from `runCommsTick`, so the existing `/api/cron/comms-tick` (every 5 min) also handles subscription renewals, auto-charge, PAST_DUE expiry (15-day grace), and 3-day renewal reminders. No new Vercel cron entry.
+- **Why**: One scheduled endpoint is simpler to operate and secure than two; the finance checks are idempotent (a generated renewal invoice advances `nextBillingDate`).
+
+### D66. Auto-renewal is strictly opt-in
+- **Decision**: Auto-charge on renewal happens only when the student checked the auto-renew box (`Subscription.autoRenew`) AND a `paymentMethodId` (card token) is on file. Otherwise the renewal invoice is created and a payment reminder is sent.
+- **Why**: Quality rule #12 — charging a card without explicit consent is not permitted.
+
+### D67. Refunds validated server-side, ≤ remaining balance
+- **Decision**: `processRefund` rejects any amount exceeding (paid − already-refunded); a full refund flips the invoice to `REFUNDED`, a partial one to `PARTIALLY_REFUNDED`. The `process_refund` agent tool requires an explicit `confirm=true` second call after a preview.
+- **Why**: Quality rule #9 — refunds must never exceed the paid amount; financial mutations from the AI agent need human confirmation.
+
+### D68. 6 new agent tools, 20 finance API routes
+- **Decision**: Admin gains `query_revenue`, `query_overdue_invoices`, `process_refund`, `generate_promo_code`; public gains `check_my_billing`, `apply_promo_code`. 20 REST routes cover payments, subscriptions, invoices, promo codes, refunds, and admin finance reports.
+- **Why**: Keeps the AI layer the single conversational surface for finance; the REST routes back both the student billing pages and the admin finance dashboard.

@@ -19,6 +19,10 @@ import { sendMessage } from "./send-message";
 import { queryMessageStats } from "./query-message-stats";
 import { broadcastAnnouncement } from "./broadcast-announcement";
 import { queryFailedMessages } from "./query-failed-messages";
+import { queryRevenue } from "./query-revenue";
+import { queryOverdueInvoices } from "./query-overdue-invoices";
+import { processRefundTool } from "./process-refund";
+import { generatePromoCode } from "./generate-promo-code";
 
 export const adminTools = [
   queryStudents,
@@ -42,4 +46,9 @@ export const adminTools = [
   queryMessageStats,
   broadcastAnnouncement,
   queryFailedMessages,
+  // Phase 8 — finance
+  queryRevenue,
+  queryOverdueInvoices,
+  processRefundTool,
+  generatePromoCode,
 ];

@@ -12,6 +12,8 @@ import { explainQuestion } from "./explain-question";
 import { practiceTopic } from "./practice-topic";
 import { checkMyMessages } from "./check-my-messages";
 import { updateMyNotifications } from "./update-my-notifications";
+import { checkMyBilling } from "./check-my-billing";
+import { applyPromoCode } from "./apply-promo-code";
 
 export const publicTools = [
   getPrograms,
@@ -28,4 +30,7 @@ export const publicTools = [
   practiceTopic,
   checkMyMessages,
   updateMyNotifications,
+  // Phase 8 — finance
+  checkMyBilling,
+  applyPromoCode,
 ];
