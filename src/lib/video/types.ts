@@ -48,4 +48,10 @@ export interface VideoProvider {
   getMeetingRecording(meetingId: string): Promise<RecordingResult | null>;
   /** Live participant count for a meeting, or null if not live / not found. */
   getLiveParticipantCount(meetingId: string): Promise<number | null>;
+  /**
+   * Re-apply the "students can always join" settings to an existing
+   * meeting (join_before_host on, waiting room off). Used to repair
+   * meetings created before this policy. Best-effort.
+   */
+  ensureJoinableSettings(meetingId: string): Promise<void>;
 }

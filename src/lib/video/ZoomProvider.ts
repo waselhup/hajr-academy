@@ -108,10 +108,15 @@ export class ZoomProvider implements VideoProvider {
       timezone: "Asia/Riyadh",
       password: opts.password,
       settings: {
-        join_before_host: false,
+        // Enrolled students must be able to enter without being blocked
+        // by host-join timing or a waiting room — access is already
+        // gated by our own enrollment check in /api/zoom/signature.
+        join_before_host: true,
         waiting_room: false,
+        jbh_time: 0, // allow joining any time before the host
         mute_upon_entry: true,
-        approval_type: 2,
+        approval_type: 2, // no registration required
+        meeting_authentication: false,
         auto_recording: opts.autoRecording ? "cloud" : "none",
         host_video: true,
         participant_video: false,
@@ -140,6 +145,27 @@ export class ZoomProvider implements VideoProvider {
     if (opts.scheduledFor) body.start_time = opts.scheduledFor.toISOString();
     if (opts.durationMinutes) body.duration = opts.durationMinutes;
     await this.api(`/meetings/${meetingId}`, { method: "PATCH", body: JSON.stringify(body) });
+  }
+
+  /**
+   * Re-apply join settings to an existing meeting so enrolled students
+   * are never blocked by host-join timing or a waiting room. Patches
+   * only the `settings` object — leaves topic/time untouched.
+   */
+  async ensureJoinableSettings(meetingId: string): Promise<void> {
+    await this.api(`/meetings/${meetingId}`, {
+      method: "PATCH",
+      body: JSON.stringify({
+        settings: {
+          join_before_host: true,
+          waiting_room: false,
+          jbh_time: 0,
+          approval_type: 2,
+          meeting_authentication: false,
+        },
+      }),
+      okStatuses: [204, 404],
+    });
   }
 
   async deleteMeeting(meetingId: string): Promise<void> {

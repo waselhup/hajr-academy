@@ -91,6 +91,15 @@ export async function POST(
           console.error("[class-sessions/start] Zoom create failed:", e);
         }
       }
+    } else {
+      // Meeting already exists — re-apply the "students can always join"
+      // settings. Repairs meetings created before this policy so a
+      // re-click of "Start" fixes a class students couldn't join.
+      try {
+        await getVideoProvider().ensureJoinableSettings(zoomMeetingId);
+      } catch (e) {
+        console.error("[class-sessions/start] ensureJoinableSettings:", e);
+      }
     }
 
     // Flip the session LIVE.
