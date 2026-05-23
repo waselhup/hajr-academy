@@ -34,6 +34,16 @@ const nextConfig = {
         headers: [
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+          // Allow camera, microphone, screen-share (display-capture) and
+          // autoplay on the classroom page. Without this header the
+          // browser blocks getUserMedia() inside the Zoom embedded SDK
+          // and surfaces "cannot open the camera". `self` lets the page
+          // (and any same-origin iframes the SDK creates) access these.
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(self), microphone=(self), display-capture=(self), autoplay=(self), fullscreen=(self), clipboard-read=(self), clipboard-write=(self)",
+          },
         ],
       },
     ];

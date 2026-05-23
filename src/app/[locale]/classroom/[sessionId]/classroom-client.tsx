@@ -90,6 +90,10 @@ export function ClassroomClient({
           zoomAppRoot: containerRef.current,
           language: "en-US",
           patchJsMedia: true,
+          // Keep the SDK's default in-meeting toolbar — it already
+          // exposes camera, microphone, and screen-share controls. The
+          // Permissions-Policy header on this route is what actually
+          // lets the SDK call getUserMedia / getDisplayMedia.
           customize: {
             video: {
               isResizable: true,
