@@ -151,7 +151,8 @@
     "hajrAI": "هجر AI",
     "parentInvites": "دعوات أولياء الأمور",
     "adminChats": "المحادثات",
-    "contactRequests": "طلبات التواصل"
+    "contactRequests": "طلبات التواصل",
+    "myStudents": "طلابي"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",
@@ -383,7 +384,12 @@
     "bulkInvoiceDone": "تم توليد {n} فاتورة",
     "createSuccess": "تم إنشاء الفصل",
     "updateSuccess": "تم تحديث الفصل",
-    "noClasses": "لا توجد فصول"
+    "noClasses": "لا توجد فصول",
+    "filterAll": "الكل",
+    "filterGroup": "جماعي",
+    "filterPrivate": "خصوصي",
+    "typeGroup": "جماعي",
+    "typePrivate": "خصوصي"
   },
   "Schools": {
     "title": "المدارس الشريكة",
@@ -1106,5 +1112,61 @@
     "role_STUDENT": "طالب",
     "role_PARENT": "ولي أمر",
     "role_ADMIN": "مشرف"
+  },
+  "TeacherStudents": {
+    "pageTitle": "طلابي",
+    "pageSubtitle": "جميع طلابي الموزّعين على فصولي.",
+    "noStudents": "لا يوجد طلاب مسجّلون بعد.",
+    "classLabel": "الفصل",
+    "packageLabel": "الباقة",
+    "gradeLabel": "الصف",
+    "schoolLabel": "المدرسة",
+    "viewProfile": "عرض الملف",
+    "attendanceTab": "الحضور",
+    "assignmentsTab": "الواجبات والدرجات",
+    "labTab": "تقدّم المختبر",
+    "markAttendance": "تسجيل الحضور"
+  },
+  "TeacherPay": {
+    "title": "الراتب والمدفوعات",
+    "currentRate": "السعر بالساعة",
+    "setByAdmin": "يحدّده المشرف",
+    "pending": "قيد المراجعة",
+    "approved": "معتمد",
+    "paidThisMonth": "مدفوع هذا الشهر",
+    "totalEarned": "إجمالي الأرباح",
+    "recentEarnings": "آخر الأرباح",
+    "earningDate": "التاريخ",
+    "earningClass": "الفصل",
+    "earningHours": "الساعات",
+    "earningRate": "السعر",
+    "earningAmount": "المبلغ",
+    "status_PENDING": "قيد المراجعة",
+    "status_APPROVED": "معتمد",
+    "status_PAID": "مدفوع",
+    "filterStatus": "تصفية بالحالة",
+    "filterMonth": "تصفية بالشهر",
+    "noEarnings": "لا توجد أرباح بعد."
+  },
+  "Assignments": {
+    "tabAssignments": "الواجبات",
+    "tabBlackboard": "السبورة",
+    "tabLab": "مختبر اللغة",
+    "createBlackboard": "إنشاء سبورة جديدة",
+    "openBlackboard": "فتح",
+    "copyLink": "نسخ الرابط",
+    "recentRooms": "السبورات الحديثة"
+  },
+  "AdminPay": {
+    "title": "مدفوعات المعلّمين",
+    "subtitle": "اعتماد وصرف رواتب المعلّمين.",
+    "approve": "اعتماد",
+    "markPaid": "تحديد كمدفوع",
+    "reject": "رفض",
+    "bulkApprove": "اعتماد المحدّد",
+    "setRateTitle": "تحديد سعر الساعة",
+    "rateLabel": "السعر بالساعة (ر.س)",
+    "saveRate": "حفظ",
+    "rateUpdated": "تم تحديث السعر"
   }
 }

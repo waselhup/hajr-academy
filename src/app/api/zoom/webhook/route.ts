@@ -4,6 +4,7 @@ import { verifyZoomWebhook, buildUrlValidationResponse } from "@/lib/video/zoom-
 import { finalizeSessionAttendance } from "@/lib/attendance";
 import { logAudit } from "@/lib/audit";
 import { notifyUsers, parentUserIdsForStudents } from "@/lib/notify";
+import { createEarningForSession } from "@/lib/teacher-earnings";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -79,6 +80,8 @@ async function handleMeetingEnded(meetingId: string) {
     data: { status: "COMPLETED", endedAt: new Date() },
   });
   await finalizeSessionAttendance(cs.id);
+  // Auto-create a PENDING TeacherEarning for the now-completed session.
+  await createEarningForSession(cs.id);
 
   // Notify students marked ABSENT.
   const absent = await prisma.attendance.findMany({

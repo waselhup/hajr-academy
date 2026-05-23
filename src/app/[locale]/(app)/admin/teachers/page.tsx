@@ -53,9 +53,11 @@ export default async function AdminTeachersPage({
       createdAt: u.createdAt.toISOString(),
       profile: u.teacherProfile
         ? {
+            id: u.teacherProfile.id,
             bio: u.teacherProfile.bio,
             specializations: u.teacherProfile.specializations,
             salaryBase: u.teacherProfile.salaryBase.toString(),
+            hourlyRate: u.teacherProfile.hourlyRate.toString(),
             zoomHostEmail: u.teacherProfile.zoomHostEmail,
             rating: u.teacherProfile.rating?.toString() ?? null,
             totalStudents: u.teacherProfile.totalStudents,

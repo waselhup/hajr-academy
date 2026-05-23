@@ -49,6 +49,7 @@ model TeacherProfile {
   bio             String?
   specializations String[]
   salaryBase      Decimal  @default(0) @db.Decimal(10, 2)
+  hourlyRate      Decimal  @default(0) @db.Decimal(10, 2)
   zoomHostEmail   String?
   rating          Decimal? @db.Decimal(3, 2)
   totalStudents   Int      @default(0)
@@ -59,6 +60,7 @@ model TeacherProfile {
   privateLessons  PrivateLesson[]
   blackboardRooms BlackboardRoom[]
   salaryPayments  SalaryPayment[]
+  earnings        TeacherEarning[]
 }
 
 model StudentProfile {
@@ -207,6 +209,7 @@ model ClassSession {
 
   attendances    Attendance[]
   blackboardRoom BlackboardRoom? @relation(fields: [blackboardRoomId], references: [id])
+  earnings       TeacherEarning[]
 }
 
 model Attendance {
@@ -730,6 +733,28 @@ model SalaryPayment {
   createdAt     DateTime       @default(now())
 }
 
+/// TeacherEarning — per-session earning calculated when a class session
+/// completes. PENDING until an admin approves; APPROVED → PAID lifecycle.
+model TeacherEarning {
+  id             String         @id @default(uuid())
+  teacherId      String
+  teacher        TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classSessionId String?        @unique
+  classSession   ClassSession?  @relation(fields: [classSessionId], references: [id], onDelete: SetNull)
+  hoursWorked    Decimal        @db.Decimal(5, 2)
+  hourlyRate     Decimal        @db.Decimal(10, 2)
+  amount         Decimal        @db.Decimal(10, 2)
+  status         EarningStatus  @default(PENDING)
+  approvedBy     String?
+  approvedAt     DateTime?
+  paidAt         DateTime?
+  notes          String?
+  createdAt      DateTime       @default(now())
+
+  @@index([teacherId, status])
+  @@index([status, createdAt])
+}
+
 model PartnerSchool {
   id            String   @id @default(uuid())
   nameEn        String
@@ -1228,4 +1253,10 @@ enum ContactStatus {
   NEW
   REPLIED
   CLOSED
+}
+
+enum EarningStatus {
+  PENDING
+  APPROVED
+  PAID
 }

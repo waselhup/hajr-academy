@@ -151,7 +151,8 @@
     "hajrAI": "Hajr AI",
     "parentInvites": "Parent Invites",
     "adminChats": "Chats",
-    "contactRequests": "Contact Requests"
+    "contactRequests": "Contact Requests",
+    "myStudents": "My Students"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
@@ -383,7 +384,12 @@
     "bulkInvoiceDone": "Generated {n} invoices",
     "createSuccess": "Class created",
     "updateSuccess": "Class updated",
-    "noClasses": "No classes yet"
+    "noClasses": "No classes yet",
+    "filterAll": "All",
+    "filterGroup": "Group",
+    "filterPrivate": "Private",
+    "typeGroup": "Group",
+    "typePrivate": "Private"
   },
   "Schools": {
     "title": "Partner Schools",
@@ -1106,5 +1112,61 @@
     "role_STUDENT": "Student",
     "role_PARENT": "Parent",
     "role_ADMIN": "Admin"
+  },
+  "TeacherStudents": {
+    "pageTitle": "My Students",
+    "pageSubtitle": "All students assigned to me across my classes.",
+    "noStudents": "No students enrolled yet.",
+    "classLabel": "Class",
+    "packageLabel": "Package",
+    "gradeLabel": "Grade",
+    "schoolLabel": "School",
+    "viewProfile": "View Profile",
+    "attendanceTab": "Attendance",
+    "assignmentsTab": "Assignments & Grades",
+    "labTab": "Lab Progress",
+    "markAttendance": "Mark Attendance"
+  },
+  "TeacherPay": {
+    "title": "Salary & Payments",
+    "currentRate": "Hourly Rate",
+    "setByAdmin": "Set by admin",
+    "pending": "Pending",
+    "approved": "Approved",
+    "paidThisMonth": "Paid This Month",
+    "totalEarned": "Total Earned",
+    "recentEarnings": "Recent Earnings",
+    "earningDate": "Date",
+    "earningClass": "Class",
+    "earningHours": "Hours",
+    "earningRate": "Rate",
+    "earningAmount": "Amount",
+    "status_PENDING": "Pending",
+    "status_APPROVED": "Approved",
+    "status_PAID": "Paid",
+    "filterStatus": "Filter by status",
+    "filterMonth": "Filter by month",
+    "noEarnings": "No earnings yet."
+  },
+  "Assignments": {
+    "tabAssignments": "Assignments",
+    "tabBlackboard": "Blackboard",
+    "tabLab": "Language Lab",
+    "createBlackboard": "Create New Blackboard",
+    "openBlackboard": "Open",
+    "copyLink": "Copy Link",
+    "recentRooms": "Recent Boards"
+  },
+  "AdminPay": {
+    "title": "Teacher Payments",
+    "subtitle": "Approve and pay teacher salaries.",
+    "approve": "Approve",
+    "markPaid": "Mark as Paid",
+    "reject": "Reject",
+    "bulkApprove": "Approve Selected",
+    "setRateTitle": "Set Hourly Rate",
+    "rateLabel": "Hourly Rate (SAR)",
+    "saveRate": "Save",
+    "rateUpdated": "Rate updated"
   }
 }

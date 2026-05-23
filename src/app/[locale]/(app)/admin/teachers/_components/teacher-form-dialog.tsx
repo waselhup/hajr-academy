@@ -27,6 +27,7 @@ const schema = z.object({
   bio: z.string().optional(),
   specializations: z.array(z.enum(SPEC)).default([]),
   salaryBase: z.coerce.number().nonnegative().default(0),
+  hourlyRate: z.coerce.number().nonnegative().default(0),
   zoomHostEmail: z.union([z.string().email(), z.literal("")]).optional(),
 });
 type FormData = z.infer<typeof schema>;
@@ -45,9 +46,10 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           bio: existing.profile?.bio ?? "",
           specializations: existing.profile?.specializations ?? [],
           salaryBase: Number(existing.profile?.salaryBase ?? 0),
+          hourlyRate: Number(existing.profile?.hourlyRate ?? 0),
           zoomHostEmail: existing.profile?.zoomHostEmail ?? "",
         }
-      : { specializations: [], salaryBase: 0 } as any,
+      : { specializations: [], salaryBase: 0, hourlyRate: 0 } as any,
   });
 
   const specs = watch("specializations") ?? [];
@@ -86,6 +88,7 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
             <Input dir="ltr" placeholder="05XXXXXXXX" {...register("phone")} />
           </Field>
           <Field label={t("Teachers.salaryBase")}><Input type="number" step="50" {...register("salaryBase")} /></Field>
+          <Field label={t("AdminPay.rateLabel")}><Input type="number" step="5" {...register("hourlyRate")} /></Field>
           <Field label={t("Teachers.zoomHostEmail")}><Input type="email" {...register("zoomHostEmail")} /></Field>
           <div className="sm:col-span-2">
             <Label>{t("Teachers.specializations")}</Label>

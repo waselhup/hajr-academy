@@ -19,6 +19,7 @@ const createSchema = z.object({
   bio: z.string().optional().nullable(),
   specializations: z.array(z.enum(SPEC_VALUES)).default([]),
   salaryBase: z.number().nonnegative().default(0),
+  hourlyRate: z.number().nonnegative().default(0),
   zoomHostEmail: z.string().email().optional().nullable(),
 });
 
@@ -52,6 +53,7 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
           bio: parsed.data.bio ?? null,
           specializations: parsed.data.specializations,
           salaryBase: parsed.data.salaryBase,
+          hourlyRate: parsed.data.hourlyRate,
           zoomHostEmail: parsed.data.zoomHostEmail ?? null,
         },
       },
@@ -81,6 +83,7 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   if (patch.bio !== undefined) profilePatch.bio = patch.bio;
   if (patch.specializations) profilePatch.specializations = patch.specializations;
   if (patch.salaryBase !== undefined) profilePatch.salaryBase = patch.salaryBase;
+  if (patch.hourlyRate !== undefined) profilePatch.hourlyRate = patch.hourlyRate;
   if (patch.zoomHostEmail !== undefined) profilePatch.zoomHostEmail = patch.zoomHostEmail;
 
   await prisma.user.update({ where: { id }, data: { ...userPatch, teacherProfile: { update: profilePatch } } });

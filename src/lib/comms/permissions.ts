@@ -75,7 +75,7 @@ export async function getAllowedRecipients(
       enrollments.forEach((e) => add(e.class.teacher.user));
     }
   } else if (role === "TEACHER") {
-    // Teacher → parents of students in the teacher's classes.
+    // Teacher → students they teach + parents of those students.
     const teacher = await prisma.teacherProfile.findUnique({
       where: { userId },
       select: { id: true },
@@ -86,6 +86,7 @@ export async function getAllowedRecipients(
         include: {
           student: {
             include: {
+              user: { select: { id: true, name: true, role: true, email: true } },
               parentLinks: {
                 include: {
                   parent: {
@@ -102,6 +103,7 @@ export async function getAllowedRecipients(
         },
       });
       for (const e of enrollments) {
+        add(e.student.user);
         for (const link of e.student.parentLinks) add(link.parent.user);
       }
     }

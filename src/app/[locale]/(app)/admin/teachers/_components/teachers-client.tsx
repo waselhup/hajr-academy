@@ -26,9 +26,11 @@ type Row = {
   id: string; name: string; nameAr: string | null; email: string; phone: string | null;
   isActive: boolean; createdAt: string;
   profile: {
+    id?: string;
     bio: string | null;
     specializations: string[];
     salaryBase: string;
+    hourlyRate?: string;
     zoomHostEmail: string | null;
     rating: string | null;
     totalStudents: number;
@@ -88,6 +90,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
               <TableHead>{t("Common.email")}</TableHead>
               <TableHead>{t("Teachers.specializations")}</TableHead>
               <TableHead>{t("Teachers.salaryBase")}</TableHead>
+              <TableHead>{t("TeacherPay.currentRate")}</TableHead>
               <TableHead>{t("Teachers.rating")}</TableHead>
               <TableHead>{t("Nav.classes")}</TableHead>
               <TableHead>{t("Common.status")}</TableHead>
@@ -96,7 +99,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground p-12">{t("Common.noResults")}</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground p-12">{t("Common.noResults")}</TableCell></TableRow>
             ) : rows.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>
@@ -117,6 +120,9 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
                   </div>
                 </TableCell>
                 <TableCell className="num">{r.profile ? fmtSAR(r.profile.salaryBase, locale as "ar" | "en") : "—"}</TableCell>
+                <TableCell className="num">
+                  {r.profile?.hourlyRate ? fmtSAR(r.profile.hourlyRate, locale as "ar" | "en") : "—"}
+                </TableCell>
                 <TableCell>
                   {r.profile?.rating ? (
                     <span className="inline-flex items-center gap-1 num">

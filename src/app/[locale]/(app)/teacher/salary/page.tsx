@@ -1,9 +1,10 @@
-import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default async function TeacherSalaryPage() {
-  await requireRole("TEACHER");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.mySalary")} phase={7} description="Salary history + downloadable PDF slips." />;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/teacher/profile`);
 }

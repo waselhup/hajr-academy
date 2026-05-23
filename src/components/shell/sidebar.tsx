@@ -69,13 +69,9 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   TEACHER: [
     { key: "Nav.dashboard", href: "/teacher", icon: LayoutDashboard },
     { key: "Nav.myClasses", href: "/teacher/classes", icon: BookText },
-    { key: "Nav.privateLessons", href: "/teacher/private-lessons", icon: BookOpen },
-    { key: "Nav.blackboard", href: "/teacher/blackboard", icon: Palette },
-    { key: "Nav.lab", href: "/teacher/lab", icon: FlaskConical },
+    { key: "Nav.myStudents", href: "/teacher/students", icon: Users },
     { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
-    { key: "Nav.attendance", href: "/teacher/attendance", icon: ClipboardCheck },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
-    { key: "Nav.mySalary", href: "/teacher/salary", icon: BadgeDollarSign },
     { key: "Nav.profile", href: "/teacher/profile", icon: UserIcon },
   ],
   STUDENT: [
