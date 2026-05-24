@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import {
   startClassAsTeacher,
   joinClassAsParticipant,
-  openZoomMeeting,
+  reservePopup,
+  closePopup,
 } from "@/lib/zoom/launcher";
 
 type Mode = "start" | "join" | "observe";
@@ -86,18 +87,29 @@ export function SessionJoinButton({
     : baseLabel;
 
   const handleClick = () => {
+    // CRITICAL: reserve the popup SYNCHRONOUSLY inside the click handler.
+    // Browsers block window.open that runs after an await, treating it
+    // as non-user-initiated. This is the only path that reliably opens
+    // a new tab from an async flow.
+    const needsPopup =
+      kind === "classSession" &&
+      (mode === "start" || mode === "join" || mode === "observe");
+    const popup = needsPopup ? reservePopup() : null;
+    const popupFallback = {
+      label: tCls("popupBlocked"),
+      action: tCls("joinClass"),
+    };
+
     startTransition(async () => {
       try {
         if (mode === "start" && kind === "classSession") {
-          // Teacher start: backend ensures meeting + LIVE + broadcast,
-          // returns zoomStartUrl; launcher opens Zoom in a new tab.
-          await startClassAsTeacher(sessionId);
+          await startClassAsTeacher(sessionId, popup, popupFallback);
           toast.success(tCls("classStarted"));
           return;
         }
         if (mode === "join" && kind === "classSession") {
           try {
-            await joinClassAsParticipant(sessionId);
+            await joinClassAsParticipant(sessionId, popup, popupFallback);
             toast.message(tCls("joiningClass"));
           } catch (err: any) {
             if (err.status === 409) {
@@ -108,14 +120,13 @@ export function SessionJoinButton({
           }
           return;
         }
-        // Observe (admin) → same join route works.
         if (mode === "observe" && kind === "classSession") {
-          await joinClassAsParticipant(sessionId);
+          await joinClassAsParticipant(sessionId, popup, popupFallback);
           return;
         }
-        // Private lesson — original flow stays. Ensure meeting exists,
-        // then open the join URL directly.
+        // Private lesson — close the unused popup, use original flow.
         if (kind === "privateLesson") {
+          closePopup(popup);
           if (mode === "start" || !hasMeeting) {
             const res = await fetch("/api/zoom/create-meeting", {
               method: "POST",
@@ -128,11 +139,10 @@ export function SessionJoinButton({
               return;
             }
           }
-          // Fall back to the SDK route for private lessons until they
-          // get the same launcher treatment.
           router.push(`/${locale}/classroom/${sessionId}`);
         }
       } catch (e: any) {
+        closePopup(popup);
         toast.error(e?.message ?? tCls("classError"));
       }
     });

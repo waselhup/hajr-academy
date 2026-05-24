@@ -21,7 +21,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { forceEndSessionAction } from "../../_actions/zoom";
-import { joinClassAsParticipant } from "@/lib/zoom/launcher";
+import { joinClassAsParticipant, reservePopup } from "@/lib/zoom/launcher";
 
 export interface LiveRow {
   id: string;
@@ -110,9 +110,15 @@ export function LiveMonitorClient({
   }, [router]);
 
   const handleMonitor = (row: LiveRow) => {
+    // Reserve popup synchronously — must run before the await chain
+    // so the browser recognises it as a user gesture.
+    const popup = reservePopup();
     startTransition(async () => {
       try {
-        await joinClassAsParticipant(row.id);
+        await joinClassAsParticipant(row.id, popup, {
+          label: t("popupBlocked"),
+          action: t("joinClass"),
+        });
         toast.message(t("joiningClass"));
       } catch (e: any) {
         toast.error(e?.message ?? t("classError"));

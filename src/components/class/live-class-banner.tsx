@@ -18,7 +18,7 @@ import { createClient, type RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { Radio, X } from "lucide-react";
 import { useLiveClassWatcher, type LiveClassNotice } from "./use-live-class-watcher";
-import { joinClassAsParticipant } from "@/lib/zoom/launcher";
+import { joinClassAsParticipant, reservePopup } from "@/lib/zoom/launcher";
 import { classChannel } from "@/lib/class/realtime";
 
 interface Props {
@@ -94,8 +94,14 @@ export function LiveClassBanner({ userId, classIds }: Props) {
   if (live.length === 0) return null;
 
   const handleJoin = async (notice: LiveClassNotice) => {
+    // Reserve popup synchronously inside the click handler so browsers
+    // recognise it as a user gesture.
+    const popup = reservePopup();
     try {
-      await joinClassAsParticipant(notice.sessionId);
+      await joinClassAsParticipant(notice.sessionId, popup, {
+        label: t("popupBlocked"),
+        action: t("joinClass"),
+      });
       toast.message(t("joiningClass"));
     } catch (e: any) {
       if (e?.status === 409) {

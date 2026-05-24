@@ -4,19 +4,20 @@
  * these flows; opening Zoom's own launcher URL is faster, fewer bugs,
  * and Zoom's URL handles app-vs-browser negotiation natively.
  *
- * `startClassAsTeacher`     — teacher button.
- * `joinClassAsParticipant`  — student / admin button.
- * `openZoomMeeting`         — low-level: pop a Zoom URL in a new tab,
- *                              with popup-blocker fallback.
+ * IMPORTANT: browsers block window.open() that isn't called
+ * synchronously inside a user gesture. Our APIs are async (we have to
+ * fetch the start/join URL from the server first), so the pattern is:
+ *
+ *   1. On click — synchronously open a blank popup. This satisfies the
+ *      "user gesture" rule and reserves the tab.
+ *   2. Kick off the fetch.
+ *   3. When the fetch resolves, redirect the popup we already opened
+ *      (popup.location.href = url). If the popup got blocked anyway,
+ *      fall back to a sticky toast with a clickable "open Zoom" link.
  */
 "use client";
 
 import { toast } from "sonner";
-
-export interface ZoomLaunchPayload {
-  startUrl?: string | null;
-  joinUrl?: string | null;
-}
 
 export interface StartClassResponse {
   ok: true;
@@ -38,42 +39,89 @@ export interface JoinClassResponse {
 }
 
 /**
- * Open a Zoom meeting URL in a new tab. Falls back to a manual link
- * toast if the browser's popup blocker stops `window.open` from
- * returning a real window handle.
+ * Reserve a popup synchronously (must be called inside the click
+ * handler). Returns the window handle, or null if blocked. Callers
+ * then either redirect it or close it.
  */
-export function openZoomMeeting(
-  opts: ZoomLaunchPayload,
-  fallbackToastLabel = "Open meeting"
+export function reservePopup(): Window | null {
+  if (typeof window === "undefined") return null;
+  // Open about:blank so we get a real handle the user can see.
+  // "noopener" omitted intentionally — we need to mutate .location later.
+  return window.open("about:blank", "_blank");
+}
+
+/**
+ * Redirect a previously-reserved popup to `url`. If the popup was
+ * blocked, show a sticky toast with a click-to-open link so the user
+ * always has an escape hatch.
+ */
+export function redirectPopup(
+  popup: Window | null,
+  url: string,
+  fallback: { label: string; action: string }
 ): void {
-  const url = opts.startUrl || opts.joinUrl;
-  if (!url) return;
-  const popup =
-    typeof window !== "undefined"
-      ? window.open(url, "_blank", "noopener,noreferrer")
-      : null;
-  if (!popup) {
-    // Popup blocked — give the user a tappable link they can click.
-    toast.message(fallbackToastLabel, {
-      duration: 10000,
-      action: {
-        label: "↗",
-        onClick: () => window.open(url, "_blank", "noopener,noreferrer"),
+  if (popup && !popup.closed) {
+    try {
+      popup.location.href = url;
+      return;
+    } catch {
+      // Cross-origin write failures are rare for blank popups — fall
+      // through to the toast.
+    }
+  }
+  // Popup was blocked or closed — show a sticky toast with a real link
+  // the user can click. Using `toast.message` with an action button
+  // keeps the click counted as a user gesture, so the second open
+  // works even with strict popup blockers.
+  toast(fallback.label, {
+    duration: 30_000,
+    action: {
+      label: fallback.action,
+      onClick: () => {
+        window.open(url, "_blank", "noopener,noreferrer");
       },
-    });
+    },
+  });
+}
+
+/**
+ * Close a popup that we no longer need (e.g. the API call failed).
+ */
+export function closePopup(popup: Window | null): void {
+  if (popup && !popup.closed) {
+    try {
+      popup.close();
+    } catch {
+      // ignore
+    }
   }
 }
 
 /**
- * Teacher start flow. POSTs to /api/class-sessions/[id]/start, which
- * ensures the Zoom meeting exists, flips the session LIVE, broadcasts
- * to students + admins, and returns a fresh host start URL. We then
- * open Zoom in a new tab.
+ * Teacher start flow.
+ *
+ * Pass a `popup` you reserved synchronously inside the click handler
+ * (so the browser counts it as a user gesture). We POST to the start
+ * route, then redirect that popup to Zoom's host start URL. If the URL
+ * is missing or the popup got blocked, the toast fallback covers it.
+ *
+ * `fallback` is a translated { label, action } pair so the toast
+ * speaks the user's language.
  */
-export async function startClassAsTeacher(sessionId: string): Promise<StartClassResponse> {
-  const res = await fetch(`/api/class-sessions/${sessionId}/start`, {
-    method: "POST",
-  });
+export async function startClassAsTeacher(
+  sessionId: string,
+  popup: Window | null,
+  fallback: { label: string; action: string }
+): Promise<StartClassResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/class-sessions/${sessionId}/start`, {
+      method: "POST",
+    });
+  } catch (e) {
+    closePopup(popup);
+    throw e;
+  }
   let body: any = {};
   try {
     body = await res.json();
@@ -81,25 +129,35 @@ export async function startClassAsTeacher(sessionId: string): Promise<StartClass
     body = {};
   }
   if (!res.ok || !body.ok) {
+    closePopup(popup);
     throw new Error(body.error || `START_${res.status}`);
   }
-  openZoomMeeting({
-    startUrl: body.zoomStartUrl,
-    joinUrl: body.zoomJoinUrl,
-  });
+  const url = body.zoomStartUrl || body.zoomJoinUrl;
+  if (!url) {
+    closePopup(popup);
+    throw new Error("NO_ZOOM_URL");
+  }
+  redirectPopup(popup, url, fallback);
   return body as StartClassResponse;
 }
 
 /**
- * Student / admin join flow. POSTs to /api/class-sessions/[id]/join,
- * which validates enrollment + LIVE status and returns the join URL.
- * Throws on 409 (class hasn't started yet) — caller should catch and
- * show the friendly notify-me toast.
+ * Student / admin join flow. Same popup-reserve pattern.
  */
-export async function joinClassAsParticipant(sessionId: string): Promise<JoinClassResponse> {
-  const res = await fetch(`/api/class-sessions/${sessionId}/join`, {
-    method: "POST",
-  });
+export async function joinClassAsParticipant(
+  sessionId: string,
+  popup: Window | null,
+  fallback: { label: string; action: string }
+): Promise<JoinClassResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/class-sessions/${sessionId}/join`, {
+      method: "POST",
+    });
+  } catch (e) {
+    closePopup(popup);
+    throw e;
+  }
   let body: any = {};
   try {
     body = await res.json();
@@ -107,10 +165,15 @@ export async function joinClassAsParticipant(sessionId: string): Promise<JoinCla
     body = {};
   }
   if (!res.ok || !body.ok) {
+    closePopup(popup);
     const err = new Error(body.error || `JOIN_${res.status}`);
     (err as any).status = res.status;
     throw err;
   }
-  openZoomMeeting({ joinUrl: body.zoomJoinUrl });
+  if (!body.zoomJoinUrl) {
+    closePopup(popup);
+    throw new Error("NO_ZOOM_URL");
+  }
+  redirectPopup(popup, body.zoomJoinUrl, fallback);
   return body as JoinClassResponse;
 }
