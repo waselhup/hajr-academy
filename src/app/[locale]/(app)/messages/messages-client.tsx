@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import type { Role } from "@prisma/client";
 import { Card } from "@/components/ui/card";
@@ -126,6 +127,27 @@ export function MessagesClient({
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  // Deep-link: ?thread=<id> opens that conversation once the list loads.
+  const sp = useSearchParams();
+  const deepThread = sp.get("thread");
+  const openedDeepLink = useRef(false);
+  useEffect(() => {
+    if (!deepThread || openedDeepLink.current || conversations.length === 0) return;
+    const match = conversations.find((c) => c.threadId === deepThread);
+    if (match) {
+      openedDeepLink.current = true;
+      openThread(match.threadId, {
+        id: match.otherUserId,
+        name: match.otherName,
+        role: match.otherRole,
+        avatar: match.otherAvatar,
+      });
+    }
+    // If no match yet (brand-new thread w/ no messages), the list refreshes
+    // after the first send and the user can tap it manually.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [deepThread, conversations]);
 
   /* ── open a thread + subscribe to its Realtime channel ── */
   const openThread = useCallback(

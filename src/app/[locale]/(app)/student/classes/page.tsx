@@ -1,16 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
+import { Card, CardContent } from "@/components/ui/card";
+import { StudentClassesClient, type StudentClassItem } from "./student-classes-client";
 
 export const dynamic = "force-dynamic";
-
-const DAY_AR: Record<string, string> = {
-  SUNDAY: "الأحد", MONDAY: "الإثنين", TUESDAY: "الثلاثاء", WEDNESDAY: "الأربعاء",
-  THURSDAY: "الخميس", FRIDAY: "الجمعة", SATURDAY: "السبت",
-};
 
 export default async function StudentClassesPage({
   params,
@@ -21,20 +15,28 @@ export default async function StudentClassesPage({
   const session = await requireRole("STUDENT");
   const t = await getTranslations();
 
-  let enrollments: any[] = [];
-  let recordings: any[] = [];
+  const profile = await prisma.studentProfile.findUnique({
+    where: { userId: session.user.id },
+  });
+  if (!profile) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-sm text-muted-foreground">
+          {t("Common.noData")}
+        </CardContent>
+      </Card>
+    );
+  }
 
-  try {
-    const profile = await prisma.studentProfile.findUnique({ where: { userId: session.user.id } });
-    if (!profile) return <p className="text-sm text-muted-foreground">{t("Common.noData")}</p>;
-
-    enrollments = await prisma.enrollment.findMany({
+  const [enrollments, privateLessons] = await Promise.all([
+    prisma.enrollment.findMany({
       where: { studentId: profile.id, status: "ACTIVE" },
       include: {
         class: {
           include: {
             program: true,
             teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+            _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
             sessions: {
               where: {
                 OR: [
@@ -48,97 +50,77 @@ export default async function StudentClassesPage({
           },
         },
       },
-    });
-
-    recordings = await prisma.classSession.findMany({
+    }),
+    prisma.privateLesson.findMany({
       where: {
-        classId: { in: enrollments.map((e: any) => e.classId) },
-        zoomRecordingUrl: { not: null },
+        studentId: profile.id,
+        OR: [
+          { status: "LIVE" },
+          { status: "SCHEDULED", scheduledAt: { gte: new Date(Date.now() - 86400_000) } },
+        ],
       },
-      include: { class: true },
-      orderBy: { scheduledDate: "desc" },
-      take: 10,
-    });
-  } catch (e) {
-    console.error("[student-classes] DB query failed:", e);
-  }
+      include: {
+        teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+      },
+      orderBy: { scheduledAt: "asc" },
+    }),
+  ]);
+
+  const items: StudentClassItem[] = [
+    ...enrollments.map(({ class: c }) => ({
+      kind: "GROUP" as const,
+      id: c.id,
+      title: locale === "ar" ? c.nameAr ?? c.name : c.name,
+      cohortCode: c.cohortCode,
+      programName: locale === "ar" ? c.program.nameAr : c.program.nameEn,
+      teacherName:
+        locale === "ar" && c.teacher.user.nameAr ? c.teacher.user.nameAr : c.teacher.user.name,
+      scheduleDays: c.scheduleDays as string[],
+      timeSlot: c.timeSlot,
+      durationMinutes: c.durationMinutes,
+      studentCount: c._count.enrollments,
+      status: c.status as string,
+      nextSession: c.sessions[0]
+        ? {
+            id: c.sessions[0].id,
+            scheduledDate: c.sessions[0].scheduledDate.toISOString(),
+            status: c.sessions[0].status as string,
+            hasMeeting: !!c.sessions[0].zoomMeetingId,
+          }
+        : null,
+    })),
+    ...privateLessons.map((l) => ({
+      kind: "PRIVATE" as const,
+      id: `pl-${l.id}`,
+      title:
+        locale === "ar"
+          ? `درس خصوصي مع ${l.teacher.user.nameAr ?? l.teacher.user.name}`
+          : `Private with ${l.teacher.user.name}`,
+      cohortCode: l.id.slice(0, 8).toUpperCase(),
+      programName: locale === "ar" ? "خصوصي" : "Private",
+      teacherName:
+        locale === "ar" && l.teacher.user.nameAr ? l.teacher.user.nameAr : l.teacher.user.name,
+      scheduleDays: [] as string[],
+      timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+      durationMinutes: l.durationMinutes,
+      studentCount: 1,
+      status: l.status as string,
+      nextSession: {
+        id: l.id,
+        scheduledDate: l.scheduledAt.toISOString(),
+        status: l.status as string,
+        hasMeeting: !!l.zoomMeetingId,
+      },
+    })),
+  ];
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("Nav.myClasses")}</h1>
-
-      {enrollments.length === 0 ? (
-        <Card>
-          <CardContent className="p-6 text-sm text-muted-foreground">{t("Common.noData")}</CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {enrollments.map(({ class: c }: any) => {
-            const next = c.sessions[0];
-            return (
-              <Card key={c.id}>
-                <CardHeader>
-                  <CardTitle>{c.nameAr ?? c.name}</CardTitle>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {c.program.nameAr} • {c.teacher.user.nameAr ?? c.teacher.user.name}
-                  </p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
-                    {c.scheduleDays.map((d: string) => (locale === "ar" ? DAY_AR[d] : d.slice(0, 3))).join("، ")}{" "}
-                    <span className="num">{c.timeSlot}</span>
-                  </p>
-                  {next ? (
-                    <UpcomingSessionCard
-                      mode="join"
-                      locale={locale}
-                      session={{
-                        id: next.id,
-                        kind: "classSession",
-                        title: c.nameAr ?? c.name,
-                        scheduledDate: next.scheduledDate.toISOString(),
-                        durationMinutes: c.durationMinutes,
-                        status: next.status,
-                        hasMeeting: !!next.zoomMeetingId,
-                      }}
-                    />
-                  ) : (
-                    <p className="text-xs text-muted-foreground">{t("Video.noUpcoming")}</p>
-                  )}
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-
-      {recordings.length > 0 && (
-        <div>
-          <h2 className="mb-3 text-lg font-bold">{t("Video.recordings")}</h2>
-          <div className="space-y-2">
-            {recordings.map((r: any) => (
-              <Card key={r.id}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-medium">{r.class.nameAr ?? r.class.name}</p>
-                    <p className="text-xs text-muted-foreground num">
-                      {r.scheduledDate.toLocaleDateString(locale === "ar" ? "ar-SA" : "en-GB")}
-                    </p>
-                  </div>
-                  <a
-                    href={r.zoomRecordingUrl!}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-lg bg-brand-navy px-4 py-2 text-sm text-white"
-                  >
-                    {t("Video.watchRecording")}
-                  </a>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+      <StudentClassesClient locale={locale} items={items} />
     </div>
   );
 }

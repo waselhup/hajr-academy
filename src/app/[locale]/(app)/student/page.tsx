@@ -1,10 +1,10 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
+import { getStudentScope } from "@/lib/student/scope";
 import { LiveClassBanner } from "@/components/class/live-class-banner";
+import { StudentHero, type DashboardData } from "./_components/student-hero";
 
 export const dynamic = "force-dynamic";
 
@@ -17,112 +17,286 @@ export default async function StudentDashboardPage({
   const session = await requireRole("STUDENT");
   const t = await getTranslations();
 
-  let profile: any = null;
-  let pendingInvoices = 0;
-  let sessions: any[] = [];
+  const scope = await getStudentScope(session.user.id);
 
-  try {
-    profile = await prisma.studentProfile.findUnique({
-      where: { userId: session.user.id },
-      include: { enrollments: { where: { status: "ACTIVE" }, include: { class: true } } },
-    });
+  // Default empty payload — page still renders friendly empty state.
+  let data: DashboardData = {
+    name: session.user.name ?? "",
+    nameAr: null,
+    avatar: null,
+    gradeLevel: null,
+    activePackage: null,
+    attendancePct: 0,
+    openAssignments: 0,
+    avgGrade: 0,
+    nextClass: null,
+    teachers: [],
+    activity: [],
+  };
 
-    if (profile) {
-      pendingInvoices = await prisma.invoice.count({ where: { studentId: profile.id, status: "PENDING" } });
+  if (scope) {
+    const now = new Date();
+    const horizon = new Date(now.getTime() + 14 * 86400_000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 86400_000);
+    const next24h = new Date(now.getTime() + 24 * 3600_000);
 
-      const classIds = profile.enrollments.map((e: any) => e.classId);
-      const horizon = new Date(Date.now() + 7 * 86400_000);
-      if (classIds.length > 0) {
-        sessions = await prisma.classSession.findMany({
-          where: {
-            classId: { in: classIds },
-            OR: [
-              { status: "LIVE" },
-              { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon } },
-            ],
-          },
-          include: { class: true },
-          orderBy: { scheduledDate: "asc" },
-          take: 6,
-        });
+    const [
+      profileFull,
+      attendances,
+      openAssignments,
+      recentGrades,
+      nextSession,
+      teachers,
+      newAssignments,
+      gradedSubmissions,
+      examResults,
+      dueInvoices,
+      upcomingSessions,
+    ] = await Promise.all([
+      prisma.studentProfile.findUnique({
+        where: { id: scope.studentId },
+        include: { user: { select: { name: true, nameAr: true, avatar: true } } },
+      }),
+      prisma.attendance.findMany({
+        where: {
+          studentId: scope.studentId,
+          session: { scheduledDate: { gte: new Date(now.getTime() - 60 * 86400_000) } },
+        },
+        select: { status: true },
+      }),
+      prisma.assignment.count({
+        where: {
+          classId: { in: scope.classIds },
+          OR: [{ dueDate: null }, { dueDate: { gte: now } }],
+          submissions: { none: { studentId: scope.studentId } },
+        },
+      }),
+      prisma.submission.findMany({
+        where: { studentId: scope.studentId, grade: { not: null } },
+        select: { grade: true },
+        orderBy: { gradedAt: "desc" },
+        take: 5,
+      }),
+      scope.classIds.length > 0
+        ? prisma.classSession.findFirst({
+            where: {
+              classId: { in: scope.classIds },
+              OR: [
+                { status: "LIVE" },
+                {
+                  status: "SCHEDULED",
+                  scheduledDate: { gte: new Date(now.getTime() - 3600_000), lte: horizon },
+                },
+              ],
+            },
+            orderBy: [{ status: "asc" }, { scheduledDate: "asc" }],
+            include: {
+              class: {
+                select: {
+                  id: true,
+                  name: true,
+                  nameAr: true,
+                  cohortCode: true,
+                  durationMinutes: true,
+                  teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+                },
+              },
+            },
+          })
+        : Promise.resolve(null),
+      scope.teacherUserIds.length > 0
+        ? prisma.user.findMany({
+            where: { id: { in: scope.teacherUserIds } },
+            select: {
+              id: true,
+              name: true,
+              nameAr: true,
+              avatar: true,
+              teacherProfile: {
+                select: {
+                  specializations: true,
+                  classes: {
+                    where: { id: { in: scope.classIds } },
+                    select: { name: true, nameAr: true, cohortCode: true },
+                  },
+                },
+              },
+            },
+          })
+        : Promise.resolve([]),
+      // Activity sources
+      prisma.assignment.findMany({
+        where: { classId: { in: scope.classIds }, createdAt: { gte: sevenDaysAgo } },
+        select: { id: true, title: true, titleAr: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 5,
+      }),
+      prisma.submission.findMany({
+        where: {
+          studentId: scope.studentId,
+          gradedAt: { gte: sevenDaysAgo, not: null },
+          grade: { not: null },
+        },
+        select: {
+          id: true,
+          grade: true,
+          gradedAt: true,
+          assignment: { select: { title: true, titleAr: true } },
+        },
+        orderBy: { gradedAt: "desc" },
+        take: 5,
+      }),
+      prisma.examAttempt.findMany({
+        where: {
+          studentId: scope.studentId,
+          submittedAt: { gte: sevenDaysAgo, not: null },
+          totalScore: { not: null },
+        },
+        select: { id: true, totalScore: true, submittedAt: true },
+        orderBy: { submittedAt: "desc" },
+        take: 5,
+      }),
+      prisma.invoice.findMany({
+        where: { studentId: scope.studentId, status: "PENDING" },
+        select: { id: true, totalSar: true, dueDate: true },
+        orderBy: { dueDate: "asc" },
+        take: 3,
+      }),
+      prisma.classSession.findMany({
+        where: {
+          classId: { in: scope.classIds },
+          status: "SCHEDULED",
+          scheduledDate: { gte: now, lte: next24h },
+        },
+        select: {
+          id: true,
+          scheduledDate: true,
+          class: { select: { name: true, nameAr: true } },
+        },
+        orderBy: { scheduledDate: "asc" },
+        take: 3,
+      }),
+    ]);
+
+    // Attendance %
+    const present = attendances.filter((a) => a.status === "PRESENT").length;
+    const late = attendances.filter((a) => a.status === "LATE").length;
+    const totalA = attendances.length;
+    const attendancePct =
+      totalA > 0 ? Math.round(((present + late * 0.5) / totalA) * 100) : 0;
+
+    // Avg grade
+    const grades = recentGrades.map((g) => g.grade!).filter((g) => g != null);
+    const avgGrade =
+      grades.length > 0
+        ? Math.round(grades.reduce((s, g) => s + g, 0) / grades.length)
+        : 0;
+
+    let isLive = false;
+    if (nextSession) {
+      if (nextSession.status === "LIVE") {
+        isLive = true;
+      } else {
+        const startMs = nextSession.scheduledDate.getTime();
+        const endMs = startMs + nextSession.class.durationMinutes * 60_000;
+        if (now.getTime() >= startMs && now.getTime() <= endMs) isLive = true;
       }
     }
-  } catch (e) {
-    console.error("[student-dashboard] DB query failed:", e);
+
+    // Activity merge
+    const activity: DashboardData["activity"] = [];
+    for (const a of newAssignments) {
+      activity.push({
+        id: `asn-new-${a.id}`,
+        type: "ASSIGNMENT_NEW",
+        time: a.createdAt.toISOString(),
+        href: `/${locale}/student/assignments`,
+        data: { title: a.titleAr ?? a.title },
+      });
+    }
+    for (const s of gradedSubmissions) {
+      activity.push({
+        id: `sub-${s.id}`,
+        type: "ASSIGNMENT_GRADED",
+        time: (s.gradedAt ?? now).toISOString(),
+        href: `/${locale}/student/assignments`,
+        data: { title: s.assignment.titleAr ?? s.assignment.title, score: Number(s.grade ?? 0) },
+      });
+    }
+    for (const e of examResults) {
+      activity.push({
+        id: `exam-${e.id}`,
+        type: "EXAM_RESULT",
+        time: (e.submittedAt ?? now).toISOString(),
+        href: `/${locale}/student/exams/results/${e.id}`,
+        data: { score: Math.round(Number(e.totalScore ?? 0)) },
+      });
+    }
+    for (const inv of dueInvoices) {
+      activity.push({
+        id: `inv-${inv.id}`,
+        type: "INVOICE_DUE",
+        time: inv.dueDate.toISOString(),
+        href: `/${locale}/student/billing`,
+        data: { amount: Number(inv.totalSar) },
+      });
+    }
+    for (const cs of upcomingSessions) {
+      activity.push({
+        id: `sess-${cs.id}`,
+        type: "CLASS_REMINDER",
+        time: cs.scheduledDate.toISOString(),
+        href: `/${locale}/student/classes`,
+        data: { class: cs.class.nameAr ?? cs.class.name },
+      });
+    }
+    activity.sort((a, b) => (a.time < b.time ? 1 : -1));
+
+    data = {
+      name: profileFull?.user.name ?? session.user.name ?? "",
+      nameAr: profileFull?.user.nameAr ?? null,
+      avatar: profileFull?.user.avatar ?? null,
+      gradeLevel: profileFull?.gradeLevel ?? null,
+      activePackage: profileFull?.activePackage ?? null,
+      attendancePct,
+      openAssignments,
+      avgGrade,
+      nextClass: nextSession
+        ? {
+            id: nextSession.id,
+            classId: nextSession.class.id,
+            className: locale === "ar" ? nextSession.class.nameAr ?? nextSession.class.name : nextSession.class.name,
+            cohortCode: nextSession.class.cohortCode,
+            teacherName:
+              locale === "ar"
+                ? nextSession.class.teacher.user.nameAr ?? nextSession.class.teacher.user.name
+                : nextSession.class.teacher.user.name,
+            scheduledStartAt: nextSession.scheduledDate.toISOString(),
+            durationMinutes: nextSession.class.durationMinutes,
+            isLive,
+            hasMeeting: !!nextSession.zoomMeetingId,
+            status: nextSession.status,
+          }
+        : null,
+      teachers: teachers.map((u) => ({
+        userId: u.id,
+        name: locale === "ar" && u.nameAr ? u.nameAr : u.name,
+        avatar: u.avatar,
+        classes:
+          u.teacherProfile?.classes.map((c) =>
+            locale === "ar" ? c.nameAr ?? c.name : c.name
+          ) ?? [],
+      })),
+      activity: activity.slice(0, 6),
+    };
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">
-          {t("Dashboard.welcome")}، {session.user.name}
-        </h1>
-        <Badge variant="info">{t("Roles.STUDENT")}</Badge>
-      </div>
-
-      {/* Real-time "your class is live" banner (Supabase Realtime). */}
-      <LiveClassBanner
-        classIds={(profile?.enrollments ?? []).map((e: any) => e.classId)}
-      />
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Nav.myClasses")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">{profile?.enrollments.length ?? 0}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Dashboard.pendingInvoices")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">{pendingInvoices}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Dashboard.labStreak")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">0</span>{" "}
-            <span className="text-sm text-muted-foreground">{t("Dashboard.days")}</span>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div>
-        <h2 className="mb-3 text-lg font-bold">{t("Video.nextClass")}</h2>
-        {sessions.length === 0 ? (
-          <Card>
-            <CardContent className="p-6 text-sm text-muted-foreground">
-              {t("Video.noUpcoming")}
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {sessions.map((s: any) => (
-              <UpcomingSessionCard
-                key={s.id}
-                mode="join"
-                locale={locale}
-                session={{
-                  id: s.id,
-                  kind: "classSession",
-                  title: s.class.nameAr ?? s.class.name,
-                  subtitle: s.class.cohortCode,
-                  scheduledDate: s.scheduledDate.toISOString(),
-                  durationMinutes: s.class.durationMinutes,
-                  status: s.status,
-                  hasMeeting: !!s.zoomMeetingId,
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="space-y-5">
+      {scope && (
+        <LiveClassBanner classIds={scope.classIds} />
+      )}
+      <StudentHero locale={locale} data={data} />
     </div>
   );
 }
