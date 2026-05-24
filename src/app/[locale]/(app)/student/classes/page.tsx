@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
+import { LiveClassBanner } from "@/components/class/live-class-banner";
 import { StudentClassesClient, type StudentClassItem } from "./student-classes-client";
 
 export const dynamic = "force-dynamic";
@@ -119,6 +120,7 @@ export default async function StudentClassesPage({
 
   return (
     <div className="space-y-6">
+      <LiveClassBanner userId={session.user.id} />
       <h1 className="text-2xl font-bold">{t("Nav.myClasses")}</h1>
       <StudentClassesClient locale={locale} items={items} />
     </div>

@@ -54,4 +54,10 @@ export interface VideoProvider {
    * meetings created before this policy. Best-effort.
    */
   ensureJoinableSettings(meetingId: string): Promise<void>;
+  /**
+   * Fetch a fresh, short-lived host start URL for an existing meeting.
+   * Zoom start URLs embed a host token that expires — never persist.
+   * Returns null if the meeting can't be found.
+   */
+  getMeetingStartUrl(meetingId: string): Promise<string | null>;
 }

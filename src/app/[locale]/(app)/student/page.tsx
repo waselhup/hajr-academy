@@ -294,7 +294,7 @@ export default async function StudentDashboardPage({
   return (
     <div className="space-y-5">
       {scope && (
-        <LiveClassBanner classIds={scope.classIds} />
+        <LiveClassBanner userId={session.user.id} classIds={scope.classIds} />
       )}
       <StudentHero locale={locale} data={data} />
     </div>

@@ -94,7 +94,10 @@ export async function triggerClassStarted(classSessionId: string) {
     channels: ["IN_APP", "SMS"],
     bypassQuietHours: true,
     variables: { className },
-    actionUrl: `/classroom/${cs.id}`,
+    // Route to /student so the live banner is right there — one tap to
+    // joinClassAsParticipant. The classroom embed is no longer the
+    // primary path for joiners.
+    actionUrl: `/student`,
   });
 
   // Parents of those students.

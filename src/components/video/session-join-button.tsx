@@ -3,9 +3,14 @@
 import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { Loader2, Video, Eye } from "lucide-react";
+import { Loader2, Video, Eye, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import {
+  startClassAsTeacher,
+  joinClassAsParticipant,
+  openZoomMeeting,
+} from "@/lib/zoom/launcher";
 
 type Mode = "start" | "join" | "observe";
 
@@ -38,6 +43,7 @@ export function SessionJoinButton({
   className,
 }: Props) {
   const t = useTranslations("Video");
+  const tCls = useTranslations("Classroom");
   const locale = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -48,28 +54,18 @@ export function SessionJoinButton({
     return () => clearInterval(id);
   }, []);
 
-  // Prefetch the classroom route so the navigation after "Start"/"Join"
-  // is instant — the only remaining wait is the Zoom meeting setup.
-  useEffect(() => {
-    router.prefetch(`/${locale}/classroom/${sessionId}`);
-  }, [router, locale, sessionId]);
-
   const start = new Date(scheduledDate).getTime();
   const end = start + durationMinutes * 60_000;
   const ended = status === "COMPLETED" || status === "CANCELLED";
   const isLive = status === "LIVE";
 
-  // A teacher (or admin) may start their class session at ANY time —
-  // there is no early window. Private lessons and the student/parent
-  // join still use the timed window.
+  // Teacher start: always available, no window. Student/admin join:
+  // the timed window OR the session is LIVE.
   const teacherStartsClass = mode === "start" && kind === "classSession";
   let open: boolean;
   if (teacherStartsClass) {
-    open = true; // anytime, unless ended (handled by `ended` below)
+    open = true;
   } else if (isLive) {
-    // A LIVE session is joinable for as long as it stays LIVE — the
-    // teacher may run long past the scheduled slot. The only thing that
-    // closes it is the session ending (COMPLETED/CANCELLED).
     open = true;
   } else {
     const lead = mode === "start" ? BEFORE_START : BEFORE_JOIN;
@@ -78,36 +74,49 @@ export function SessionJoinButton({
   const enabled = open && !ended && !isPending;
 
   const baseLabel =
-    mode === "start" ? t("startClass") : mode === "observe" ? t("observeClass") : t("joinClass");
-  // While the request is in flight, show a clear progress label rather
-  // than a frozen button — so the teacher knows the class is starting.
+    mode === "start"
+      ? tCls("startClass")
+      : mode === "observe"
+      ? t("observeClass")
+      : tCls("joinClass");
   const label = isPending
     ? mode === "start"
-      ? t("starting")
-      : t("joining")
+      ? tCls("startingClass")
+      : tCls("joiningClass")
     : baseLabel;
 
   const handleClick = () => {
     startTransition(async () => {
       try {
-        if (mode === "start") {
-          if (kind === "classSession") {
-            // Starting a class: this route creates the Zoom meeting,
-            // flips the session LIVE, broadcasts `class_started` on the
-            // class Realtime channel, and notifies enrolled students +
-            // their parents. Idempotent — safe to re-click.
-            const res = await fetch(
-              `/api/class-sessions/${sessionId}/start`,
-              { method: "POST" }
-            );
-            const data = await res.json();
-            if (!res.ok || !data.ok) {
-              toast.error(data.error ?? "Could not start the class");
+        if (mode === "start" && kind === "classSession") {
+          // Teacher start: backend ensures meeting + LIVE + broadcast,
+          // returns zoomStartUrl; launcher opens Zoom in a new tab.
+          await startClassAsTeacher(sessionId);
+          toast.success(tCls("classStarted"));
+          return;
+        }
+        if (mode === "join" && kind === "classSession") {
+          try {
+            await joinClassAsParticipant(sessionId);
+            toast.message(tCls("joiningClass"));
+          } catch (err: any) {
+            if (err.status === 409) {
+              toast.error(tCls("classNotStartedNotify"));
               return;
             }
-          } else if (!hasMeeting) {
-            // Private lesson: no class roster to broadcast to — just
-            // ensure the Zoom meeting exists.
+            throw err;
+          }
+          return;
+        }
+        // Observe (admin) → same join route works.
+        if (mode === "observe" && kind === "classSession") {
+          await joinClassAsParticipant(sessionId);
+          return;
+        }
+        // Private lesson — original flow stays. Ensure meeting exists,
+        // then open the join URL directly.
+        if (kind === "privateLesson") {
+          if (mode === "start" || !hasMeeting) {
             const res = await fetch("/api/zoom/create-meeting", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -115,28 +124,26 @@ export function SessionJoinButton({
             });
             const data = await res.json();
             if (!res.ok || !data.ok) {
-              toast.error(data.error ?? "ZOOM_ERROR");
+              toast.error(data.error ?? tCls("classError"));
               return;
             }
           }
+          // Fall back to the SDK route for private lessons until they
+          // get the same launcher treatment.
+          router.push(`/${locale}/classroom/${sessionId}`);
         }
-        // join / observe with a meeting already created → no API round
-        // trip; navigate straight into the (prefetched) classroom.
-        router.push(`/${locale}/classroom/${sessionId}`);
-      } catch {
-        toast.error(t("starting"));
+      } catch (e: any) {
+        toast.error(e?.message ?? tCls("classError"));
       }
     });
   };
 
-  // Countdown text when the session has not opened yet. The teacher's
-  // "start" button has no window, so no countdown is shown there.
   let hint = "";
   if (!teacherStartsClass && !ended && !open && now < start) {
     const diff = start - now;
     const h = Math.floor(diff / 3_600_000);
     const m = Math.floor((diff % 3_600_000) / 60_000);
-    hint = `${t("startsIn")} ${h > 0 ? `${h}h ` : ""}${m}m`;
+    hint = `${tCls("startsInMinutes", { minutes: h > 0 ? `${h}h ${m}` : m })}`;
   }
 
   return (
@@ -146,12 +153,20 @@ export function SessionJoinButton({
         size="sm"
         disabled={!enabled}
         onClick={handleClick}
-        title={!enabled && !ended ? (mode === "start" ? t("startWindowHint") : t("joinWindowHint")) : ""}
+        title={
+          !enabled && !ended
+            ? mode === "start"
+              ? tCls("classTooEarly")
+              : tCls("classNotStarted")
+            : ""
+        }
       >
         {isPending ? (
           <Loader2 className="me-2 h-4 w-4 animate-spin" />
         ) : mode === "observe" ? (
           <Eye className="me-2 h-4 w-4" />
+        ) : mode === "start" ? (
+          <Sparkles className="me-2 h-4 w-4" />
         ) : (
           <Video className="me-2 h-4 w-4" />
         )}

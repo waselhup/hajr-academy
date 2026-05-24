@@ -23,6 +23,10 @@ export async function notifyUsers(
     /** Where clicking the notification navigates. Legacy name: `link`. */
     actionUrl?: string;
     link?: string;
+    /** Optional entity reference (e.g. "ClassSession" + sessionId) — used
+     * by webhook dedupe queries and by per-entity badge filtering. */
+    refType?: string;
+    refId?: string;
   }
 ) {
   const unique = [...new Set(userIds)].filter(Boolean);
@@ -41,6 +45,8 @@ export async function notifyUsers(
       body,
       bodyAr,
       actionUrl,
+      refType: payload.refType ?? null,
+      refId: payload.refId ?? null,
     })),
   });
 }

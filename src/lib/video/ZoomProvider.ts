@@ -172,6 +172,23 @@ export class ZoomProvider implements VideoProvider {
     await this.api(`/meetings/${meetingId}`, { method: "DELETE", okStatuses: [204, 404] });
   }
 
+  /**
+   * GET /meetings/{id} returns a fresh start_url for the host. The token
+   * embedded in that URL is short-lived, so we always fetch live — never
+   * cache.
+   */
+  async getMeetingStartUrl(meetingId: string): Promise<string | null> {
+    try {
+      const data = await this.api<{ start_url?: string }>(
+        `/meetings/${meetingId}`,
+        { okStatuses: [200, 404] }
+      );
+      return data?.start_url ?? null;
+    } catch {
+      return null;
+    }
+  }
+
   async endMeeting(meetingId: string): Promise<void> {
     await this.api(`/meetings/${meetingId}/status`, {
       method: "PUT",
