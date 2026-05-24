@@ -1,9 +1,10 @@
-import { requireRole } from "@/lib/rbac";
-import { getTranslations } from "next-intl/server";
-import { PlaceholderPage } from "@/components/common/placeholder-page";
+import { redirect } from "next/navigation";
 
-export default async function AdminAttendancePage() {
-  await requireRole("ADMIN", "SUPER_ADMIN");
-  const t = await getTranslations();
-  return <PlaceholderPage title={t("Nav.attendance")} phase={3} description="Attendance reports by class/session/student." />;
+export default async function Page({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  redirect(`/${locale}/admin/classes?tab=attendance`);
 }
