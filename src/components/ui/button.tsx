@@ -8,12 +8,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // DEFAULT (secondary) — deep navy. The everyday button.
+        // DEFAULT (primary) — deep navy. The everyday button.
         default: "bg-hajr-deep-navy text-white shadow-sm hover:bg-hajr-navy",
-        // CTA — rose. Reserve for the 1–2 most important actions per page.
+        // CTA — mauve. Reserve for the 1–2 most important actions per page.
         cta: "bg-hajr-rose text-white shadow-sm hover:bg-hajr-rose/90",
+        // SUCCESS — mint, navy text. Confirmations, "approved" states.
+        success: "bg-hajr-mint text-hajr-deep-navy shadow-sm hover:bg-hajr-mint/90",
         destructive: "bg-hajr-error text-white shadow-sm hover:bg-hajr-error/90",
         outline: "border border-hajr-navy bg-transparent text-hajr-navy hover:bg-hajr-navy/5",
+        // OUTLINE ACCENT — mauve border + text. Quieter secondary CTA.
+        "outline-accent": "border border-hajr-rose bg-transparent text-hajr-rose hover:bg-hajr-rose/5",
         secondary: "bg-hajr-deep-navy text-white shadow-sm hover:bg-hajr-navy",
         ghost: "text-hajr-navy hover:bg-hajr-hover",
         link: "text-hajr-rose underline-offset-4 hover:underline",

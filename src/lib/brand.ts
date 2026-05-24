@@ -27,9 +27,9 @@ export const BRAND = {
   },
   site: "https://hajr-academy.vercel.app",
   contact: {
-    email: "hello@hajr.academy",
+    email: "hello@hajracademy.sa",
     phone: "+966 11 000 0000",
-    city:  "Riyadh, Saudi Arabia",
-    cityAr: "الرياض، المملكة العربية السعودية",
+    city:  "Al Ahsa, Saudi Arabia",
+    cityAr: "الأحساء، المملكة العربية السعودية",
   },
 } as const;

@@ -70,11 +70,21 @@
     font-family: var(--font-ar), "IBM Plex Sans Arabic", Cairo, sans-serif;
   }
 
-  /* Headings: condensed, tight tracking to match HAJR logo */
-  h1, h2, h3, h4 {
-    @apply font-bold tracking-tight;
+  /* Headings — canonical brand v3 type scale.
+     h1/h2/h3 = Semibold (600). h4 = Medium (500). Tight tracking
+     (-0.02em) matches the logo wordmark; line-height 1.2 across
+     the heading scale per the Figma typography sheet. */
+  h1, h2, h3 {
+    @apply font-semibold;
     color: #1E2A36;
     letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  h4 {
+    @apply font-medium;
+    color: #1E2A36;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
   }
 
   /* Always Western digits for numerals, even in AR */

@@ -155,7 +155,7 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
           contractStart: existing.contractStart, contractEnd: existing.contractEnd,
           monthlyFeeSar: Number(existing.monthlyFeeSar), studentCap: existing.studentCap,
         }
-      : { city: "Riyadh", studentCap: 50, monthlyFeeSar: 15000 } as any,
+      : { city: "Hofuf", studentCap: 50, monthlyFeeSar: 15000 } as any,
   });
 
   const onSubmit = (data: FormData) => {

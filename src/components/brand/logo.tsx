@@ -1,107 +1,71 @@
 import { cn } from "@/lib/utils";
 
 /**
- * HAJR A° brand v3 logo lockup.
+ * HAJR A° brand v3 logo lockup — verbatim canonical Figma spec.
  *
- * The "A°" sits at ~35% of the wordmark cap-height — a small jewel
- * baseline-aligned to "HAJR", with the "°" tucked above the A's
- * cap-height. This proportion mirrors the official brand reference.
+ * Hard rules from the official brand book (do NOT change):
+ *   • HAJR    — font-weight 700 (Bold)   letter-spacing -0.02em
+ *   • A°      — font-weight 300 (Light)  color #B86E7B (mauve)
+ *               size ~⅓–½ of the wordmark, marginLeft 0.1em,
+ *               baseline-aligned to HAJR.
+ *   • ACADEMY — weight 400, letter-spacing 0.3em, opacity 0.7,
+ *               mt-4, centered under the lockup.
+ *
+ * The A° is intentionally a thin, restrained jewel against a bold
+ * wordmark — anything heavier visually collapses the contrast that
+ * makes the mark recognisable.
  */
 
 type LogoSize = "sm" | "md" | "lg" | "xl";
 type LogoVariant = "full" | "mark" | "text" | "app-icon";
 
-/* ── per-size dimensions ─────────────────────────────────────
-   word  — the "HAJR" wordmark
-   a     — the "A" — roughly 0.35× the wordmark cap-height
-   deg   — the "°" — roughly 0.55× the A
-   gap   — gap between wordmark and the A°
-   sub   — the "ACADEMY" caption
-   subTrack — letter-spacing on the caption
-*/
 const SIZES: Record<
   LogoSize,
   {
+    /** HAJR wordmark size */
     word: string;
-    a: string;
-    deg: string;
+    /** A° size (~33–50% of wordmark) */
+    degree: string;
+    /** ACADEMY caption size */
+    academy: string;
+    /** baseline gap between HAJR and A° group (marginLeft is also applied) */
     gap: string;
-    sub: string;
-    subTrack: string;
+    /** spacing under the lockup before ACADEMY */
+    captionGap: string;
   }
 > = {
-  sm: {
-    word: "text-xl",
-    a: "text-[0.55rem]",
-    deg: "text-[0.4rem]",
-    gap: "gap-1",
-    sub: "text-[0.45rem]",
-    subTrack: "tracking-[0.32em]",
-  },
-  md: {
-    word: "text-3xl",
-    a: "text-[0.85rem]",
-    deg: "text-[0.55rem]",
-    gap: "gap-1.5",
-    sub: "text-[0.6rem]",
-    subTrack: "tracking-[0.34em]",
-  },
-  lg: {
-    word: "text-5xl sm:text-6xl",
-    a: "text-base sm:text-lg",
-    deg: "text-[0.7rem] sm:text-xs",
-    gap: "gap-2 sm:gap-2.5",
-    sub: "text-xs sm:text-sm",
-    subTrack: "tracking-[0.4em]",
-  },
-  xl: {
-    word: "text-7xl sm:text-8xl",
-    a: "text-xl sm:text-2xl",
-    deg: "text-sm sm:text-base",
-    gap: "gap-3 sm:gap-4",
-    sub: "text-sm sm:text-base",
-    subTrack: "tracking-[0.45em]",
-  },
+  sm: { word: "text-2xl",                 degree: "text-sm",  academy: "text-[8px]",  gap: "gap-1",   captionGap: "mt-2" },
+  md: { word: "text-4xl",                 degree: "text-lg",  academy: "text-[10px]", gap: "gap-1.5", captionGap: "mt-3" },
+  lg: { word: "text-6xl",                 degree: "text-2xl", academy: "text-xs",     gap: "gap-2",   captionGap: "mt-4" },
+  xl: { word: "text-7xl sm:text-8xl",     degree: "text-3xl sm:text-4xl", academy: "text-sm",     gap: "gap-2 sm:gap-3", captionGap: "mt-4 sm:mt-5" },
 };
 
-/* ── HAJR + tiny A° lockup ──────────────────────────────────── */
+/* ── HAJR + small mauve A° lockup ──────────────────────────── */
 function Mark({ size, light }: { size: LogoSize; light: boolean }) {
   const s = SIZES[size];
-  const word = light ? "text-white" : "text-hajr-deep-navy";
-  // Lockup is intentionally LTR in both languages.
-  // The A° matches the wordmark's weight (font-extrabold) and the
-  // same -0.04em letter-spacing — so it reads as the same family of
-  // glyphs, just smaller. Anything lighter visually disconnects from
-  // HAJR and looks like a separate font.
+  const mainColor = light ? "#FAF6EE" : "#1E2A36";
+  // The lockup is intentionally LTR in both languages.
   return (
     <span
       dir="ltr"
       className={cn("inline-flex items-baseline leading-none font-en", s.gap)}
     >
-      <span className={cn("font-extrabold tracking-tighter", s.word, word)}>
+      <span
+        className={cn("font-bold", s.word)}
+        style={{ color: mainColor, fontWeight: 700, letterSpacing: "-0.02em" }}
+      >
         HAJR
       </span>
-      {/* The tiny A° pair — same weight as HAJR, baseline-aligned. */}
-      <span className="inline-flex items-baseline leading-none">
-        <span
-          className={cn(
-            "font-extrabold tracking-tighter text-hajr-rose",
-            s.a
-          )}
-        >
-          A
-        </span>
-        {/* The ° hovers above the A's cap-height — same extrabold
-            weight so the dot reads as solid, not spindly. */}
-        <span
-          className={cn(
-            "self-start font-extrabold leading-none text-hajr-rose",
-            s.deg
-          )}
-          style={{ transform: "translateY(-0.05em)" }}
-        >
-          °
-        </span>
+      {/* A° — mauve, light weight, baseline-aligned, slight left margin */}
+      <span
+        className={cn("font-light", s.degree)}
+        style={{
+          color: "#B86E7B",
+          fontWeight: 300,
+          marginLeft: "0.1em",
+        }}
+      >
+        A°
       </span>
     </span>
   );
@@ -110,46 +74,74 @@ function Mark({ size, light }: { size: LogoSize; light: boolean }) {
 /* ── ACADEMY caption ──────────────────────────────────────── */
 function Caption({ size, light }: { size: LogoSize; light: boolean }) {
   const s = SIZES[size];
+  const mainColor = light ? "#FAF6EE" : "#1E2A36";
   return (
     <span
       dir="ltr"
-      className={cn(
-        "block font-en font-medium uppercase leading-none",
-        s.sub,
-        s.subTrack,
-        light ? "text-white/70" : "text-hajr-muted"
-      )}
+      className={cn("block font-en leading-none uppercase", s.academy)}
+      style={{
+        color: mainColor,
+        letterSpacing: "0.3em",
+        fontWeight: 400,
+        opacity: 0.7,
+      }}
     >
-      Academy
+      ACADEMY
     </span>
   );
 }
 
-/* ── App-icon variant: rose A° centered on a navy rounded square ── */
+/* ── App-icon variant: dark gradient tile + centered mauve A° ─── */
 function AppIcon({ size, className }: { size: LogoSize; className?: string }) {
   const dim = {
-    sm: "h-10 w-10 text-base",
-    md: "h-14 w-14 text-xl",
-    lg: "h-20 w-20 text-3xl",
-    xl: "h-32 w-32 text-5xl",
+    sm: { box: "h-12 w-12 rounded-2xl",  glyph: "text-2xl" },
+    md: { box: "h-20 w-20 rounded-2xl",  glyph: "text-4xl" },
+    lg: { box: "h-32 w-32 rounded-3xl",  glyph: "text-6xl" },
+    xl: { box: "h-44 w-44 rounded-3xl",  glyph: "text-7xl sm:text-8xl" },
   }[size];
+
   return (
     <span
       dir="ltr"
       className={cn(
-        "inline-flex items-baseline justify-center rounded-[14%] bg-hajr-deep-navy shadow-lg",
-        dim,
+        "relative inline-flex items-center justify-center overflow-hidden shadow-2xl",
+        dim.box,
         className
       )}
+      style={{
+        background: "linear-gradient(135deg, #1E2A36 0%, #2C3E50 100%)",
+      }}
     >
-      <span className="inline-flex items-baseline leading-none font-en font-extrabold tracking-tighter text-hajr-rose pt-[10%]">
-        A
-        <span
-          className="self-start font-extrabold leading-none"
-          style={{ transform: "translateY(-0.05em)", fontSize: "0.6em" }}
-        >
-          °
-        </span>
+      {/* Mint accent glow top-right */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute top-0 right-0 h-1/2 w-1/2 rounded-full blur-3xl"
+        style={{
+          backgroundColor: "#B5E5D8",
+          opacity: 0.06,
+          transform: "translate(30%, -30%)",
+        }}
+      />
+      {/* Rose accent glow bottom-left */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute bottom-0 left-0 h-2/3 w-2/3 rounded-full blur-3xl"
+        style={{
+          backgroundColor: "#B86E7B",
+          opacity: 0.04,
+          transform: "translate(-30%, 30%)",
+        }}
+      />
+      {/* Centered A° */}
+      <span
+        className={cn("relative font-light leading-none", dim.glyph)}
+        style={{
+          color: "#B86E7B",
+          fontWeight: 300,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        A°
       </span>
     </span>
   );
@@ -158,7 +150,7 @@ function AppIcon({ size, className }: { size: LogoSize; className?: string }) {
 export interface HajrLogoProps {
   size?: LogoSize;
   variant?: LogoVariant;
-  /** render light (white) for use on navy backgrounds */
+  /** render light (cream) for use on navy backgrounds */
   light?: boolean;
   className?: string;
 }
@@ -168,7 +160,7 @@ export interface HajrLogoProps {
  * - `full`     → HAJR A° lockup + ACADEMY caption beneath
  * - `mark`     → just the HAJR A° lockup
  * - `text`     → just the ACADEMY caption
- * - `app-icon` → A° on a navy rounded square (favicon-style)
+ * - `app-icon` → mauve A° on a navy gradient rounded tile
  */
 export function HajrLogo({
   size = "md",
@@ -194,7 +186,7 @@ export function HajrLogo({
     );
   }
   return (
-    <span className={cn("inline-flex flex-col items-center gap-2", className)}>
+    <span className={cn("inline-flex flex-col items-center", SIZES[size].captionGap, className)}>
       <Mark size={size} light={light} />
       <Caption size={size} light={light} />
     </span>

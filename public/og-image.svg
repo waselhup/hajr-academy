@@ -1,34 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
-  <!-- HAJR A° Academy — OG card, brand v3.
-       Ivory canvas, centered HAJR A° lockup with the rose A° at the
-       same weight as the wordmark (just smaller). Charcoal tagline,
-       bottom-right ghosted A° at 8% opacity. -->
+  <!-- HAJR A° Academy — OG card, brand v3 canonical.
+       Ivory canvas, centered HAJR (Bold 700) + A° (Light 300, mauve),
+       muted ACADEMY caption, ghosted A° at 3% opacity bottom-right. -->
+  <style>
+    .font { font-family: 'Inter', -apple-system, 'Helvetica Neue', sans-serif; }
+  </style>
+
   <rect width="1200" height="630" fill="#FAF6EE"/>
 
-  <!-- Decorative giant ghosted A° in the bottom-right corner -->
-  <g transform="translate(900, 360)" opacity="0.08">
-    <text x="0" y="220" font-family="Inter, Helvetica, sans-serif" font-weight="800" font-size="460" letter-spacing="-20" fill="#1E2A36">A</text>
-    <text x="285" y="120" font-family="Inter, Helvetica, sans-serif" font-weight="800" font-size="180" letter-spacing="-6" fill="#B86E7B">°</text>
+  <!-- Ghosted oversized A° watermark, bottom-right, 3% opacity -->
+  <g opacity="0.03">
+    <text
+      x="1100"
+      y="610"
+      text-anchor="end"
+      class="font"
+      font-weight="300"
+      font-size="540"
+      letter-spacing="-10"
+      fill="#1E2A36"
+    >A°</text>
   </g>
 
-  <!-- HAJR + tiny rose A° lockup, baseline-aligned.
-       Wordmark cap-height ≈ 150px; A° cap-height ≈ 52px (~35%). -->
-  <g transform="translate(600, 260)">
-    <text x="-170" y="0" text-anchor="end" font-family="Inter, Helvetica, sans-serif" font-weight="800" font-size="150" letter-spacing="-7" fill="#1E2A36">HAJR</text>
-    <text x="-140" y="0" font-family="Inter, Helvetica, sans-serif" font-weight="800" font-size="52" letter-spacing="-2" fill="#B86E7B">A</text>
-    <text x="-100" y="-30" font-family="Inter, Helvetica, sans-serif" font-weight="800" font-size="34" fill="#B86E7B">°</text>
+  <!-- Centered HAJR + small mauve A° lockup, baseline-aligned -->
+  <g transform="translate(600, 270)">
+    <text x="-200" y="0" text-anchor="end" class="font" font-weight="700" font-size="160" letter-spacing="-3.2" fill="#1E2A36">HAJR</text>
+    <text x="-184" y="0" class="font" font-weight="300" font-size="64" letter-spacing="-1.3" fill="#B86E7B">A°</text>
   </g>
 
-  <!-- ACADEMY caption -->
-  <text x="600" y="340" text-anchor="middle" font-family="Inter, Helvetica, sans-serif" font-weight="500" font-size="32" letter-spacing="16" fill="#64748B">A C A D E M Y</text>
+  <!-- ACADEMY caption, muted -->
+  <text x="600" y="340" text-anchor="middle" class="font" font-weight="400" font-size="22" letter-spacing="13" opacity="0.7" fill="#1E2A36">ACADEMY</text>
 
   <!-- Tagline -->
-  <text x="600" y="430" text-anchor="middle" font-family="Inter, Helvetica, sans-serif" font-weight="700" font-size="36" fill="#2C3E50">Learn with Confidence · تعلّم بثقة</text>
-
-  <!-- 3 accent dots — rose, mint, charcoal -->
-  <g transform="translate(600, 488)">
-    <circle cx="-32" cy="0" r="7" fill="#B86E7B"/>
-    <circle cx="0" cy="0" r="7" fill="#B5E5D8"/>
-    <circle cx="32" cy="0" r="7" fill="#1E2A36"/>
-  </g>
+  <text x="600" y="460" text-anchor="middle" class="font" font-weight="400" font-size="28" letter-spacing="0.5" fill="#2C3E50">Premium English Education · Al Ahsa, Saudi Arabia</text>
 </svg>

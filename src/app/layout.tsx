@@ -4,6 +4,9 @@ import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
+  // Brand v3 needs the full weight range so the logo (HAJR Bold 700,
+  // A° Light 300, ACADEMY Regular 400) renders at its canonical spec.
+  weight: ["300", "400", "500", "600", "700", "800"],
   variable: "--font-en",
   display: "swap",
 });
