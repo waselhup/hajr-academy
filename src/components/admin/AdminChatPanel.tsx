@@ -107,7 +107,7 @@ export default function AdminChatPanel() {
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
                 msg.role === "user"
-                  ? "bg-brand-rose text-white ms-auto"
+                  ? "bg-hajr-deep-navy text-white ms-auto"
                   : "bg-gray-100 text-brand-navy"
               )}
             >
@@ -144,7 +144,7 @@ export default function AdminChatPanel() {
                     sendMessage(a.action);
                     setInput("");
                   }}
-                  className="bg-brand-lavender/40 hover:bg-brand-lavender/70 text-brand-navy text-xs rounded-full px-3 py-1.5 transition-colors"
+                  className="bg-hajr-hover/40 hover:bg-hajr-hover/70 text-brand-navy text-xs rounded-full px-3 py-1.5 transition-colors"
                 >
                   {a.label}
                 </button>
@@ -166,7 +166,7 @@ export default function AdminChatPanel() {
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim()}
-              className="bg-brand-rose hover:bg-brand-rose/80 disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
+              className="bg-hajr-deep-navy hover:bg-hajr-deep-navy/80 disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
             >
               <Send className="h-4 w-4" />
             </button>

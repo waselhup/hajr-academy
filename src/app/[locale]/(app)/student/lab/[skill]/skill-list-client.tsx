@@ -76,7 +76,7 @@ export function SkillExerciseList({ exercises }: { exercises: Exercise[] }) {
             onClick={() => setStatusFilter(st === statusFilter ? "" : st)}
             className={`rounded-full px-3 py-1 text-xs ${
               statusFilter === st
-                ? "bg-brand-rose text-white"
+                ? "bg-hajr-deep-navy text-white"
                 : "bg-gray-100 text-gray-600"
             }`}
           >
@@ -138,7 +138,7 @@ export function SkillExerciseList({ exercises }: { exercises: Exercise[] }) {
                     <span className="num">+{e.pointsValue} {t("points")}</span>
                   </div>
                   <div className="mt-4">
-                    <Button asChild size="sm" className="w-full bg-brand-rose text-white">
+                    <Button asChild size="sm" className="w-full bg-hajr-deep-navy text-white">
                       <Link href={`/${locale}/student/lab/exercise/${e.id}`}>
                         {cta}
                       </Link>

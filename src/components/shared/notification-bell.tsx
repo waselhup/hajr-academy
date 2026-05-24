@@ -152,12 +152,12 @@ export function NotificationBell({ userId }: { userId: string }) {
                 key={n.id}
                 onClick={() => openNotification(n)}
                 className={`flex w-full flex-col gap-0.5 border-b px-3 py-2.5 text-start hover:bg-gray-50 ${
-                  n.isRead ? "" : "bg-brand-lavender/10"
+                  n.isRead ? "" : "bg-hajr-hover/10"
                 }`}
               >
                 <div className="flex items-center gap-2">
                   {!n.isRead && (
-                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-rose" />
+                    <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-hajr-deep-navy" />
                   )}
                   <span className="text-sm font-medium">
                     {isAr ? n.titleAr : n.title}

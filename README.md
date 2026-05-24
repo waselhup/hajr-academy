@@ -92,17 +92,23 @@ All users share password **`Hajr@2026`** (change in production).
 
 ---
 
-## 🎨 Brand
+## 🎨 Brand v3 — locked official palette
+
+Proportion rule **70 / 15 / 10 / 3 / 2**. Rose is ACCENT ONLY — never a
+large surface. JS-side constants live in [`src/lib/brand.ts`](src/lib/brand.ts);
+CSS tokens in [`src/app/globals.css`](src/app/globals.css) +
+[`tailwind.config.ts`](tailwind.config.ts).
 
 ```
-Navy    #2C3E50  (sidebar, headers, primary)
-Rose    #C97B8A  (CTA, active item, accents)
-Mint    #B5E5D8  (success, Integrated package)
-Lavender #D4C5E2 (info, secondary badges)
-Ivory   #FAF6EE  (page background)
+Deep Navy     #1E2A36   70%   primary — sidebar, hero, CTAs (non-rose), footers
+Charcoal Navy #2C3E50   15%   secondary text/headings, card titles
+Ivory Silk    #FAF6EE   10%   page background only
+Rose Mauve    #B86E7B    3%   ACCENT ONLY — CTAs, active link bar, logo "°"
+Mint Frost    #B5E5D8    2%   support — success states, progress fills
 ```
 
-Typography: **IBM Plex Sans Arabic** (AR) + **Inter** (EN).
+Typography: **IBM Plex Sans Arabic** (AR) + **Inter** (EN), tracking-tight
+for headings (-0.02em).
 
 ---
 

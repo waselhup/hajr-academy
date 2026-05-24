@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import type { FinanceStats, RevenueCharts } from "@/lib/finance/stats";
 
-const COLORS = ["#2C3E50", "#C97B8A", "#B5E5D8", "#D4C5E2", "#F39C12"];
+const COLORS = ["#2C3E50", "#B86E7B", "#B5E5D8", "#D4C5E2", "#F39C12"];
 
 export function AdminFinanceClient({
   stats,
@@ -158,7 +158,7 @@ export function AdminFinanceClient({
                     [`${money(Number(v))} ${sar}`, t("revenueMonth")] as [string, string]
                   }
                 />
-                <Bar dataKey="revenue" fill="#C97B8A" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="revenue" fill="#B86E7B" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -254,7 +254,7 @@ export function AdminFinanceClient({
                 <Bar
                   dataKey="churned"
                   name={t("churned")}
-                  fill="#C97B8A"
+                  fill="#B86E7B"
                   radius={[4, 4, 0, 0]}
                 />
               </BarChart>

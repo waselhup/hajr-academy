@@ -25,7 +25,7 @@ export function fmtHijri(d: Date | string): string {
   }
 }
 
-const TEACHER_PALETTE = ["#2C3E50", "#C97B8A", "#5B8C7E", "#9B7BB8", "#D4A574", "#7BA7D9", "#B85C5C", "#8B6BAD"];
+const TEACHER_PALETTE = ["#2C3E50", "#B86E7B", "#5B8C7E", "#9B7BB8", "#D4A574", "#7BA7D9", "#B85C5C", "#8B6BAD"];
 export function teacherColor(teacherId: string): string {
   let hash = 0;
   for (let i = 0; i < teacherId.length; i++) hash = (hash * 31 + teacherId.charCodeAt(i)) | 0;

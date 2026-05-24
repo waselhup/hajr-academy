@@ -71,7 +71,7 @@ export function ExamListClient({ exams }: { exams: Exam[] }) {
           <Card key={exam.id} className="flex flex-col">
             <CardContent className="flex flex-1 flex-col p-5">
               <div className="flex items-start justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lavender/40">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hajr-hover/40">
                   <FileText className="h-5 w-5 text-brand-navy" />
                 </div>
                 <Badge variant="info">{typeLabel(exam.type)}</Badge>
@@ -111,7 +111,7 @@ export function ExamListClient({ exams }: { exams: Exam[] }) {
               <div className="mt-4">
                 {exam.inProgressAttemptId ? (
                   <Button
-                    className="w-full bg-brand-rose text-white"
+                    className="w-full bg-hajr-deep-navy text-white"
                     onClick={() =>
                       router.push(
                         `/${locale}/student/exams/${exam.id}/take?attempt=${exam.inProgressAttemptId}`
@@ -122,7 +122,7 @@ export function ExamListClient({ exams }: { exams: Exam[] }) {
                   </Button>
                 ) : (
                   <Button
-                    className="w-full bg-brand-rose text-white"
+                    className="w-full bg-hajr-deep-navy text-white"
                     onClick={() => setConfirmExam(exam)}
                   >
                     {t("startExam")}

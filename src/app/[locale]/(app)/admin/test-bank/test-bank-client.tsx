@@ -136,7 +136,7 @@ export function TestBankClient() {
           />
           <Button
             size="sm"
-            className="bg-brand-rose text-white"
+            className="bg-hajr-deep-navy text-white"
             disabled={importing}
             onClick={() => fileRef.current?.click()}
           >

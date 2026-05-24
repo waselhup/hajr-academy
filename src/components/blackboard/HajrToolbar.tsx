@@ -8,7 +8,7 @@ import type { Peer } from "@/lib/blackboard/sync";
 
 const BRAND_PEN_COLORS = [
   { label: "White", value: "#FFFFFF" },
-  { label: "Rose", value: "#C97B8A" },
+  { label: "Rose", value: "#B86E7B" },
   { label: "Mint", value: "#B5E5D8" },
   { label: "Lavender", value: "#D4C5E2" },
   { label: "Yellow", value: "#F59E0B" },

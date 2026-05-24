@@ -3,7 +3,7 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from "@supabase/supabase-js";
 import type { Editor } from "tldraw";
 
-const BRAND_COLORS = ["#2C3E50", "#C97B8A", "#B5E5D8", "#D4C5E2"];
+const BRAND_COLORS = ["#2C3E50", "#B86E7B", "#B5E5D8", "#D4C5E2"];
 const BROADCAST_THROTTLE_MS = 50;
 const AUTOSAVE_INTERVAL_MS = 30_000;
 

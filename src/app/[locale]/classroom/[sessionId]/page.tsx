@@ -38,7 +38,7 @@ export default async function ClassroomPage({
           </p>
           <Link
             href={`/${locale}`}
-            className="mt-6 inline-block rounded-lg bg-brand-rose px-5 py-2 text-sm font-medium"
+            className="mt-6 inline-block rounded-lg bg-hajr-deep-navy px-5 py-2 text-sm font-medium"
           >
             {t("backHome")}
           </Link>
@@ -59,7 +59,7 @@ export default async function ClassroomPage({
           </p>
           <Link
             href={`/${locale}`}
-            className="mt-6 inline-block rounded-lg bg-brand-rose px-5 py-2 text-sm font-medium"
+            className="mt-6 inline-block rounded-lg bg-hajr-deep-navy px-5 py-2 text-sm font-medium"
           >
             {t("backHome")}
           </Link>

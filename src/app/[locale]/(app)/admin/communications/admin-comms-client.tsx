@@ -182,7 +182,7 @@ export function AdminCommsClient() {
                     title={`${d.date}: ${total}`}
                   >
                     <div
-                      className="w-4 rounded-t bg-brand-rose"
+                      className="w-4 rounded-t bg-hajr-deep-navy"
                       style={{
                         height: `${Math.max(2, (total / maxDaily) * 120)}px`,
                       }}
@@ -215,7 +215,7 @@ function StatCard({
   return (
     <Card>
       <CardContent className="flex items-center gap-3 p-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lavender/40">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hajr-hover/40">
           <Icon className="h-5 w-5 text-brand-navy" />
         </div>
         <div>

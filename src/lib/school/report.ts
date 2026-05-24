@@ -167,11 +167,11 @@ export function renderSchoolReportHtml(data: SchoolReportData): Buffer {
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Cairo','Inter',sans-serif; color: #1A1A2E; background: #f3f1ec; padding: 24px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'Cairo','Inter',sans-serif; color: #1E2A36; background: #f3f1ec; padding: 24px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .sheet { max-width: 820px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 24px rgba(44,62,80,.08); }
   .head { background: #2C3E50; color: #fff; padding: 26px 32px; }
   .brand-mark { font-family: 'Inter',sans-serif; font-weight: 700; font-size: 24px; }
-  .brand-mark sup { color: #C97B8A; font-size: 13px; }
+  .brand-mark sup { color: #B86E7B; font-size: 13px; }
   .head h1 { font-size: 18px; margin-top: 10px; }
   .head .sub { font-size: 12px; opacity: .75; font-family: 'Inter',sans-serif; }
   .meta { font-size: 11px; opacity: .7; margin-top: 8px; }
@@ -180,7 +180,7 @@ export function renderSchoolReportHtml(data: SchoolReportData): Buffer {
   .kpi { background: #FAF6EE; border-radius: 8px; padding: 14px; }
   .kpi .label { font-size: 11px; color: #8A8580; }
   .kpi .value { font-size: 20px; font-weight: 700; color: #2C3E50; }
-  h2 { font-size: 14px; color: #C97B8A; margin: 20px 0 10px; }
+  h2 { font-size: 14px; color: #B86E7B; margin: 20px 0 10px; }
   .pill { display: inline-block; background: #B5E5D8; color: #16604a; border-radius: 999px; padding: 4px 12px; font-size: 12px; margin: 0 4px 4px 0; }
   table { width: 100%; border-collapse: collapse; }
   thead th { background: #2C3E50; color: #fff; font-size: 11px; padding: 8px; text-align: right; }

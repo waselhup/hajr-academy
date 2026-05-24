@@ -376,7 +376,7 @@ function FilterChip({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant={sel.length ? "secondary" : "outline"} size="sm">
-          {label}{sel.length > 0 && <span className="ms-1 rounded-full bg-brand-rose px-1.5 text-xs text-white num">{sel.length}</span>}
+          {label}{sel.length > 0 && <span className="ms-1 rounded-full bg-hajr-deep-navy px-1.5 text-xs text-white num">{sel.length}</span>}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>

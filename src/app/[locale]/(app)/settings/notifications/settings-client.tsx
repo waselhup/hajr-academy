@@ -160,7 +160,7 @@ export function NotificationSettingsClient() {
         <Button
           onClick={save}
           disabled={saving}
-          className="bg-brand-rose text-white"
+          className="bg-hajr-deep-navy text-white"
         >
           {saving ? (
             <Loader2 className="me-2 h-4 w-4 animate-spin" />

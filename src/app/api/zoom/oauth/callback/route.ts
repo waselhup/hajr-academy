@@ -26,7 +26,7 @@ export async function GET(req: Request) {
     .badge { font-size: 42px; }
     h1 { font-size: 20px; margin: 16px 0 8px; }
     p { color: #6B7280; font-size: 14px; }
-    a { display: inline-block; margin-top: 20px; background: #C97B8A; color: #fff;
+    a { display: inline-block; margin-top: 20px; background: #B86E7B; color: #fff;
         text-decoration: none; padding: 10px 24px; border-radius: 10px; font-weight: 600; }
   </style>
 </head>

@@ -129,7 +129,7 @@ export function ParentsClient({
                 </TableCell>
                 <TableCell>
                   <button
-                    className="inline-flex items-center gap-1 rounded bg-brand-lavender/40 px-2 py-1 font-mono text-xs hover:bg-brand-lavender/60"
+                    className="inline-flex items-center gap-1 rounded bg-hajr-hover/40 px-2 py-1 font-mono text-xs hover:bg-hajr-hover/60"
                     onClick={() => r.profile && copyCode(r.profile.inviteCode)}
                   >
                     {r.profile?.inviteCode}<Copy className="h-3 w-3" />

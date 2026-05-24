@@ -148,7 +148,7 @@ export function LiveClassBanner({ userId, classIds }: Props) {
           <button
             type="button"
             onClick={() => handleJoin(s)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-rose px-4 py-2 text-sm font-semibold transition-colors hover:bg-brand-rose/90"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-hajr-deep-navy px-4 py-2 text-sm font-semibold transition-colors hover:bg-hajr-deep-navy/90"
           >
             <Radio className="h-4 w-4" />
             {t("joinClass")}

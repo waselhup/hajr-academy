@@ -45,12 +45,12 @@ const SKILL_ICON: Record<string, React.ComponentType<{ className?: string }>> = 
 };
 
 const SKILL_ACCENT: Record<string, string> = {
-  SPEAKING: "bg-brand-rose/15 text-brand-rose",
-  LISTENING: "bg-brand-lavender/40 text-brand-navy",
+  SPEAKING: "bg-hajr-deep-navy/15 text-brand-rose",
+  LISTENING: "bg-hajr-hover/40 text-brand-navy",
   WRITING: "bg-brand-mint/40 text-brand-navy",
-  READING: "bg-brand-lavender/40 text-brand-navy",
+  READING: "bg-hajr-hover/40 text-brand-navy",
   GRAMMAR: "bg-brand-mint/40 text-brand-navy",
-  VOCABULARY: "bg-brand-rose/15 text-brand-rose",
+  VOCABULARY: "bg-hajr-deep-navy/15 text-brand-rose",
 };
 
 const CEFR_ORDER = ["A1", "A2", "B1", "B2", "C1", "C2"];
@@ -85,7 +85,7 @@ export function LabHubClient({
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-lavender/40">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hajr-hover/40">
               <Clock className="h-5 w-5 text-brand-navy" />
             </div>
             <div>
@@ -107,7 +107,7 @@ export function LabHubClient({
         </Card>
         <Card>
           <CardContent className="flex items-center gap-3 p-5">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-rose/15">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-hajr-deep-navy/15">
               <Sparkles className="h-5 w-5 text-brand-rose" />
             </div>
             <div>
@@ -123,10 +123,10 @@ export function LabHubClient({
       {/* Daily challenge */}
       {dailyChallenge && (
         <Link href={`/${locale}/student/lab/exercise/${dailyChallenge.id}`} className="block">
-          <Card className="border-brand-rose/30 bg-brand-rose/5 transition-shadow hover:shadow-md">
+          <Card className="border-brand-rose/30 bg-hajr-deep-navy/5 transition-shadow hover:shadow-md">
             <CardContent className="flex items-center justify-between gap-4 p-5">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-rose text-white">
+                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-hajr-deep-navy text-white">
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div>

@@ -12,6 +12,9 @@
  */
 
 import { buildInvoiceZatcaQr, getSellerInfo } from "./zatca";
+import { BRAND } from "@/lib/brand";
+
+const C = BRAND.palette;
 
 export interface InvoiceLineItem {
   description: string;
@@ -71,8 +74,8 @@ function statusLabel(status: string): { ar: string; en: string; color: string } 
     OVERDUE: { ar: "متأخرة", en: "Overdue", color: "#E74C3C" },
     DRAFT: { ar: "مسودة", en: "Draft", color: "#8A8580" },
     CANCELLED: { ar: "ملغاة", en: "Cancelled", color: "#8A8580" },
-    REFUNDED: { ar: "مُستردة", en: "Refunded", color: "#C97B8A" },
-    PARTIALLY_REFUNDED: { ar: "مُستردة جزئياً", en: "Partially refunded", color: "#C97B8A" },
+    REFUNDED: { ar: "مُستردة", en: "Refunded", color: "#B86E7B" },
+    PARTIALLY_REFUNDED: { ar: "مُستردة جزئياً", en: "Partially refunded", color: "#B86E7B" },
   };
   return map[status] ?? { ar: status, en: status, color: "#8A8580" };
 }
@@ -121,13 +124,13 @@ export async function generateInvoicePdf(
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --navy: #2C3E50;
-    --rose: #C97B8A;
-    --ivory: #FAF6EE;
-    --mint: #B5E5D8;
-    --ink: #1A1A2E;
-    --muted: #8A8580;
-    --line: #E8E5DF;
+    --navy: ${C.navy};
+    --rose: ${C.rose};
+    --ivory: ${C.ivory};
+    --mint: ${C.mint};
+    --ink: ${C.deepNavy};
+    --muted: ${C.textMuted};
+    --line: ${C.border};
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {

@@ -245,7 +245,7 @@ export function ExercisePlayer({
             <Button
               onClick={() => submit({ text: writingText })}
               disabled={submitting || writingText.trim().length < 5}
-              className="w-full bg-brand-rose text-white"
+              className="w-full bg-hajr-deep-navy text-white"
             >
               {submitting ? (
                 <>
@@ -274,7 +274,7 @@ export function ExercisePlayer({
               {!recording ? (
                 <button
                   onClick={startRecording}
-                  className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-rose text-white transition-transform hover:scale-105"
+                  className="flex h-20 w-20 items-center justify-center rounded-full bg-hajr-deep-navy text-white transition-transform hover:scale-105"
                   aria-label={t("record")}
                 >
                   <Mic className="h-8 w-8" />
@@ -309,7 +309,7 @@ export function ExercisePlayer({
                   </Button>
                   <Button
                     size="sm"
-                    className="flex-1 bg-brand-rose text-white"
+                    className="flex-1 bg-hajr-deep-navy text-white"
                     disabled={submitting || !audioPath}
                     onClick={() =>
                       submit({
@@ -364,14 +364,14 @@ export function ExercisePlayer({
                         }
                         className={`flex w-full items-center gap-2 rounded-lg border p-2.5 text-start text-sm transition-colors ${
                           selected
-                            ? "border-brand-rose bg-brand-rose/10"
+                            ? "border-brand-rose bg-hajr-deep-navy/10"
                             : "border-gray-200 hover:border-gray-300"
                         }`}
                       >
                         <span
                           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
                             selected
-                              ? "border-brand-rose bg-brand-rose text-white"
+                              ? "border-brand-rose bg-hajr-deep-navy text-white"
                               : "border-gray-300"
                           }`}
                         >
@@ -390,7 +390,7 @@ export function ExercisePlayer({
             disabled={
               submitting || Object.keys(answers).length < questions.length
             }
-            className="w-full bg-brand-rose text-white"
+            className="w-full bg-hajr-deep-navy text-white"
           >
             {submitting ? (
               <>

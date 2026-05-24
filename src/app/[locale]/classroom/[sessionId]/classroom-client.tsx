@@ -211,7 +211,7 @@ export function ClassroomClient({
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <button
                 onClick={() => window.location.reload()}
-                className="rounded-lg bg-brand-rose px-5 py-2 text-sm font-medium"
+                className="rounded-lg bg-hajr-deep-navy px-5 py-2 text-sm font-medium"
               >
                 {t("retry")}
               </button>
@@ -243,7 +243,7 @@ export function ClassroomClient({
       {phase === "mobile" && (
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-brand-navy p-6 text-center text-white">
           <div className="rounded-2xl bg-white/10 p-8 backdrop-blur">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-brand-rose/20">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-hajr-deep-navy/20">
               <Smartphone className="h-9 w-9 text-brand-rose" />
             </div>
             <h1 className="mt-5 text-xl font-bold">{t("mobileTitle")}</h1>
@@ -259,7 +259,7 @@ export function ClassroomClient({
                 return (
                   <a
                     href={deep ?? joinUrl}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-brand-rose px-6 py-3 text-sm font-semibold"
+                    className="inline-flex items-center justify-center gap-2 rounded-lg bg-hajr-deep-navy px-6 py-3 text-sm font-semibold"
                   >
                     <Video className="h-4 w-4" />
                     {t("openInZoom")}

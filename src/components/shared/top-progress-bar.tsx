@@ -97,7 +97,7 @@ export function TopProgressBar() {
       className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-0.5"
     >
       <div
-        className="h-full bg-gradient-to-r from-brand-rose to-brand-lavender transition-all duration-200 ease-out"
+        className="h-full bg-gradient-to-r from-hajr-deep-navy to-hajr-rose transition-all duration-200 ease-out"
         style={{ width: `${progress}%`, opacity: progress >= 100 ? 0 : 1 }}
       />
     </div>

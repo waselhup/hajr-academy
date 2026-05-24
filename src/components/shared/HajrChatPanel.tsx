@@ -76,7 +76,7 @@ export default function HajrChatPanel() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="fixed bottom-6 end-6 z-40 flex items-center gap-2 bg-brand-rose text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-brand-rose/90 transition-colors">
+        <button className="fixed bottom-6 end-6 z-40 flex items-center gap-2 bg-hajr-deep-navy text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-hajr-deep-navy/90 transition-colors">
           <MessageCircle className="h-5 w-5" />
           <span className="text-sm font-medium">هجر</span>
         </button>
@@ -116,7 +116,7 @@ export default function HajrChatPanel() {
               className={cn(
                 "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
                 msg.role === "user"
-                  ? "bg-brand-rose text-white ms-auto"
+                  ? "bg-hajr-deep-navy text-white ms-auto"
                   : "bg-brand-ivory text-brand-navy"
               )}
             >
@@ -151,7 +151,7 @@ export default function HajrChatPanel() {
                     sendMessage(a.action);
                     setInput("");
                   }}
-                  className="bg-brand-rose/10 hover:bg-brand-rose/20 text-brand-rose text-xs rounded-full px-3 py-1.5 transition-colors"
+                  className="bg-hajr-deep-navy/10 hover:bg-hajr-deep-navy/20 text-brand-rose text-xs rounded-full px-3 py-1.5 transition-colors"
                 >
                   {a.label}
                 </button>
@@ -181,7 +181,7 @@ export default function HajrChatPanel() {
             <button
               onClick={handleSend}
               disabled={isLoading || !input.trim() || remaining === 0}
-              className="bg-brand-rose hover:bg-brand-rose/80 disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
+              className="bg-hajr-deep-navy hover:bg-hajr-deep-navy/80 disabled:opacity-40 text-white rounded-xl p-2 transition-colors"
             >
               <Send className="h-4 w-4" />
             </button>

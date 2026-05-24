@@ -4,7 +4,7 @@
  * Seeds 15 bilingual transactional/system templates. The stored `bodyAr`
  * / `bodyEn` are the INNER HTML only — the dispatcher wraps each in the
  * branded shell (navy header, ivory body, footer) via `wrapEmailShell`.
- * Brand: Navy #2C3E50, Rose #C97B8A. Variables use {{name}} syntax.
+ * Brand: Navy #2C3E50, Rose #B86E7B. Variables use {{name}} syntax.
  *
  * Idempotent: upserts by template key.
  *
@@ -16,7 +16,7 @@ const prisma = new PrismaClient();
 
 /** A rose CTA button — email-safe table (rounded-full pill). */
 function btn(label: string, url: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#C97B8A;border-radius:999px;"><a href="${url}" style="display:inline-block;padding:13px 32px;color:#ffffff;font-weight:600;text-decoration:none;border-radius:999px;">${label}</a></td></tr></table>`;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:24px 0;"><tr><td style="background:#B86E7B;border-radius:999px;"><a href="${url}" style="display:inline-block;padding:13px 32px;color:#ffffff;font-weight:600;text-decoration:none;border-radius:999px;">${label}</a></td></tr></table>`;
 }
 
 const APP = "https://hajr-academy.vercel.app";

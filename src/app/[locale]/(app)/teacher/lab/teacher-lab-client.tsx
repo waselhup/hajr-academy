@@ -211,7 +211,7 @@ export function TeacherLabClient({
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
-        <Button onClick={() => setOpen(true)} className="bg-brand-rose text-white">
+        <Button onClick={() => setOpen(true)} className="bg-hajr-deep-navy text-white">
           <Plus className="me-2 h-4 w-4" />
           {t("createExercise")}
         </Button>
@@ -312,7 +312,7 @@ export function TeacherLabClient({
             <Button
               onClick={() => create(true)}
               disabled={saving}
-              className="bg-brand-rose text-white"
+              className="bg-hajr-deep-navy text-white"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin" />

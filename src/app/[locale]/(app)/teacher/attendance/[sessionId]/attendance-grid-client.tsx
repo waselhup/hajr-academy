@@ -25,7 +25,7 @@ const STATUS_STYLE: Record<Status, string> = {
   PRESENT: "bg-brand-mint text-brand-navy",
   LATE: "bg-amber-100 text-amber-800",
   ABSENT: "bg-red-100 text-red-700",
-  EXCUSED: "bg-brand-lavender text-brand-navy",
+  EXCUSED: "bg-hajr-hover text-brand-navy",
 };
 
 export function AttendanceGridClient({

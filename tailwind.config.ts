@@ -16,15 +16,14 @@ const config: Config = {
     extend: {
       colors: {
         hajr: {
-          // ── BRAND v2 — "Premium, not pink" — navy-dominant ──
-          "deep-navy": "#1E2A36", // PRIMARY — hero, sidebar, footer, headers
-          navy: "#2C3E50", // headings, card titles, body text
-          ivory: "#FAF6EE", // page backgrounds
-          white: "#FFFFFF", // cards, inputs
-          rose: "#C97B8A", // ACCENT ONLY — CTA buttons, active links, badges
-          mint: "#B5E5D8", // success states, progress bars
-          lavender: "#D4C5E2", // legacy accent (kept for compat)
-          black: "#1E2A36",
+          // ── BRAND v3 — locked official palette ──
+          // 70/15/10/3/2 proportion rule. Rose mauve is ACCENT ONLY.
+          "deep-navy": "#1E2A36", // 70% — primary surface
+          navy: "#2C3E50",        // 15% — secondary text/headings
+          ivory: "#FAF6EE",       // 10% — page bg
+          white: "#FFFFFF",
+          rose: "#B86E7B",        // 3%  — ACCENT ONLY
+          mint: "#B5E5D8",        // 2%  — support / success
           // text scale
           text: "#1E2A36",
           body: "#2C3E50",
@@ -39,6 +38,8 @@ const config: Config = {
           warning: "#F59E0B",
           success: "#059669",
           info: "#2563EB",
+          // Compat slots so existing utility classes resolve.
+          black: "#1E2A36",
           gray: {
             100: "#F8FAFC",
             200: "#E2E8F0",
@@ -46,17 +47,18 @@ const config: Config = {
             500: "#64748B",
           },
         },
-        // alias kept so existing brand-* utilities continue to work.
-        // brand.rose now resolves to navy so legacy `bg-brand-rose`
-        // surfaces never paint pink — true CTAs use `variant="cta"`.
+        // brand.* legacy alias — kept ONLY because v2 swept many call
+        // sites to it; brand.rose remains navy so accidental
+        // `bg-brand-rose` paints navy, not pink. True rose CTAs use
+        // `variant="cta"`.
         brand: {
           "deep-navy": "#1E2A36",
           navy: "#2C3E50",
-          rose: "#2C3E50",
-          accent: "#C97B8A",
+          rose: "#2C3E50",        // ← still navy by design
+          accent: "#B86E7B",      // the real rose for any rare opt-in
           mint: "#B5E5D8",
-          lavender: "#D4C5E2",
           ivory: "#FAF6EE",
+          lavender: "#D4C5E2",    // deprecated — remove once 0 refs
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

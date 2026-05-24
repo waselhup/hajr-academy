@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 100" width="320" height="100">
   <style>
     .navy { fill: #2C3E50; }
-    .rose { fill: #C97B8A; stroke: #C97B8A; }
+    .rose { fill: #B86E7B; stroke: #B86E7B; }
     .word { font-family: 'Inter', 'Helvetica Neue', sans-serif; font-weight: 800; letter-spacing: -0.04em; }
   </style>
   <!-- HAJR wordmark, tall and condensed -->
@@ -10,5 +10,5 @@
   <line x1="215" y1="14" x2="215" y2="88" class="rose" stroke-width="3"/>
   <!-- A with degree mark -->
   <text x="232" y="68" class="rose word" font-size="62">A</text>
-  <circle cx="289" cy="22" r="6" fill="none" stroke="#C97B8A" stroke-width="3"/>
+  <circle cx="289" cy="22" r="6" fill="none" stroke="#B86E7B" stroke-width="3"/>
 </svg>

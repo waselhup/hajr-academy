@@ -130,13 +130,13 @@ export function NotificationsClient() {
                       <button
                         onClick={() => open(n)}
                         className={`flex w-full flex-col gap-1 p-4 text-start hover:bg-gray-50 ${
-                          n.isRead ? "" : "bg-brand-lavender/10"
+                          n.isRead ? "" : "bg-hajr-hover/10"
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-sm font-medium">
                             {!n.isRead && (
-                              <span className="h-1.5 w-1.5 rounded-full bg-brand-rose" />
+                              <span className="h-1.5 w-1.5 rounded-full bg-hajr-deep-navy" />
                             )}
                             {isAr ? n.titleAr : n.title}
                           </span>

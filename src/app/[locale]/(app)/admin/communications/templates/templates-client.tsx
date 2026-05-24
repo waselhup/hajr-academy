@@ -198,7 +198,7 @@ export function TemplatesClient() {
             <Button
               onClick={save}
               disabled={saving}
-              className="bg-brand-rose text-white"
+              className="bg-hajr-deep-navy text-white"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : t("save")}
             </Button>

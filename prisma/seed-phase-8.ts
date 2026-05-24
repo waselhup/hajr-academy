@@ -10,7 +10,7 @@ const prisma = new PrismaClient();
 const APP = process.env.NEXT_PUBLIC_APP_URL ?? "https://hajr-academy.vercel.app";
 
 function btn(label: string, href: string) {
-  return `<p style="margin:20px 0;"><a href="${href}" style="background:#C97B8A;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:600;">${label}</a></p>`;
+  return `<p style="margin:20px 0;"><a href="${href}" style="background:#B86E7B;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:600;">${label}</a></p>`;
 }
 
 const templates = [

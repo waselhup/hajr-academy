@@ -107,7 +107,7 @@ export function TeacherBlackboardList({
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">{t("title")}</h1>
-        <Button onClick={() => setCreateOpen(true)} className="bg-brand-rose hover:bg-brand-rose/90 text-white">
+        <Button onClick={() => setCreateOpen(true)} className="bg-hajr-deep-navy hover:bg-hajr-deep-navy/90 text-white">
           <Plus className="h-4 w-4 me-1.5" />
           {t("newBoard")}
         </Button>
@@ -124,7 +124,7 @@ export function TeacherBlackboardList({
               <CardContent className="py-12 text-center">
                 <p className="text-lg font-medium mb-2">{t("emptyTitle")}</p>
                 <p className="text-muted-foreground text-sm mb-4">{t("emptyDesc")}</p>
-                <Button onClick={() => setCreateOpen(true)} className="bg-brand-rose hover:bg-brand-rose/90 text-white">
+                <Button onClick={() => setCreateOpen(true)} className="bg-hajr-deep-navy hover:bg-hajr-deep-navy/90 text-white">
                   <Plus className="h-4 w-4 me-1.5" />
                   {t("newBoard")}
                 </Button>
@@ -164,7 +164,7 @@ export function TeacherBlackboardList({
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>{tc("cancel")}</Button>
-            <Button onClick={handleCreate} disabled={creating || !name.trim()} className="bg-brand-rose text-white">
+            <Button onClick={handleCreate} disabled={creating || !name.trim()} className="bg-hajr-deep-navy text-white">
               {creating ? tc("saving") : tc("create")}
             </Button>
           </DialogFooter>

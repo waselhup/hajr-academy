@@ -219,14 +219,14 @@ export function ExamRunner({
                       }
                       className={`flex w-full items-center gap-2 rounded-lg border p-2.5 text-start text-sm transition-colors ${
                         selected
-                          ? "border-brand-rose bg-brand-rose/10"
+                          ? "border-brand-rose bg-hajr-deep-navy/10"
                           : "border-gray-200 hover:border-gray-300"
                       }`}
                     >
                       <span
                         className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-xs ${
                           selected
-                            ? "border-brand-rose bg-brand-rose text-white"
+                            ? "border-brand-rose bg-hajr-deep-navy text-white"
                             : "border-gray-300"
                         }`}
                       >
@@ -317,7 +317,7 @@ export function ExamRunner({
             </div>
           </div>
           <Button
-            className="mt-4 w-full bg-brand-rose text-white"
+            className="mt-4 w-full bg-hajr-deep-navy text-white"
             onClick={() => setShowSubmitConfirm(true)}
           >
             {t("submitExam")}
@@ -328,7 +328,7 @@ export function ExamRunner({
       {/* Mobile submit bar */}
       <div className="border-t bg-white p-3 lg:hidden">
         <Button
-          className="w-full bg-brand-rose text-white"
+          className="w-full bg-hajr-deep-navy text-white"
           onClick={() => setShowSubmitConfirm(true)}
         >
           {t("submitExam")}

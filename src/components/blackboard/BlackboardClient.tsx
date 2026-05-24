@@ -109,7 +109,7 @@ export function BlackboardClient({
       editorRef.current.setStyleForNextShapes(
         editorRef.current.getStyleForNextShape("color" as any) ? ("color" as any) : ("color" as any),
         color === "#FFFFFF" ? "white" :
-        color === "#C97B8A" ? "red" :
+        color === "#B86E7B" ? "red" :
         color === "#B5E5D8" ? "green" :
         color === "#D4C5E2" ? "violet" :
         "yellow"

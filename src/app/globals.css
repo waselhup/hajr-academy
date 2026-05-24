@@ -4,58 +4,50 @@
 
 @layer base {
   :root {
-    /* ── HAJR A° brand palette v2 — "Premium, not pink" ──────────
-       Navy-dominant. Rose is an ACCENT ONLY (CTAs, active states). */
-    --hajr-deep-navy: #1E2A36; /* PRIMARY — hero, sidebar, footer, headers */
-    --hajr-navy: #2C3E50;      /* headings, card titles, body text */
-    --hajr-ivory: #FAF6EE;     /* page backgrounds */
-    --hajr-white: #FFFFFF;     /* cards, inputs */
-    --hajr-rose: #C97B8A;      /* ACCENT ONLY — CTA buttons, active links */
-    --hajr-mint: #B5E5D8;      /* success states, progress bars */
-    --hajr-lavender: #D4C5E2;  /* legacy accent */
+    /* ── HAJR A° Brand v3 ──────────────────────────────────────
+       Locked official palette. 70/15/10/3/2 proportion rule.
+       Rose mauve is ACCENT ONLY — never a large surface. */
+    --hajr-deep-navy:    #1E2A36;  /* 70% — primary */
+    --hajr-navy:         #2C3E50;  /* 15% — secondary text/headings */
+    --hajr-ivory:        #FAF6EE;  /* 10% — page bg */
+    --hajr-rose:         #B86E7B;  /* 3%  — ACCENT ONLY */
+    --hajr-mint:         #B5E5D8;  /* 2%  — support / success */
+    --hajr-white:        #FFFFFF;
 
     --hajr-text-primary: #1E2A36;
-    --hajr-text-body: #2C3E50;
-    --hajr-text-muted: #64748B;
-    --hajr-text-light: #94A3B8;
+    --hajr-text-body:    #2C3E50;
+    --hajr-text-muted:   #64748B;
+    --hajr-text-light:   #94A3B8;
 
-    --hajr-border: #E2E8F0;
-    --hajr-surface: #F8FAFC;
-    --hajr-hover: #F1F5F9;
+    --hajr-border:       #E2E8F0;
+    --hajr-surface:      #F8FAFC;
+    --hajr-hover:        #F1F5F9;
 
-    --hajr-error: #DC2626;
-    --hajr-warning: #F59E0B;
-    --hajr-success: #059669;
-    --hajr-info: #2563EB;
+    --hajr-error:        #DC2626;
+    --hajr-warning:      #F59E0B;
+    --hajr-success:      #059669;
+    --hajr-info:         #2563EB;
 
-    /* legacy aliases */
-    --hajr-black: #1E2A36;
-    --hajr-gray-100: #F8FAFC;
-    --hajr-gray-200: #E2E8F0;
-    --hajr-gray-300: #CBD5E1;
-    --hajr-gray-500: #64748B;
-
-    /* ── shadcn/ui tokens, mapped to the brand palette ──────────
-       primary = navy (the DEFAULT action); rose stays reserved. */
-    --background: 39 56% 96%;        /* ivory */
-    --foreground: 211 31% 17%;       /* deep navy #1E2A36 */
+    /* ── shadcn/ui tokens, mapped to brand v3 ─────────────── */
+    --background: 39 56% 96%;
+    --foreground: 211 31% 17%;
     --card: 0 0% 100%;
     --card-foreground: 211 31% 17%;
     --popover: 0 0% 100%;
     --popover-foreground: 211 31% 17%;
-    --primary: 211 31% 17%;          /* deep navy — primary action */
+    --primary: 211 31% 17%;            /* deep navy */
     --primary-foreground: 0 0% 100%;
-    --secondary: 213 32% 24%;        /* navy */
+    --secondary: 213 32% 24%;          /* charcoal navy */
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 98%;            /* surface */
-    --muted-foreground: 215 16% 47%; /* text-muted */
-    --accent: 165 51% 80%;           /* mint */
+    --muted: 210 40% 98%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 165 51% 80%;             /* mint */
     --accent-foreground: 213 32% 24%;
-    --destructive: 0 72% 51%;        /* #DC2626 */
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;           /* #E2E8F0 */
+    --border: 214 32% 91%;
     --input: 214 32% 91%;
-    --ring: 211 31% 17%;             /* navy focus ring */
+    --ring: 211 31% 17%;
     --radius: 0.75rem;
   }
 

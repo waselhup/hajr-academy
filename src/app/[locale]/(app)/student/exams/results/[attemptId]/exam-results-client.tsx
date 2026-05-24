@@ -102,7 +102,7 @@ export function ExamResultsClient({ data }: { data: ResultsData }) {
                 </div>
                 <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                   <div
-                    className="h-full rounded-full bg-brand-rose"
+                    className="h-full rounded-full bg-hajr-deep-navy"
                     style={{ width: `${Math.min(100, score)}%` }}
                   />
                 </div>
@@ -214,7 +214,7 @@ export function ExamResultsClient({ data }: { data: ResultsData }) {
                       </div>
                     )}
                     {(isAr ? r.explanationAr : r.explanation) && (
-                      <div className="mt-2 rounded-md bg-brand-lavender/20 p-2">
+                      <div className="mt-2 rounded-md bg-hajr-hover/20 p-2">
                         <span className="font-medium">{t("whyCorrect")}: </span>
                         {isAr ? r.explanationAr : r.explanation}
                       </div>

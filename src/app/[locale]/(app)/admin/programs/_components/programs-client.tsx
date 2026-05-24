@@ -68,7 +68,7 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
             <Card key={p.id}>
               <CardHeader>
                 <div className="flex items-start justify-between">
-                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${p.active ? "bg-brand-lavender/40" : "bg-gray-100"}`}>
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${p.active ? "bg-hajr-hover/40" : "bg-gray-100"}`}>
                     <Icon className="h-5 w-5 text-brand-navy" />
                   </div>
                   <Switch
