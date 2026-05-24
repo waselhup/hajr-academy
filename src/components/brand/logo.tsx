@@ -69,6 +69,10 @@ function Mark({ size, light }: { size: LogoSize; light: boolean }) {
   const s = SIZES[size];
   const word = light ? "text-white" : "text-hajr-deep-navy";
   // Lockup is intentionally LTR in both languages.
+  // The A° matches the wordmark's weight (font-extrabold) and the
+  // same -0.04em letter-spacing — so it reads as the same family of
+  // glyphs, just smaller. Anything lighter visually disconnects from
+  // HAJR and looks like a separate font.
   return (
     <span
       dir="ltr"
@@ -77,21 +81,21 @@ function Mark({ size, light }: { size: LogoSize; light: boolean }) {
       <span className={cn("font-extrabold tracking-tighter", s.word, word)}>
         HAJR
       </span>
-      {/* The tiny A° pair — baseline-aligned to the wordmark */}
+      {/* The tiny A° pair — same weight as HAJR, baseline-aligned. */}
       <span className="inline-flex items-baseline leading-none">
         <span
           className={cn(
-            "font-semibold tracking-tight text-hajr-rose",
+            "font-extrabold tracking-tighter text-hajr-rose",
             s.a
           )}
         >
           A
         </span>
-        {/* The ° hovers above the A's cap-height — render it as a
-            superscript glyph at ~0.6× the A's size. */}
+        {/* The ° hovers above the A's cap-height — same extrabold
+            weight so the dot reads as solid, not spindly. */}
         <span
           className={cn(
-            "self-start font-medium leading-none text-hajr-rose",
+            "self-start font-extrabold leading-none text-hajr-rose",
             s.deg
           )}
           style={{ transform: "translateY(-0.05em)" }}
@@ -138,10 +142,10 @@ function AppIcon({ size, className }: { size: LogoSize; className?: string }) {
         className
       )}
     >
-      <span className="inline-flex items-baseline leading-none font-en font-semibold text-hajr-rose pt-[10%]">
+      <span className="inline-flex items-baseline leading-none font-en font-extrabold tracking-tighter text-hajr-rose pt-[10%]">
         A
         <span
-          className="self-start font-medium leading-none"
+          className="self-start font-extrabold leading-none"
           style={{ transform: "translateY(-0.05em)", fontSize: "0.6em" }}
         >
           °

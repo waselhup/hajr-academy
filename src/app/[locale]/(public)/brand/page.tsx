@@ -71,11 +71,11 @@ export default function BrandShowcasePage() {
             </Tile>
             <Tile>
               <span className="inline-flex items-baseline leading-none font-en">
-                <span className="text-3xl font-semibold tracking-tight text-hajr-rose">
+                <span className="text-3xl font-extrabold tracking-tighter text-hajr-rose">
                   A
                 </span>
                 <span
-                  className="self-start text-xl font-medium leading-none text-hajr-rose"
+                  className="self-start text-xl font-extrabold leading-none text-hajr-rose"
                   style={{ transform: "translateY(-0.05em)" }}
                 >
                   °
@@ -87,11 +87,11 @@ export default function BrandShowcasePage() {
             </Tile>
             <Tile>
               <span className="inline-flex items-baseline leading-none font-en">
-                <span className="text-3xl font-semibold tracking-tight text-hajr-rose">
+                <span className="text-3xl font-extrabold tracking-tighter text-hajr-rose">
                   A
                 </span>
                 <span
-                  className="self-start text-xl font-medium leading-none text-hajr-rose"
+                  className="self-start text-xl font-extrabold leading-none text-hajr-rose"
                   style={{ transform: "translateY(-0.05em)" }}
                 >
                   °
@@ -132,9 +132,9 @@ export default function BrandShowcasePage() {
                 className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 select-none opacity-[0.05]"
               >
                 <span className="inline-flex items-baseline font-en text-[8rem] leading-none">
-                  <span className="font-semibold tracking-tight text-hajr-deep-navy">A</span>
+                  <span className="font-extrabold tracking-tighter text-hajr-deep-navy">A</span>
                   <span
-                    className="self-start font-medium leading-none"
+                    className="self-start font-extrabold leading-none"
                     style={{ transform: "translateY(-0.05em)", fontSize: "0.55em" }}
                   >
                     °
@@ -164,9 +164,9 @@ export default function BrandShowcasePage() {
                 className="pointer-events-none absolute end-6 bottom-12 select-none opacity-[0.06]"
               >
                 <span className="inline-flex items-baseline font-en text-[12rem] leading-none">
-                  <span className="font-semibold tracking-tight text-hajr-deep-navy">A</span>
+                  <span className="font-extrabold tracking-tighter text-hajr-deep-navy">A</span>
                   <span
-                    className="self-start font-medium leading-none"
+                    className="self-start font-extrabold leading-none"
                     style={{ transform: "translateY(-0.05em)", fontSize: "0.55em" }}
                   >
                     °
@@ -297,9 +297,9 @@ function SocialTile({
         className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 select-none opacity-10"
       >
         <span className="inline-flex items-baseline font-en text-[10rem] leading-none">
-          <span className="font-semibold tracking-tight text-white">A</span>
+          <span className="font-extrabold tracking-tighter text-white">A</span>
           <span
-            className="self-start font-medium leading-none"
+            className="self-start font-extrabold leading-none"
             style={{ transform: "translateY(-0.05em)", fontSize: "0.55em" }}
           >
             °
@@ -313,11 +313,11 @@ function SocialTile({
           {header.split(" ")[0]}
         </span>
         <span className="inline-flex items-baseline leading-none">
-          <span className="text-[0.6rem] font-semibold tracking-tight text-hajr-rose">
+          <span className="text-[0.6rem] font-extrabold tracking-tighter text-hajr-rose">
             A
           </span>
           <span
-            className="self-start text-[0.4rem] font-medium leading-none text-hajr-rose"
+            className="self-start text-[0.4rem] font-extrabold leading-none text-hajr-rose"
             style={{ transform: "translateY(-0.05em)" }}
           >
             °
