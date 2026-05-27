@@ -50,6 +50,7 @@ model User {
   ticketsAssigned         Ticket[]                @relation("TicketsAssigned")
   ticketReplies           TicketReply[]
   teacherRatings          TeacherRating[]
+  paymentRequests         PaymentRequest[]        @relation("PaymentRequestRequester")
 }
 
 model TeacherProfile {
@@ -83,6 +84,7 @@ model TeacherProfile {
   readiness       TeacherReadiness?
   ratings         TeacherRating[]
   meetingAttendees TeacherMeetingAttendee[]
+  speakingClubEvents SpeakingClubEvent[]
 }
 
 model StudentProfile {
@@ -118,6 +120,9 @@ model StudentProfile {
   referrals             MarketerReferral[]
   commissions           Commission[]
   placementAttempts     PlacementAttempt[]
+  parentReports         ParentReport[]
+  speakingClubRsvps     SpeakingClubRSVP[]
+  certificates          Certificate[]
 }
 
 model ParentProfile {
@@ -1210,6 +1215,17 @@ enum NotificationType {
   MARKETER_UPDATE
   COMMISSION_UPDATE
   PLACEMENT_RESULT
+  PARENT_REPORT_READY
+  SPEAKING_CLUB_CREATED
+  SPEAKING_CLUB_REMINDER_24H
+  SPEAKING_CLUB_REMINDER_1H
+  SPEAKING_CLUB_LIVE_NOW
+  CERTIFICATE_ISSUED
+  CERTIFICATE_REVOKED
+  PAYMENT_REQUEST_SUBMITTED
+  PAYMENT_REQUEST_APPROVED
+  PAYMENT_REQUEST_PAID
+  PAYMENT_REQUEST_REJECTED
 }
 
 enum Channel {
@@ -1648,4 +1664,149 @@ model TeacherRating {
 
   @@index([teacherId, createdAt])
   @@unique([teacherId, raterId, sessionId])
+}
+
+// ─────────────────────── SPRINT 4 — RETENTION & TRUST ───────────────────────
+
+enum EventStatus {
+  UPCOMING
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+enum CertificateType {
+  LEVEL_COMPLETION
+  COURSE_COMPLETION
+  PLACEMENT
+  ATTENDANCE
+  SPEAKING_CLUB
+}
+
+enum PaymentRequestStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+model ParentReport {
+  id                String         @id @default(uuid())
+  studentId         String
+  student           StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  parentId          String?
+  month             Int
+  year              Int
+  attendanceRate    Decimal        @default(0) @db.Decimal(5, 2)
+  sessionsAttended  Int            @default(0)
+  sessionsTotal     Int            @default(0)
+  lessonsCompleted  Int            @default(0)
+  homeworkCompleted Int            @default(0)
+  homeworkTotal     Int            @default(0)
+  avgGrade          Decimal?       @db.Decimal(5, 2)
+  teacherNotes      String?        @db.Text
+  levelBefore       String?
+  levelAfter        String?
+  paymentStatus     String         @default("UNKNOWN")
+  recordingUrls     String[]       @default([])
+  pdfUrl            String?
+  pdfPath           String?
+  shareImageUrl     String?
+  shareImagePath    String?
+  emailedAt         DateTime?
+  emailedTo         String?
+  generatedById     String
+  createdAt         DateTime       @default(now())
+
+  @@unique([studentId, year, month])
+  @@index([year, month])
+}
+
+model SpeakingClubEvent {
+  id              String          @id @default(uuid())
+  titleAr         String
+  titleEn         String
+  descriptionAr   String?         @db.Text
+  descriptionEn   String?         @db.Text
+  scheduledAt     DateTime
+  durationMin     Int             @default(60)
+  maxAttendees    Int             @default(30)
+  minLevel        String?
+  hostTeacherId   String?
+  hostTeacher     TeacherProfile? @relation(fields: [hostTeacherId], references: [id])
+  zoomMeetingId   String?
+  zoomJoinUrl     String?
+  recordingUrl    String?
+  status          EventStatus     @default(UPCOMING)
+  calendarEventId String?         @unique
+  createdById     String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  rsvps           SpeakingClubRSVP[]
+
+  @@index([scheduledAt, status])
+}
+
+model SpeakingClubRSVP {
+  id        String            @id @default(uuid())
+  eventId   String
+  event     SpeakingClubEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  studentId String
+  student   StudentProfile    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  attended  Boolean           @default(false)
+  rsvpAt    DateTime          @default(now())
+
+  @@unique([eventId, studentId])
+  @@index([studentId, attended])
+}
+
+model Certificate {
+  id               String          @id @default(uuid())
+  studentId        String
+  student          StudentProfile  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  type             CertificateType
+  titleEn          String
+  titleAr          String
+  descriptionEn    String?         @db.Text
+  descriptionAr    String?         @db.Text
+  issueDate        DateTime        @default(now())
+  expiryDate       DateTime?
+  cefrLevel        String?
+  score            Int?
+  pdfUrl           String
+  pdfPath          String?
+  qrCodeUrl        String?
+  verificationCode String          @unique
+  revoked          Boolean         @default(false)
+  revokedReason    String?
+  issuedById       String
+  createdAt        DateTime        @default(now())
+
+  @@index([studentId, type])
+  @@index([verificationCode])
+}
+
+model PaymentRequest {
+  id              String               @id @default(uuid())
+  requesterId     String
+  requester       User                 @relation("PaymentRequestRequester", fields: [requesterId], references: [id])
+  requesterRole   Role
+  amount          Decimal              @db.Decimal(10, 2)
+  periodStart     DateTime
+  periodEnd       DateTime
+  description     String?              @db.Text
+  status          PaymentRequestStatus @default(PENDING)
+  approvedById    String?
+  approvedAt      DateTime?
+  paidById        String?
+  paidAt          DateTime?
+  paidMethod      String?
+  paidReference   String?
+  rejectedReason  String?
+  notes           String?              @db.Text
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([requesterId, status])
+  @@index([status, createdAt])
 }

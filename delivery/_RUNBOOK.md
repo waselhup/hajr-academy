@@ -20,12 +20,15 @@ A bilingual cheat-sheet for the operations team. Keep this open in a tab.
 - Review `/admin/audit-log` for unusual activity / تدقيق العمليات.
 - **Review `/admin/teacher-activity`** — sort by on-time %, flag low responders / استعراض نشاط المعلمين. (Sprint 3)
 - **Verify pending teachers** at `/admin/teachers` → look for unverified rows → verify via `/admin/teachers/{id}/readiness` (Sprint 3).
+- **Create next Speaking Club event** at `/admin/speaking-club` — AR/EN titles, Zoom link, host teacher pick. (Sprint 4)
 - Send a weekly broadcast: Speaking Club times + announcements.
 - Triage `/admin/communications/chats` flagged messages (if any).
 
 ### Monthly / شهري
 
-- Parent monthly reports auto-send on the 1st (Sprint 4).
+- **Parent monthly reports** auto-fire on the 1st at 08:00 KSA. Verify a sample via `/parent/reports`. (Sprint 4)
+- **Review certificate queue** at `/admin/certificates` — issue level-completion certificates after each cohort closes. (Sprint 4)
+- **Approve payment requests** at `/admin/payment-requests` — Approve → Mark PAID with method/reference. Underlying TeacherEarning/Commission rows auto-cascade to PAID. (Sprint 4)
 - **Schedule the monthly teacher meeting** at `/admin/teacher-meetings` → set agenda + invitees + Zoom link. (Sprint 3)
 - **Document meeting minutes + action items** the same day after the meeting ends. Action items appear on each teacher's `/teacher/meetings/{id}` page.
 - **Review pending marketer applications** at `/admin/marketers?status=pending` → approve or suspend.
