@@ -1,0 +1,26 @@
+Feature,Sprint,Status,URL,Notes,Verified By
+Auth + RBAC (6 roles),1,DONE,/login,next-auth v5 + Prisma adapter,owner
+Calendar (unified events),1,DONE,/calendar,Role-scoped views,owner
+Notify primitive,1,DONE,—,inApp + email + SMS,owner
+Audit log,1,DONE,/admin/audit-log,All mutations tracked,owner
+Class reminders cron,1,DONE,/api/cron/class-reminders,24h + 1h with parent fan-out,owner
+Marketer role + referrals,2,DONE,/marketer,Unique ref codes,owner
+Lead pipeline,2,DONE,/admin/marketers,NEW/CONTACTED/CONVERTED,owner
+Commission engine,2,DONE,/admin/marketers/commissions,15% default PENDING→PAID,owner
+Placement test,2,DONE,/placement-test,Auto-scored CEFR mapped,owner
+Tickets / Support,3,DONE,/tickets,SLA + Claude triage,owner
+Public teacher profiles,3,DONE,/teachers,"Bio, rating, samples",owner
+Monthly teacher meetings,3,DONE,/admin/teacher-meetings,Agenda + RSVP,owner
+Teacher readiness check,3,DONE,/teacher/readiness,Pre-class verification,owner
+Parent monthly reports,4,DONE,/parent/reports,PDF + share image,owner
+Speaking Club,4,DONE,/speaking-club,RSVP + capacity + reminders,owner
+Certificates + QR verify,4,DONE,/admin/certificates,Issue + revoke,owner
+Payment requests,4,DONE,/admin/payment-requests,Self-service teacher + marketer,owner
+AI Lesson Summaries,5,DONE,/admin/recordings,"Claude Haiku, auto + manual",owner
+Transcript search,5,PARTIAL,/admin/recordings,Search works; Zoom transcript fetch best-effort,owner
+Brand Book PDF,5,DONE,/admin/brand-kit,10-page bilingual,owner
+Brand asset library,5,DONE,/admin/brand-kit,Categorized downloads + send-to-designer,owner
+Teacher Validation Mode,5,DONE,/admin/validation,12 tabs + PDF export,owner
+Auto Client Presentation,5,DONE,/admin/delivery,PPTX + PDF with live stats,owner
+QA Sweep Tools,5,DONE,/admin/qa/notifications,notification + audit + i18n coverage,owner
+Handover Documentation,5,DONE,/delivery/README.md,"README, RUNBOOK, FEATURE-MATRIX, CHECKLIST",owner

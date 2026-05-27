@@ -242,6 +242,7 @@ model ClassSession {
   attendances    Attendance[]
   blackboardRoom BlackboardRoom? @relation(fields: [blackboardRoomId], references: [id])
   earnings       TeacherEarning[]
+  lessonSummary  LessonSummary?
 }
 
 model Attendance {
@@ -1809,4 +1810,42 @@ model PaymentRequest {
 
   @@index([requesterId, status])
   @@index([status, createdAt])
+}
+
+// ─────────────────────── SPRINT 5 — AI + BRAND ───────────────────────
+model LessonSummary {
+  id               String       @id @default(uuid())
+  sessionId        String       @unique
+  session          ClassSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  transcript       String?      @db.Text
+  summaryEn        String       @db.Text
+  summaryAr        String       @db.Text
+  keyVocab         Json?
+  grammarPoints    Json?
+  homework         String?      @db.Text
+  homeworkAr       String?      @db.Text
+  teacherActions   String?      @db.Text
+  teacherActionsAr String?      @db.Text
+  confidence       Decimal?     @db.Decimal(3, 2)
+  generatedById    String?
+  generatedAt      DateTime     @default(now())
+
+  @@index([sessionId])
+}
+
+model BrandKitAsset {
+  id            String   @id @default(uuid())
+  name          String
+  nameAr        String
+  type          String
+  category      String
+  url           String
+  downloadUrl   String
+  description   String?  @db.Text
+  descriptionAr String?  @db.Text
+  sortOrder     Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([category, sortOrder])
 }

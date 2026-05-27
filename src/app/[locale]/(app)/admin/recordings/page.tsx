@@ -1,35 +1,53 @@
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Video } from "lucide-react";
-import { RecordingPlayer } from "@/components/video/recording-player";
+import { RecordingsClient, type RecordingRow } from "./recordings-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminRecordingsPage({
-  params,
-}: {
-  params: Promise<{ locale: string }>;
-}) {
-  const { locale } = await params;
+export default async function AdminRecordingsPage() {
   await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations();
 
-  let rows: any[] = [];
+  let rows: RecordingRow[] = [];
 
   try {
-    rows = await prisma.classSession.findMany({
+    const dbRows = await prisma.classSession.findMany({
       where: { zoomRecordingUrl: { not: null } },
       include: {
         class: {
-          include: { teacher: { include: { user: { select: { name: true, nameAr: true } } } } },
+          include: {
+            teacher: {
+              include: {
+                user: { select: { name: true, nameAr: true } },
+              },
+            },
+          },
+        },
+        lessonSummary: {
+          select: { confidence: true },
         },
       },
       orderBy: { scheduledDate: "desc" },
       take: 100,
     });
+    rows = dbRows.map((r) => ({
+      id: r.id,
+      scheduledDate: r.scheduledDate.toISOString(),
+      startedAt: r.startedAt?.toISOString() ?? null,
+      endedAt: r.endedAt?.toISOString() ?? null,
+      className: r.class.name,
+      classNameAr: r.class.nameAr ?? null,
+      teacherName:
+        r.class.teacher.user.nameAr ?? r.class.teacher.user.name,
+      durationMinutes: r.class.durationMinutes,
+      zoomRecordingUrl: r.zoomRecordingUrl!,
+      hasSummary: !!r.lessonSummary,
+      summaryConfidence: r.lessonSummary?.confidence
+        ? Number(r.lessonSummary.confidence)
+        : null,
+    }));
   } catch (e) {
     console.error("[admin-recordings] DB query failed:", e);
   }
@@ -40,55 +58,7 @@ export default async function AdminRecordingsPage({
         <Video className="h-5 w-5 text-brand-rose" />
         <h1 className="text-2xl font-bold">{t("Video.recordings")}</h1>
       </div>
-
-      {rows.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-2 p-12 text-center">
-            <Video className="h-10 w-10 text-gray-300" />
-            <p className="text-sm text-muted-foreground">{t("Video.noRecordings")}</p>
-          </CardContent>
-        </Card>
-      ) : (
-        <Card>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t("Video.date")}</TableHead>
-                  <TableHead>{t("Nav.classes")}</TableHead>
-                  <TableHead>{t("Nav.teachers")}</TableHead>
-                  <TableHead>{t("Video.duration")}</TableHead>
-                  <TableHead className="text-end">{t("Common.actions")}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r: any) => {
-                  const dur =
-                    r.startedAt && r.endedAt
-                      ? Math.round((r.endedAt.getTime() - r.startedAt.getTime()) / 60_000)
-                      : r.class.durationMinutes;
-                  return (
-                    <TableRow key={r.id}>
-                      <TableCell className="num">
-                        {r.scheduledDate.toLocaleDateString(locale === "ar" ? "ar-SA" : "en-GB")}
-                      </TableCell>
-                      <TableCell>{r.class.nameAr ?? r.class.name}</TableCell>
-                      <TableCell>{r.class.teacher.user.nameAr ?? r.class.teacher.user.name}</TableCell>
-                      <TableCell className="num">{dur}m</TableCell>
-                      <TableCell className="text-end">
-                        <RecordingPlayer
-                          url={r.zoomRecordingUrl!}
-                          title={r.class.nameAr ?? r.class.name}
-                        />
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      <RecordingsClient rows={rows} />
     </div>
   );
 }

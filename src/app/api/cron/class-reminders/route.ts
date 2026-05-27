@@ -103,7 +103,13 @@ async function runTick(): Promise<TickResult> {
   for (const s of sessions1) {
     if ((s.notes ?? "").includes("[reminded:1h]")) continue;
     const studentUserIds = s.class.enrollments.map((e) => e.student.userId);
-    const recipients = [...studentUserIds, s.class.teacher.user.id];
+    const studentProfileIds = s.class.enrollments.map((e) => e.student.id);
+    const parentUserIds = await parentUserIdsForStudents(studentProfileIds);
+    const recipients = [
+      ...studentUserIds,
+      ...parentUserIds,
+      s.class.teacher.user.id,
+    ];
     await notifyMany(recipients, {
       type: "CLASS_STARTING",
       title: `${s.class.name} starts in 1 hour`,

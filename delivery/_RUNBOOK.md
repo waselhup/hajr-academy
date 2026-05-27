@@ -1,74 +1,130 @@
-# HAJR A° Academy — Admin Runbook
-## دليل المشرف اليومي
+# HAJR A° Academy — Operations Runbook (v2.0 final)
 
-A bilingual cheat-sheet for the operations team. Keep this open in a tab.
+Bilingual (AR + EN) runbook for the academy admin team. Use this for
+every recurring operations task post-handover.
+
+> All paths in this file are relative to the production root, e.g.
+> `https://hajr-academy.vercel.app/ar/admin`.
 
 ---
 
-### Daily / يومي
+## Daily tasks · مهام يومية
 
-- Check the **notification bell** in the topbar — anything urgent? / تفقّد جرس التنبيهات.
-- Review `/admin/communications/contacts` — new visitor messages / رسائل الزوار الجدد.
-- **Triage `/admin/tickets`** — drag URGENT/HIGH to "In Progress" or reply / فرز التذاكر العاجلة. (Sprint 3)
-- Review `/admin/teachers/payments` — approve any PENDING teacher earnings / اعتمد أرباح المعلمين المعلّقة.
-- Check `/admin/live` — any classes happening that need attention? / الحصص الجارية الآن.
-- Skim `/calendar` for today's global events (holidays, exams, speaking club).
+### 1. Check `/admin` dashboard tiles
+- Pending payment requests, open tickets, low-attendance flags.
+- لوحة الإدارة: طلبات الدفع المعلقة، التذاكر المفتوحة، تنبيهات الغياب.
 
-### Weekly / أسبوعي
+### 2. Triage `/admin/tickets`
+- New (auto-tagged) → assign owner → set priority.
+- التذاكر الجديدة → إسناد المسؤول → ضبط الأولوية.
 
-- Run `/admin/finance` reports (revenue, outstanding invoices).
-- Review `/admin/audit-log` for unusual activity / تدقيق العمليات.
-- **Review `/admin/teacher-activity`** — sort by on-time %, flag low responders / استعراض نشاط المعلمين. (Sprint 3)
-- **Verify pending teachers** at `/admin/teachers` → look for unverified rows → verify via `/admin/teachers/{id}/readiness` (Sprint 3).
-- **Create next Speaking Club event** at `/admin/speaking-club` — AR/EN titles, Zoom link, host teacher pick. (Sprint 4)
-- Send a weekly broadcast: Speaking Club times + announcements.
-- Triage `/admin/communications/chats` flagged messages (if any).
+### 3. Confirm Zoom webhook health: `/admin/zoom/health`
+- Green = receiving events. Red = re-check Vercel logs.
 
-### Monthly / شهري
+---
 
-- **Parent monthly reports** auto-fire on the 1st at 08:00 KSA. Verify a sample via `/parent/reports`. (Sprint 4)
-- **Review certificate queue** at `/admin/certificates` — issue level-completion certificates after each cohort closes. (Sprint 4)
-- **Approve payment requests** at `/admin/payment-requests` — Approve → Mark PAID with method/reference. Underlying TeacherEarning/Commission rows auto-cascade to PAID. (Sprint 4)
-- **Schedule the monthly teacher meeting** at `/admin/teacher-meetings` → set agenda + invitees + Zoom link. (Sprint 3)
-- **Document meeting minutes + action items** the same day after the meeting ends. Action items appear on each teacher's `/teacher/meetings/{id}` page.
-- **Review pending marketer applications** at `/admin/marketers?status=pending` → approve or suspend.
-- **Approve + pay marketer commissions** at `/admin/marketers/commissions` → tabs: Pending → Approved → Paid.
-- **Review placement test leads** at `/admin/placement-tests/leads` (sourced from `/placement-test`).
-- Pay teacher salaries: `/admin/finance` → Salaries tab.
-- Update holiday calendar for upcoming month if not already seeded.
-- Export `/admin/teacher-activity` as CSV for KPI archive. (Sprint 3)
+## Weekly tasks · مهام أسبوعية
 
-### When something breaks
+### 1. Review Speaking Club roster
+- `/admin/speaking-club` — confirm capacity + reminder timings.
 
-- **Notifications not arriving** → check `/admin/communications` for FAILED messages; verify `RESEND_API_KEY` + `UNIFONIC_APP_SID` in Vercel env.
-- **Class reminders missing** → check Vercel Cron logs for `/api/cron/class-reminders` (runs every 5 min).
-- **Calendar empty** → re-run `npx tsx prisma/seed-holidays-2026.ts` (idempotent).
-- **Payment failures** → Moyasar dashboard → look up by `moyasarPaymentId` on the Invoice row.
+### 2. Approve commissions
+- `/admin/marketers/commissions` — flip APPROVED rows to PAID after
+  bank transfer, attach `paidReference`.
 
-### Emergency contacts
+### 3. Run `/admin/qa/notifications` + `/admin/qa/audit-log`
+- Any new "unused" entries = either dead enum or missing instrumentation.
 
-- **Vercel**:    https://vercel.com/&lt;team&gt;/hajr-academy
-- **Supabase**:  https://supabase.com/dashboard/project/&lt;project-id&gt;
-- **Resend**:    https://resend.com/emails
-- **Unifonic**:  https://cloud.unifonic.com/dashboard
-- **Moyasar**:   https://dashboard.moyasar.com
-- **Zoom**:      https://marketplace.zoom.us/develop/apps/&lt;app-id&gt;
-- **Tech lead**: &lt;set during handoff&gt;
+---
 
-### Quick links
+## Monthly tasks · مهام شهرية
 
-- Admin command palette: ⌘K / Ctrl+K (or tap "Search" in the mobile bottom nav)
-- All-in-one calendar: `/calendar`
-- Policies pages: `/policies/payment`, `/policies/refund`, `/policies/privacy`
-- WhatsApp FAB number: **TODO — replace placeholder once provided**
+### 1. Parent reports cron — verify it ran
+- `vercel logs` filter `monthly-reports` on the 1st @ 05:00 UTC.
+- Failed? `POST /api/admin/parent-reports/[studentId]/regenerate`.
 
-### Roles in the platform
+### 2. Issue certificates for completed levels
+- `/admin/certificates → New` (auto-fills student + class + level).
 
-| Role | What they see / يرى |
-| ---- | --------- |
-| `SUPER_ADMIN` | Everything, including system settings + audit log. |
-| `ADMIN`       | Everything except audit log + system settings. |
-| `TEACHER`     | Their classes, students, assignments, calendar, messages. |
-| `STUDENT`     | Their classes, assignments, lab, invoices, calendar, messages. |
-| `PARENT`      | Their children's attendance, progress, finance, calendar, messages. |
-| `MARKETER`    | Sprint 2 — campaigns, leads, calendar. |
+### 3. Teacher meeting
+- `/admin/teacher-meetings → New` — set agenda, agenda is emailed on
+  create + 24h reminder cron fires.
+
+### 4. Database backup
+- Supabase → Database → Backups → Create backup now.
+
+---
+
+## Quarterly tasks · مهام ربع سنوية
+
+### 1. Rotate `AUTH_SECRET` and Resend / Anthropic API keys
+- Vercel → Settings → Env Vars → Replace → Redeploy.
+
+### 2. Audit `BrandKitAsset` urls
+- `/admin/brand-kit` — replace any broken templates.
+
+### 3. Regenerate validation report
+- `/admin/validation` → Export Report → send to teachers for re-sign-off.
+
+### 4. v2.x release planning
+- Bundle approved teacher requests, ship a small dot release.
+
+---
+
+## Critical workflows · سير العمل الحرج
+
+### Approve a payment request
+1. `/admin/payment-requests` → filter `PENDING`.
+2. Click row → review breakdown → **Approve**.
+3. Pay via bank, then click **Mark as Paid** + paste reference.
+4. Notification fires automatically.
+
+### Issue a certificate
+1. `/admin/certificates → New`.
+2. Pick student + class + level → serial generates automatically.
+3. PDF + QR rendered; student notified via in-app + email.
+
+### Generate a parent report manually
+1. `/admin/parent-reports → [studentId] → Regenerate`.
+2. PDF lands in Supabase `parent-reports` bucket within ~15s.
+3. Email goes out via Resend; SMS optional.
+
+### View leads pipeline
+1. `/admin/marketers/leads` → status filter (`NEW`, `CONTACTED`, …).
+2. Click lead → quick actions: convert, decline, add note.
+
+### Regenerate an AI lesson summary
+1. `/admin/recordings` → search session → click **Regenerate**.
+2. Per-row: instant. Bulk: select rows → **Generate Bulk** (rate-limited 5/min).
+
+### Pull the brand book
+1. `/admin/brand-kit → Download Complete Brand Book`.
+2. To email a designer: form at the bottom of the page.
+
+### Pre-meeting validation prep (the teacher meeting)
+1. `/admin/validation` → walk through tabs in order during the meeting.
+2. Tick **Verified by teacher** + write their name → fills the report.
+3. **Export Validation Report** at the top → save the HTML/PDF → send.
+
+---
+
+## Cron schedule reference · جدول cron
+
+| Endpoint | Schedule | Purpose |
+| -------- | -------- | ------- |
+| `/api/cron/comms-tick` | every 5 min | Outbound message worker (email/SMS). |
+| `/api/cron/class-reminders` | every 5 min | 24h + 1h class reminders (students + parents + teacher). |
+| `/api/cron/speaking-club-reminders` | every 15 min | 24h + 1h club reminders. |
+| `/api/cron/monthly-reports` | 1st @ 05:00 UTC | Parent monthly PDF reports. |
+
+---
+
+## When something breaks
+
+1. **Vercel logs first**: `vercel logs --since 10m`.
+2. **Supabase logs**: dashboard → Logs Explorer → filter by table.
+3. **Resend logs**: resend.com/emails.
+4. **Zoom**: developers.zoom.us → your app → Webhook → Recent deliveries.
+5. **Claude / Anthropic**: console.anthropic.com → Usage.
+
+If a fix is non-obvious, raise on the support tier (see README §8).

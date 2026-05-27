@@ -11,6 +11,12 @@ const apiKey = process.env.RESEND_API_KEY;
 const DEFAULT_FROM =
   process.env.RESEND_FROM_EMAIL ?? "Hajr Academy <onboarding@resend.dev>";
 
+export interface SendEmailAttachment {
+  filename: string;
+  /** Base64-encoded content. */
+  content: string;
+}
+
 export interface SendEmailParams {
   to: string | string[];
   subject: string;
@@ -20,6 +26,7 @@ export interface SendEmailParams {
   replyTo?: string;
   cc?: string[];
   bcc?: string[];
+  attachments?: SendEmailAttachment[];
 }
 
 export interface SendResult {
@@ -80,6 +87,10 @@ export async function sendEmail(params: SendEmailParams): Promise<SendResult> {
           replyTo: params.replyTo,
           cc: params.cc,
           bcc: params.bcc,
+          attachments: params.attachments?.map((a) => ({
+            filename: a.filename,
+            content: a.content,
+          })) as any,
         });
         if (result.error) {
           return { success: false, error: result.error.message };

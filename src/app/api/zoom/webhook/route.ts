@@ -5,6 +5,8 @@ import { finalizeSessionAttendance } from "@/lib/attendance";
 import { logAudit } from "@/lib/audit";
 import { notifyUsers, parentUserIdsForStudents } from "@/lib/notify";
 import { createEarningForSession } from "@/lib/teacher-earnings";
+import { enqueueLessonSummary } from "@/lib/ai/lesson-summary";
+import { fetchZoomTranscript } from "@/lib/zoom/transcripts";
 import {
   fanOutSessionStarted,
   fanOutSessionEnded,
@@ -204,6 +206,8 @@ async function handleMeetingEnded(meetingId: string) {
   await finalizeSessionAttendance(cs.id);
   // Auto-create a PENDING TeacherEarning for the now-completed session.
   await createEarningForSession(cs.id);
+  // Async AI lesson summary — failure-isolated, doesn't block the webhook.
+  enqueueLessonSummary(cs.id);
 
   // Broadcast session_ended so live banners auto-dismiss + the admin
   // monitor refreshes. Best-effort.
@@ -312,6 +316,27 @@ export async function POST(req: Request) {
                 where: { id: cs.id },
                 data: { zoomRecordingUrl: url },
               });
+              // Try to pull the transcript; if available, store it on
+              // the LessonSummary and re-run AI summary with the real
+              // transcript context. Best-effort.
+              try {
+                const transcript = await fetchZoomTranscript(meetingId);
+                if (transcript) {
+                  await prisma.lessonSummary.upsert({
+                    where: { sessionId: cs.id },
+                    create: {
+                      sessionId: cs.id,
+                      transcript,
+                      summaryEn: "",
+                      summaryAr: "",
+                    },
+                    update: { transcript },
+                  });
+                  enqueueLessonSummary(cs.id);
+                }
+              } catch (e) {
+                console.error("[zoom/webhook] transcript fetch failed:", e);
+              }
               const studentIds = cs.class.enrollments.map((e) => e.studentId);
               const profiles = await prisma.studentProfile.findMany({
                 where: { id: { in: studentIds } },

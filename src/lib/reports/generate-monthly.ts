@@ -108,12 +108,29 @@ export async function generateMonthlyReport(
     .filter((u): u is string => !!u)
     .slice(0, 4);
 
-  // Aggregate teacher notes from session.notes
-  const teacherNotes = sessions
-    .map((s) => s.notes?.trim())
-    .filter((n): n is string => !!n && n.length > 0)
-    .join("\n\n")
-    .slice(0, 1500) || null;
+  // Aggregate teacher notes — prefer last 4 AI lesson summaries (richer).
+  const lessonSummaries = sessions.length
+    ? await prisma.lessonSummary.findMany({
+        where: { sessionId: { in: sessions.map((s) => s.id) } },
+        orderBy: { generatedAt: "desc" },
+        take: 4,
+        select: { summaryAr: true, summaryEn: true, homework: true, homeworkAr: true },
+      })
+    : [];
+  const summaryNotes = lessonSummaries
+    .map((ls) => `${ls.summaryAr}\n${ls.summaryEn}`)
+    .join("\n\n---\n\n");
+  const rawNotes = sessions
+    .map((s) =>
+      (s.notes ?? "")
+        .replace(/\[reminded:24h\]/g, "")
+        .replace(/\[reminded:1h\]/g, "")
+        .trim()
+    )
+    .filter((n) => n.length > 0)
+    .join("\n\n");
+  const teacherNotes =
+    (summaryNotes.length > 0 ? summaryNotes : rawNotes).slice(0, 2500) || null;
 
   // Lessons completed — count of attended sessions (proxy).
   const lessonsCompleted = sessionsAttended;
