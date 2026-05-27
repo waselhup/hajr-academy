@@ -178,6 +178,8 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.settings", href: "/settings/notifications", icon: Settings },
   ],
+  // Sprint 2 will populate marketer nav. Sprint 1 only scaffolds.
+  MARKETER: [],
 };
 
 /**

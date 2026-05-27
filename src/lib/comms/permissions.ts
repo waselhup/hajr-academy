@@ -107,6 +107,8 @@ export async function getAllowedRecipients(
         for (const link of e.student.parentLinks) add(link.parent.user);
       }
     }
+  } else if (role === "MARKETER") {
+    // Marketer can reach admins only — admins were already added above.
   } else if (role === "PARENT") {
     // Parent → teachers of their children's classes.
     const parent = await prisma.parentProfile.findUnique({

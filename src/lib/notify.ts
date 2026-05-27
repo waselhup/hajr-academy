@@ -1,13 +1,189 @@
+/**
+ * Universal Notify Pipe — the single function every feature calls when a
+ * user needs to know something.
+ *
+ * Channels run in isolated try/catch — one failure never blocks another.
+ *   - inApp    → row in Notification (handled by existing Supabase Realtime
+ *                postgres_changes subscription on the bell)
+ *   - email    → Resend (mock-mode when RESEND_API_KEY absent)
+ *   - sms      → Unifonic (mock-mode when UNIFONIC_APP_SID absent)
+ *   - realtime → Supabase broadcast on `user-live:{userId}` event="notification"
+ *
+ * Email body respects user.preferredLang. SMS silently skipped when phone null.
+ *
+ * Backward-compat shims `notifyUsers` + `parentUserIdsForStudents` are
+ * preserved for legacy callers (zoom webhook, class-session start).
+ */
 import { prisma } from "@/lib/prisma";
-import type { NotificationType } from "@prisma/client";
+import { sendEmail } from "@/lib/comms/email";
+import { sendSms } from "@/lib/comms/sms";
+import { createNotification } from "@/lib/comms/in-app";
+import { createSupabaseServiceClient } from "@/lib/supabase";
+import type { NotificationType, NotificationPriority } from "@prisma/client";
+
+export type NotifyChannel = "inApp" | "email" | "sms" | "realtime";
+
+export interface NotifyParams {
+  userId: string;
+  type: NotificationType;
+  title: string;
+  titleAr: string;
+  body: string;
+  bodyAr: string;
+  channels: NotifyChannel[];
+  actionUrl?: string;
+  actionLabel?: string;
+  actionLabelAr?: string;
+  priority?: NotificationPriority;
+  refType?: string;
+  refId?: string;
+  emailHtml?: string;
+  smsText?: string;
+  realtimePayload?: Record<string, unknown>;
+}
+
+interface ChannelOutcome {
+  channel: NotifyChannel;
+  ok: boolean;
+  error?: string;
+}
+
+async function runChannel(
+  channel: NotifyChannel,
+  user: { id: string; email: string; phone: string | null; preferredLang: "AR" | "EN" },
+  p: NotifyParams
+): Promise<ChannelOutcome> {
+  try {
+    if (channel === "inApp") {
+      await createNotification({
+        userId: user.id,
+        type: p.type,
+        title: p.title,
+        titleAr: p.titleAr,
+        body: p.body,
+        bodyAr: p.bodyAr,
+        actionUrl: p.actionUrl,
+        actionLabel: p.actionLabel,
+        actionLabelAr: p.actionLabelAr,
+        priority: p.priority,
+        refType: p.refType,
+        refId: p.refId,
+      });
+      return { channel, ok: true };
+    }
+
+    if (channel === "email") {
+      const isAr = user.preferredLang === "AR";
+      const subject = isAr ? p.titleAr : p.title;
+      const bodyText = isAr ? p.bodyAr : p.body;
+      const html = p.emailHtml ?? `<p>${escapeHtml(bodyText)}</p>`;
+      const res = await sendEmail({ to: user.email, subject, html, text: bodyText });
+      return { channel, ok: res.success, error: res.error };
+    }
+
+    if (channel === "sms") {
+      if (!user.phone) return { channel, ok: true }; // silent skip when no phone
+      const isAr = user.preferredLang === "AR";
+      const body = (p.smsText ?? (isAr ? p.bodyAr : p.body)).slice(0, 600);
+      const res = await sendSms({ to: user.phone, body });
+      return { channel, ok: res.success, error: res.error };
+    }
+
+    if (channel === "realtime") {
+      const supabase = createSupabaseServiceClient();
+      const ch = supabase.channel(`user-live:${user.id}`, {
+        config: { broadcast: { ack: false } },
+      });
+      await ch.subscribe();
+      await ch.send({
+        type: "broadcast",
+        event: "notification",
+        payload: {
+          type: p.type,
+          title: p.title,
+          titleAr: p.titleAr,
+          body: p.body,
+          bodyAr: p.bodyAr,
+          actionUrl: p.actionUrl ?? null,
+          priority: p.priority ?? "NORMAL",
+          ...(p.realtimePayload ?? {}),
+        },
+      });
+      await supabase.removeChannel(ch);
+      return { channel, ok: true };
+    }
+
+    return { channel, ok: false, error: "Unknown channel" };
+  } catch (e) {
+    return {
+      channel,
+      ok: false,
+      error: e instanceof Error ? e.message : "channel failed",
+    };
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 /**
- * Create in-app notifications for a set of users.
- *
- * Phase 7 introduced `lib/comms/dispatcher.ts` as the canonical multi-channel
- * path (email + SMS + WhatsApp + in-app, preference-aware). This helper
- * remains as a thin in-app-only shim for callers that only need a quick
- * notification without channel routing.
+ * Send a notification to a single user on the requested channels.
+ * Each channel is isolated — partial failure does not block the others.
+ */
+export async function notify(params: NotifyParams): Promise<void> {
+  if (!params.userId || params.channels.length === 0) return;
+  const user = await prisma.user.findUnique({
+    where: { id: params.userId },
+    select: { id: true, email: true, phone: true, preferredLang: true, isActive: true },
+  });
+  if (!user || !user.isActive) return;
+
+  const outcomes: ChannelOutcome[] = [];
+  for (const ch of params.channels) {
+    outcomes.push(await runChannel(ch, user, params));
+  }
+  const summary = outcomes
+    .map((o) => `${o.channel}=${o.ok ? "ok" : `fail(${o.error ?? "?"})`}`)
+    .join(" ");
+  console.info(`[notify] user=${params.userId} type=${params.type} ${summary}`);
+}
+
+/** Same payload, many users. */
+export async function notifyMany(
+  userIds: string[],
+  params: Omit<NotifyParams, "userId">
+): Promise<void> {
+  const unique = [...new Set(userIds)].filter(Boolean);
+  for (const userId of unique) {
+    await notify({ ...params, userId });
+  }
+}
+
+/** Send to every active admin (SUPER_ADMIN + ADMIN). */
+export async function notifyAdmins(
+  params: Omit<NotifyParams, "userId">
+): Promise<void> {
+  const admins = await prisma.user.findMany({
+    where: { role: { in: ["SUPER_ADMIN", "ADMIN"] }, isActive: true },
+    select: { id: true },
+  });
+  await notifyMany(admins.map((a) => a.id), params);
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// Legacy shims — kept so existing zoom webhook + class-session start
+// keep compiling without churn. New code should use notify*/notifyMany.
+// ─────────────────────────────────────────────────────────────────────
+
+/**
+ * Legacy in-app-only helper. Pre-Sprint-1 code calls this directly; new
+ * code should use notifyMany() with channels:["inApp"].
  */
 export async function notifyUsers(
   userIds: string[],
@@ -15,16 +191,12 @@ export async function notifyUsers(
     type: NotificationType;
     title: string;
     titleAr: string;
-    /** Body text (English). Accepts the legacy `message` name too. */
     body?: string;
     bodyAr?: string;
     message?: string;
     messageAr?: string;
-    /** Where clicking the notification navigates. Legacy name: `link`. */
     actionUrl?: string;
     link?: string;
-    /** Optional entity reference (e.g. "ClassSession" + sessionId) — used
-     * by webhook dedupe queries and by per-entity badge filtering. */
     refType?: string;
     refId?: string;
   }

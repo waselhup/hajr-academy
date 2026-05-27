@@ -40,6 +40,7 @@ model User {
   notificationPreferences NotificationPreference?
   auditLogs               AuditLog[]
   agentConversations      AgentConversation[]
+  calendarEvents          CalendarEvent[]         @relation("UserCalendarEvents")
 }
 
 model TeacherProfile {
@@ -61,6 +62,7 @@ model TeacherProfile {
   blackboardRooms BlackboardRoom[]
   salaryPayments  SalaryPayment[]
   earnings        TeacherEarning[]
+  calendarEvents  CalendarEvent[]
 }
 
 model StudentProfile {
@@ -92,6 +94,7 @@ model StudentProfile {
   privateLessons        PrivateLesson[]
   school                PartnerSchool?         @relation(fields: [schoolId], references: [id])
   blackboardPermissions BlackboardPermission[]
+  calendarEvents        CalendarEvent[]
 }
 
 model ParentProfile {
@@ -162,6 +165,7 @@ model Class {
   enrollments Enrollment[]
   sessions    ClassSession[]
   assignments Assignment[]
+  calendarEvents CalendarEvent[]
 }
 
 model PrivateLesson {
@@ -960,6 +964,7 @@ enum Role {
   TEACHER
   STUDENT
   PARENT
+  MARKETER
 }
 
 enum Lang {
@@ -1259,4 +1264,52 @@ enum EarningStatus {
   PENDING
   APPROVED
   PAID
+}
+
+// ─────────────────────── SPRINT 1 — UNIVERSAL CALENDAR ───────────────────────
+enum CalendarEventType {
+  CLASS
+  EXAM
+  HOLIDAY
+  MEETING
+  PAYMENT_DUE
+  PLACEMENT_TEST
+  SPEAKING_CLUB
+  DEADLINE
+  CUSTOM
+}
+
+model CalendarEvent {
+  id            String   @id @default(uuid())
+  type          CalendarEventType
+  title         String
+  titleAr       String
+  description   String?  @db.Text
+  descriptionAr String?  @db.Text
+  startAt       DateTime
+  endAt         DateTime
+  allDay        Boolean  @default(false)
+
+  userId    String?
+  user      User?           @relation("UserCalendarEvents", fields: [userId], references: [id], onDelete: Cascade)
+  classId   String?
+  class     Class?          @relation(fields: [classId], references: [id], onDelete: Cascade)
+  teacherId String?
+  teacher   TeacherProfile? @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  studentId String?
+  student   StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  audienceRole Role?
+  isGlobal     Boolean @default(false)
+
+  metadata  Json?
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([startAt, endAt])
+  @@index([userId])
+  @@index([classId])
+  @@index([teacherId])
+  @@index([studentId])
 }

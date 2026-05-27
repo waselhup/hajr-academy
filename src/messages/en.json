@@ -160,14 +160,24 @@
     "groupComms": "Communications",
     "groupSystem": "System",
     "commsTemplates": "Message Templates",
-    "commsHub": "Comms Overview"
+    "commsHub": "Comms Overview",
+    "groupMarketer": "Marketers",
+    "marketerDashboard": "Marketer Dashboard",
+    "calendar": "Calendar",
+    "bottomNavHome": "Home",
+    "bottomNavCalendar": "Calendar",
+    "bottomNavMessages": "Messages",
+    "bottomNavProfile": "Profile",
+    "bottomNavSearch": "Search",
+    "bottomNavStudents": "Students"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
     "ADMIN": "Admin",
     "TEACHER": "Teacher",
     "STUDENT": "Student",
-    "PARENT": "Parent"
+    "PARENT": "Parent",
+    "MARKETER": "Marketer"
   },
   "Programs": {
     "STEP_PREP": "STEP Preparation",
@@ -263,7 +273,53 @@
     "contactEmailLabel": "Email",
     "contactPhoneLabel": "Phone",
     "contactAddressLabel": "Address",
-    "contactAddressValue": "Al Ahsa, Saudi Arabia"
+    "contactAddressValue": "Al Ahsa, Saudi Arabia",
+    "announcementBar": "🎉 New: Free placement test now available",
+    "announcementDismiss": "Dismiss",
+    "ctaEnrollFree": "Enroll free — Free placement test included",
+    "ctaBookTrial": "Book a free trial",
+    "ctaStickyMobile": "Enroll free",
+    "trustBadge": "Verified by real students",
+    "whatsappFabLabel": "Chat on WhatsApp",
+    "socialConnect": "Connect with us",
+    "footerPoliciesTitle": "Policies"
+  },
+  "Calendar": {
+    "pageTitle": "My Calendar",
+    "pageSubtitle": "Your classes, meetings, and holidays in one place.",
+    "newEvent": "Add Event",
+    "today": "Today",
+    "month": "Month",
+    "week": "Week",
+    "day": "Day",
+    "agenda": "Agenda",
+    "noEvents": "No events on this day.",
+    "eventStart": "Start",
+    "eventEnd": "End",
+    "eventAllDay": "All day",
+    "type_CLASS": "Class",
+    "type_EXAM": "Exam",
+    "type_HOLIDAY": "Holiday",
+    "type_MEETING": "Meeting",
+    "type_PAYMENT_DUE": "Payment due",
+    "type_PLACEMENT_TEST": "Placement test",
+    "type_SPEAKING_CLUB": "Speaking Club",
+    "type_DEADLINE": "Deadline",
+    "type_CUSTOM": "Event"
+  },
+  "Policies": {
+    "paymentPolicyTitle": "Payment Policy",
+    "refundPolicyTitle": "Refund Policy",
+    "privacyPolicyTitle": "Privacy Policy",
+    "lastUpdated": "Last updated",
+    "paymentPolicyBody": "We accept payment via Mada, Visa, Mastercard, Apple Pay and STC Pay through our secure payment gateway (Moyasar). All amounts are billed in Saudi Riyals (SAR) and include 15% VAT in compliance with ZATCA requirements.\n\nMonthly plans are charged in advance and auto-renew unless cancelled at least 48 hours before the renewal date. A ZATCA-compliant tax invoice with a QR code is issued after every successful payment.\n\nIf a payment fails, we retry for up to 72 hours before suspending the subscription. Please ensure your payment method has sufficient funds and remains valid to avoid any disruption to scheduled classes.\n\nThe Academy reserves the right to revise pricing with at least 30 days notice before the next billing cycle. Active subscriptions are not affected by price changes until they renew.",
+    "refundPolicyBody": "Subscribers may request a full refund within 7 days of plan activation, provided no more than 2 live sessions have been attended and no more than 20% of the language lab content has been completed.\n\nAfter the 7-day window, refunds are pro-rated based on remaining sessions in the current month, minus payment processing fees (max 2.5%).\n\nThe free placement test is non-refundable (it is free of charge by default). Private sessions cancelled by the student less than 24 hours before the scheduled start time are non-refundable.\n\nApproved refunds are issued to the original payment method within 5–10 business days. You will receive an email confirmation once the refund is processed.\n\nTo request a refund, please contact us via our [contact page](/contact) or WhatsApp, including the invoice number and reason for the request.",
+    "privacyPolicyBody": "We are committed to protecting your personal data in compliance with the Saudi Personal Data Protection Law (PDPL). We collect only the data necessary to deliver our educational services: name, email, phone number, date of birth, and secure payment information.\n\nYour data is used solely to manage your account, send class notifications and academic reports, process payments, and improve the learning experience. We do not sell your data or share it with advertising networks.\n\nPayment details are processed by our licensed payment provider (Moyasar). Card numbers are never stored on our servers. Passwords are stored using bcrypt encryption.\n\nYou have the right at any time to access, correct, delete your data, or withdraw your consent to processing. Notification preferences (email, SMS, WhatsApp) can be managed from your account settings.\n\nWe retain limited audit logs for security and regulatory compliance for 24 months. For more information or to make a request, contact us at privacy@hajr.academy."
+  },
+  "Notify": {
+    "channelInApp": "In-app",
+    "channelEmail": "Email",
+    "channelSms": "SMS"
   },
   "Dashboard": {
     "welcome": "Welcome",

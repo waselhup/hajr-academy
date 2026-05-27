@@ -8,6 +8,7 @@ export const ROLE_HOME: Record<Role, string> = {
   TEACHER: "/teacher",
   STUDENT: "/student",
   PARENT: "/parent",
+  MARKETER: "/marketer",
 };
 
 export async function requireSession() {

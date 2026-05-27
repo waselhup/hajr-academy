@@ -68,8 +68,14 @@ export default function AdminCommandPalette() {
         setOpen((p) => !p);
       }
     }
+    // Custom event so the mobile bottom-nav Search tab can also open us.
+    const onCustomOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("hajr:open-command-palette", onCustomOpen);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("hajr:open-command-palette", onCustomOpen);
+    };
   }, []);
 
   // Auto-focus the input on open.

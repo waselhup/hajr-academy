@@ -15,6 +15,30 @@ export function fmtRelative(d: Date | string): string {
   return formatDistanceToNowStrict(new Date(d), { addSuffix: true });
 }
 
+/**
+ * Long date string. AR uses Arabic-Indic digits via numberingSystem; no "م"
+ * (هـ) suffix to avoid the cluttered "22 مايو 2026 م" form teachers flagged.
+ *   ar → "22 مايو 2026"
+ *   en → "May 22, 2026"
+ */
+export function fmtDateLong(d: Date | string, locale: "ar" | "en"): string {
+  const date = new Date(d);
+  if (locale === "ar") {
+    return new Intl.DateTimeFormat("ar-SA", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+      calendar: "gregory",
+      numberingSystem: "arab",
+    }).format(date);
+  }
+  return new Intl.DateTimeFormat("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
 export function fmtHijri(d: Date | string): string {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires

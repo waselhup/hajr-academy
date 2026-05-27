@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
+import { MobileBottomNav } from "@/components/shell/mobile-bottom-nav";
 import { SessionProvider } from "@/components/providers/session-provider";
 import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
 import AdminChatPanel from "@/components/admin/AdminChatPanel";
@@ -25,9 +26,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             email={session.user.email ?? ""}
             role={session.user.role}
           />
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+          <main className="flex-1 p-4 pb-24 sm:p-6 sm:pb-6 lg:p-8 lg:pb-8">{children}</main>
         </div>
       </div>
+      <MobileBottomNav role={session.user.role} />
       {isAdmin ? (
         <>
           <AdminCommandPalette />

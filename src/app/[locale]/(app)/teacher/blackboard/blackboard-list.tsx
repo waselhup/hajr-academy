@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import { fmtDateLong } from "@/lib/format";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,7 @@ export function TeacherBlackboardList({
 }) {
   const t = useTranslations("Blackboard");
   const tc = useTranslations("Common");
+  const locale = useLocale();
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [name, setName] = useState("");
@@ -88,7 +90,7 @@ export function TeacherBlackboardList({
         )}
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span><Pencil className="inline h-3 w-3 me-1" />{room.totalEdits} {t("edits")}</span>
-          <span>{new Date(room.updatedAt).toLocaleDateString("ar-SA")}</span>
+          <span>{fmtDateLong(room.updatedAt, locale === "ar" ? "ar" : "en")}</span>
         </div>
         <Button
           variant="outline"
