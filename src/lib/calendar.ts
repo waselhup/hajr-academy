@@ -180,3 +180,53 @@ export function canModifyEvent(
   if (role === "SUPER_ADMIN" || role === "ADMIN") return true;
   return event.createdBy === userId && !event.isGlobal && !event.audienceRole;
 }
+
+/**
+ * Sprint 3 — Create or update a CalendarEvent for a ClassSession.
+ *
+ * Idempotent: if there is already a matching event (same class + startAt),
+ * this updates it instead of creating a duplicate. Safe to call from
+ * ClassSession create/update handlers.
+ */
+export async function upsertSessionCalendarEvent(opts: {
+  sessionId: string;
+  classId: string;
+  className: string;
+  classNameAr?: string | null;
+  teacherId: string;
+  scheduledDate: Date;
+  durationMinutes: number;
+  createdBy: string;
+}): Promise<CalendarEvent> {
+  const endAt = new Date(opts.scheduledDate.getTime() + opts.durationMinutes * 60 * 1000);
+  const existing = await prisma.calendarEvent.findFirst({
+    where: { type: "CLASS", classId: opts.classId, startAt: opts.scheduledDate },
+    select: { id: true },
+  });
+  if (existing) {
+    return prisma.calendarEvent.update({
+      where: { id: existing.id },
+      data: {
+        title: opts.className,
+        titleAr: opts.classNameAr ?? opts.className,
+        endAt,
+        teacherId: opts.teacherId,
+        metadata: { sessionId: opts.sessionId },
+      },
+    });
+  }
+  return prisma.calendarEvent.create({
+    data: {
+      type: "CLASS",
+      title: opts.className,
+      titleAr: opts.classNameAr ?? opts.className,
+      startAt: opts.scheduledDate,
+      endAt,
+      isGlobal: false,
+      classId: opts.classId,
+      teacherId: opts.teacherId,
+      createdBy: opts.createdBy,
+      metadata: { sessionId: opts.sessionId },
+    },
+  });
+}

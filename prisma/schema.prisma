@@ -46,6 +46,10 @@ model User {
   auditLogs               AuditLog[]
   agentConversations      AgentConversation[]
   calendarEvents          CalendarEvent[]         @relation("UserCalendarEvents")
+  ticketsRequested        Ticket[]                @relation("TicketsRequested")
+  ticketsAssigned         Ticket[]                @relation("TicketsAssigned")
+  ticketReplies           TicketReply[]
+  teacherRatings          TeacherRating[]
 }
 
 model TeacherProfile {
@@ -62,12 +66,23 @@ model TeacherProfile {
   active          Boolean  @default(true)
   createdAt       DateTime @default(now())
 
+  // Sprint 3 — public profile additions
+  introVideoUrl          String?
+  languages              String[]
+  yearsExp               Int?     @default(0)
+  isVerified             Boolean  @default(false)
+  publicSlug             String?  @unique
+  responseTimeMinutesAvg Int?
+
   classes         Class[]
   privateLessons  PrivateLesson[]
   blackboardRooms BlackboardRoom[]
   salaryPayments  SalaryPayment[]
   earnings        TeacherEarning[]
   calendarEvents  CalendarEvent[]
+  readiness       TeacherReadiness?
+  ratings         TeacherRating[]
+  meetingAttendees TeacherMeetingAttendee[]
 }
 
 model StudentProfile {
@@ -1493,4 +1508,144 @@ model PlacementResult {
   leadCreated      Boolean          @default(false)
   leadId           String?
   createdAt        DateTime         @default(now())
+}
+
+// ─────────────────────── SPRINT 3 — TICKETS / READINESS / MEETINGS / RATINGS ───────────────────────
+
+enum TicketCategory {
+  TECHNICAL
+  FINANCIAL
+  PEDAGOGICAL
+  SUGGESTION
+  GENERAL
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  LIVE
+  ENDED
+  CANCELLED
+}
+
+model Ticket {
+  id            String         @id @default(uuid())
+  requesterId   String
+  requester     User           @relation("TicketsRequested", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterRole Role
+  category      TicketCategory @default(GENERAL)
+  priority      TicketPriority @default(MEDIUM)
+  status        TicketStatus   @default(OPEN)
+  subject       String
+  body          String         @db.Text
+  assignedToId  String?
+  assignedTo    User?          @relation("TicketsAssigned", fields: [assignedToId], references: [id], onDelete: SetNull)
+  aiCategorized Boolean        @default(false)
+  resolvedAt    DateTime?
+  closedAt      DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  replies       TicketReply[]
+
+  @@index([requesterId, status])
+  @@index([assignedToId, status])
+  @@index([status, priority, createdAt])
+}
+
+model TicketReply {
+  id            String   @id @default(uuid())
+  ticketId      String
+  ticket        Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorRole    Role
+  body          String   @db.Text
+  isInternal    Boolean  @default(false)
+  attachmentUrl String?
+  createdAt     DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+model TeacherReadiness {
+  id             String         @id @default(uuid())
+  teacherId      String         @unique
+  teacher        TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  zoomTested     Boolean        @default(false)
+  digitalToolsOk Boolean        @default(false)
+  mockClassDone  Boolean        @default(false)
+  interactiveOk  Boolean        @default(false)
+  classroomMgmt  Boolean        @default(false)
+  selfRating     Int?
+  adminVerified  Boolean        @default(false)
+  adminNotes     String?        @db.Text
+  verifiedById   String?
+  verifiedAt     DateTime?
+  updatedAt      DateTime       @updatedAt
+}
+
+model TeacherMeeting {
+  id              String                   @id @default(uuid())
+  title           String
+  titleAr         String
+  description     String?                  @db.Text
+  scheduledAt     DateTime
+  durationMin     Int                      @default(60)
+  agenda          String?                  @db.Text
+  agendaAr        String?                  @db.Text
+  minutes         String?                  @db.Text
+  actionItems     Json?
+  status          MeetingStatus            @default(SCHEDULED)
+  zoomMeetingId   String?
+  zoomJoinUrl     String?
+  calendarEventId String?                  @unique
+  createdById     String
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  attendees       TeacherMeetingAttendee[]
+
+  @@index([scheduledAt, status])
+}
+
+model TeacherMeetingAttendee {
+  id         String         @id @default(uuid())
+  meetingId  String
+  meeting    TeacherMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  teacherId  String
+  teacher    TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  attended   Boolean        @default(false)
+  rsvpStatus String?
+  notes      String?
+
+  @@unique([meetingId, teacherId])
+}
+
+model TeacherRating {
+  id         String         @id @default(uuid())
+  teacherId  String
+  teacher    TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  raterId    String
+  rater      User           @relation(fields: [raterId], references: [id], onDelete: Cascade)
+  raterRole  Role
+  sessionId  String?
+  rating     Int
+  comment    String?        @db.Text
+  isApproved Boolean        @default(true)
+  createdAt  DateTime       @default(now())
+
+  @@index([teacherId, createdAt])
+  @@unique([teacherId, raterId, sessionId])
 }

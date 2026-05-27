@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { upsertSessionCalendarEvent } from "@/lib/calendar";
 import type { DayOfWeek } from "@prisma/client";
 
 const DAY_INDEX: Record<DayOfWeek, number> = {
@@ -32,7 +33,16 @@ export async function generateSessionsAction(input: z.infer<typeof schema>): Pro
 
   const cls = await prisma.class.findUnique({
     where: { id: parsed.data.classId },
-    select: { scheduleDays: true, timeSlot: true, durationMinutes: true, startDate: true, endDate: true },
+    select: {
+      scheduleDays: true,
+      timeSlot: true,
+      durationMinutes: true,
+      startDate: true,
+      endDate: true,
+      name: true,
+      nameAr: true,
+      teacherId: true,
+    },
   });
   if (!cls) return { ok: false, error: "NOT_FOUND" };
 
@@ -61,6 +71,27 @@ export async function generateSessionsAction(input: z.infer<typeof schema>): Pro
 
   if (toCreate.length) {
     await prisma.classSession.createMany({ data: toCreate });
+    // Sprint 3 — mirror each new session as a CalendarEvent so it shows up
+    // in /calendar for teacher/students/parents without a manual sync step.
+    const createdSessions = await prisma.classSession.findMany({
+      where: {
+        classId: parsed.data.classId,
+        scheduledDate: { in: toCreate.map((c) => c.scheduledDate) },
+      },
+      select: { id: true, scheduledDate: true },
+    });
+    for (const s of createdSessions) {
+      await upsertSessionCalendarEvent({
+        sessionId: s.id,
+        classId: parsed.data.classId,
+        className: cls.name,
+        classNameAr: cls.nameAr,
+        teacherId: cls.teacherId,
+        scheduledDate: s.scheduledDate,
+        durationMinutes: cls.durationMinutes ?? 60,
+        createdBy: session.user.id,
+      }).catch((e) => console.warn("[schedule] cal upsert failed", e));
+    }
   }
 
   await logAudit({

@@ -9,6 +9,7 @@ A bilingual cheat-sheet for the operations team. Keep this open in a tab.
 
 - Check the **notification bell** in the topbar — anything urgent? / تفقّد جرس التنبيهات.
 - Review `/admin/communications/contacts` — new visitor messages / رسائل الزوار الجدد.
+- **Triage `/admin/tickets`** — drag URGENT/HIGH to "In Progress" or reply / فرز التذاكر العاجلة. (Sprint 3)
 - Review `/admin/teachers/payments` — approve any PENDING teacher earnings / اعتمد أرباح المعلمين المعلّقة.
 - Check `/admin/live` — any classes happening that need attention? / الحصص الجارية الآن.
 - Skim `/calendar` for today's global events (holidays, exams, speaking club).
@@ -17,18 +18,22 @@ A bilingual cheat-sheet for the operations team. Keep this open in a tab.
 
 - Run `/admin/finance` reports (revenue, outstanding invoices).
 - Review `/admin/audit-log` for unusual activity / تدقيق العمليات.
+- **Review `/admin/teacher-activity`** — sort by on-time %, flag low responders / استعراض نشاط المعلمين. (Sprint 3)
+- **Verify pending teachers** at `/admin/teachers` → look for unverified rows → verify via `/admin/teachers/{id}/readiness` (Sprint 3).
 - Send a weekly broadcast: Speaking Club times + announcements.
 - Triage `/admin/communications/chats` flagged messages (if any).
 
 ### Monthly / شهري
 
 - Parent monthly reports auto-send on the 1st (Sprint 4).
-- Review teacher activity dashboard (Sprint 3 — coming).
+- **Schedule the monthly teacher meeting** at `/admin/teacher-meetings` → set agenda + invitees + Zoom link. (Sprint 3)
+- **Document meeting minutes + action items** the same day after the meeting ends. Action items appear on each teacher's `/teacher/meetings/{id}` page.
 - **Review pending marketer applications** at `/admin/marketers?status=pending` → approve or suspend.
 - **Approve + pay marketer commissions** at `/admin/marketers/commissions` → tabs: Pending → Approved → Paid.
 - **Review placement test leads** at `/admin/placement-tests/leads` (sourced from `/placement-test`).
 - Pay teacher salaries: `/admin/finance` → Salaries tab.
 - Update holiday calendar for upcoming month if not already seeded.
+- Export `/admin/teacher-activity` as CSV for KPI archive. (Sprint 3)
 
 ### When something breaks
 
