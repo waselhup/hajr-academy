@@ -35,7 +35,7 @@ export interface CreateInvoiceInput {
   notes?: string | null;
   notesAr?: string | null;
   /** Optional package tag for legacy reporting tools. */
-  packageType?: "ESSENTIAL" | "INTEGRATED" | "PRIVATE" | "SCHOOL" | null;
+  packageType?: "ESSENTIAL" | "INTEGRATED" | "PRIVATE" | "SCHOOL" | "STEP_PREP_PKG" | "IELTS_PREP_PKG" | null;
 }
 
 /**
@@ -211,6 +211,15 @@ export async function markInvoicePaid(
     entityId: invoiceId,
     metadata: { paymentMethod: paymentMethod ?? "MOYASAR_CARD" },
   });
+
+  // Sprint 2: auto-commission hook (best-effort — never blocks payment flow).
+  try {
+    const { maybeCreateCommissionForInvoice } = await import("@/lib/marketer/commission");
+    await maybeCreateCommissionForInvoice(invoiceId);
+  } catch (e) {
+    console.error("[invoices] commission hook failed:", e);
+  }
+
   return { ok: true };
 }
 

@@ -24,7 +24,9 @@ A bilingual cheat-sheet for the operations team. Keep this open in a tab.
 
 - Parent monthly reports auto-send on the 1st (Sprint 4).
 - Review teacher activity dashboard (Sprint 3 — coming).
-- Marketer commission reconciliation (Sprint 2 — coming).
+- **Review pending marketer applications** at `/admin/marketers?status=pending` → approve or suspend.
+- **Approve + pay marketer commissions** at `/admin/marketers/commissions` → tabs: Pending → Approved → Paid.
+- **Review placement test leads** at `/admin/placement-tests/leads` (sourced from `/placement-test`).
 - Pay teacher salaries: `/admin/finance` → Salaries tab.
 - Update holiday calendar for upcoming month if not already seeded.
 

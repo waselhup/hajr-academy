@@ -68,6 +68,44 @@ export const PACKAGES: Record<
     ],
     labAccess: true,
   },
+  STEP_PREP_PKG: {
+    key: "STEP_PREP_PKG",
+    nameAr: "باقة التحضير لاختبار ستيب",
+    nameEn: "STEP Prep Package",
+    // Placeholder — owner to confirm/edit pricing in admin UI.
+    pricePerMonth: 600,
+    sessionsPerMonth: 16,
+    featuresAr: [
+      "١٦ حصة مكثفة شهرياً",
+      "اختبارات تجريبية بأسلوب ستيب",
+      "ملاحظات الخبراء",
+    ],
+    featuresEn: [
+      "16 intensive sessions / month",
+      "STEP-style mock exams",
+      "Expert feedback",
+    ],
+    labAccess: true,
+  },
+  IELTS_PREP_PKG: {
+    key: "IELTS_PREP_PKG",
+    nameAr: "باقة التحضير لاختبار آيلتس",
+    nameEn: "IELTS Prep Package",
+    // Placeholder — owner to confirm/edit pricing in admin UI.
+    pricePerMonth: 800,
+    sessionsPerMonth: 16,
+    featuresAr: [
+      "تحضير شامل آيلتس أكاديمي + عام",
+      "التركيز على المحادثة والكتابة",
+      "تقييمات أسبوعية",
+    ],
+    featuresEn: [
+      "Comprehensive IELTS Academic + General prep",
+      "Speaking & Writing focus",
+      "Weekly assessments",
+    ],
+    labAccess: true,
+  },
 };
 
 /** All packages as an ordered list (cheapest first). */
@@ -75,6 +113,8 @@ export const PACKAGE_LIST: PackageDefinition[] = [
   PACKAGES.ESSENTIAL,
   PACKAGES.INTEGRATED,
   PACKAGES.PRIVATE,
+  PACKAGES.STEP_PREP_PKG,
+  PACKAGES.IELTS_PREP_PKG,
 ];
 
 /** VAT rate applied to every subscription. */
@@ -91,5 +131,11 @@ export function getPackage(type: string): PackageDefinition {
 export function isSubscribablePackage(
   type: string
 ): type is Exclude<PackageType, "SCHOOL"> {
-  return type === "ESSENTIAL" || type === "INTEGRATED" || type === "PRIVATE";
+  return (
+    type === "ESSENTIAL" ||
+    type === "INTEGRATED" ||
+    type === "PRIVATE" ||
+    type === "STEP_PREP_PKG" ||
+    type === "IELTS_PREP_PKG"
+  );
 }

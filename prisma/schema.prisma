@@ -28,12 +28,17 @@ model User {
   totpSecret    String?
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
+
+  referredByCode String?
+  referredAt     DateTime?
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   teacherProfile          TeacherProfile?
   studentProfile          StudentProfile?
   parentProfile           ParentProfile?
+  marketerProfile         MarketerProfile?
   messagesSent            Message[]               @relation("MessagesSent")
   messagesReceived        Message[]               @relation("MessagesReceived")
   notifications           Notification[]
@@ -95,6 +100,9 @@ model StudentProfile {
   school                PartnerSchool?         @relation(fields: [schoolId], references: [id])
   blackboardPermissions BlackboardPermission[]
   calendarEvents        CalendarEvent[]
+  referrals             MarketerReferral[]
+  commissions           Commission[]
+  placementAttempts     PlacementAttempt[]
 }
 
 model ParentProfile {
@@ -641,6 +649,7 @@ model Invoice {
   notesAr String?
 
   payments Payment[]
+  commission Commission?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1013,6 +1022,8 @@ enum PackageType {
   INTEGRATED
   PRIVATE
   SCHOOL
+  STEP_PREP_PKG
+  IELTS_PREP_PKG
 }
 
 enum ClassStatus {
@@ -1065,6 +1076,7 @@ enum AttemptStatus {
   IN_PROGRESS
   COMPLETED
   ABANDONED
+  SUBMITTED
 }
 
 enum EnglishSkill {
@@ -1180,6 +1192,9 @@ enum NotificationType {
   TRIAL_REQUEST
   ENROLLMENT_UPDATE
   SYSTEM_ANNOUNCEMENT
+  MARKETER_UPDATE
+  COMMISSION_UPDATE
+  PLACEMENT_RESULT
 }
 
 enum Channel {
@@ -1312,4 +1327,170 @@ model CalendarEvent {
   @@index([classId])
   @@index([teacherId])
   @@index([studentId])
+}
+
+// ─────────────────────── SPRINT 2 — MARKETER & PLACEMENT ───────────────────────
+
+enum MarketerStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
+}
+
+enum PlacementVariant {
+  GENERAL_ENGLISH
+  STEP_PREP
+  IELTS_PREP
+}
+
+enum PlacementSectionType {
+  READING
+  GRAMMAR
+  VOCAB
+  LISTENING
+  SPEAKING
+}
+
+model MarketerProfile {
+  id             String         @id @default(uuid())
+  userId         String         @unique
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  referralCode   String         @unique
+  commissionRate Decimal        @default(0.10) @db.Decimal(5, 4)
+  totalEarned    Decimal        @default(0)    @db.Decimal(12, 2)
+  totalPaid      Decimal        @default(0)    @db.Decimal(12, 2)
+  status         MarketerStatus @default(PENDING)
+  bankIban       String?
+  bankName       String?
+  bankHolder     String?
+  notes          String?        @db.Text
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  commissions Commission[]
+  referrals   MarketerReferral[]
+}
+
+model MarketerReferral {
+  id           String          @id @default(uuid())
+  marketerId   String
+  marketer     MarketerProfile @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  code         String
+  studentId    String?
+  student      StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  contactEmail String?
+  registeredAt DateTime?
+  converted    Boolean         @default(false)
+  convertedAt  DateTime?
+  createdAt    DateTime        @default(now())
+
+  @@index([marketerId, converted])
+  @@index([code])
+}
+
+model Commission {
+  id              String           @id @default(uuid())
+  marketerId      String
+  marketer        MarketerProfile  @relation(fields: [marketerId], references: [id], onDelete: Cascade)
+  studentId       String
+  student         StudentProfile   @relation(fields: [studentId], references: [id])
+  invoiceId       String           @unique
+  invoice         Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount          Decimal          @db.Decimal(10, 2)
+  rateApplied     Decimal          @db.Decimal(5, 4)
+  status          CommissionStatus @default(PENDING)
+  approvedBy      String?
+  approvedAt      DateTime?
+  paidBy          String?
+  paidAt          DateTime?
+  rejectedAt      DateTime?
+  rejectionReason String?
+  notes           String?
+  createdAt       DateTime         @default(now())
+
+  @@index([marketerId, status])
+  @@index([status, createdAt])
+}
+
+model PlacementTest {
+  id            String             @id @default(uuid())
+  variant       PlacementVariant   @default(GENERAL_ENGLISH)
+  titleEn       String
+  titleAr       String
+  descriptionEn String?            @db.Text
+  descriptionAr String?            @db.Text
+  passingScore  Int                @default(60)
+  durationMin   Int                @default(30)
+  isActive      Boolean            @default(true)
+  sections      PlacementSection[]
+  attempts      PlacementAttempt[]
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+model PlacementSection {
+  id           String               @id @default(uuid())
+  testId       String
+  test         PlacementTest        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  type         PlacementSectionType
+  titleEn      String
+  titleAr      String
+  questions    Json
+  timeLimitMin Int                  @default(10)
+  order        Int                  @default(0)
+  maxScore     Int                  @default(0)
+
+  @@unique([testId, order])
+}
+
+model PlacementAttempt {
+  id           String          @id @default(uuid())
+  testId       String
+  test         PlacementTest   @relation(fields: [testId], references: [id])
+  studentId    String?
+  student      StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  guestEmail   String?
+  guestName    String?
+  guestPhone   String?
+  answers      Json
+  score        Int?
+  maxScore     Int?
+  percent      Decimal?        @db.Decimal(5, 2)
+  cefrLevel    CefrLevel?
+  status       AttemptStatus   @default(IN_PROGRESS)
+  sessionId    String?
+  sourceUtm    String?
+  startedAt    DateTime        @default(now())
+  submittedAt  DateTime?
+  timeSpentSec Int?
+  result       PlacementResult?
+
+  @@index([studentId, submittedAt])
+  @@index([guestEmail])
+}
+
+model PlacementResult {
+  id               String           @id @default(uuid())
+  attemptId        String           @unique
+  attempt          PlacementAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  cefrLevel        CefrLevel
+  score            Int
+  maxScore         Int
+  percent          Decimal          @db.Decimal(5, 2)
+  sectionBreakdown Json
+  recommendations  Json
+  pdfUrl           String?
+  pdfPath          String?
+  emailedTo        String?
+  emailedAt        DateTime?
+  leadCreated      Boolean          @default(false)
+  leadId           String?
+  createdAt        DateTime         @default(now())
 }

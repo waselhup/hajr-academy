@@ -1,6 +1,7 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "@/i18n/routing";
+import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -32,8 +33,25 @@ type FormData = z.infer<typeof schema>;
 export function RegisterForm() {
   const t = useTranslations();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
+
+  // Pick up ?ref= or sessionStorage persisted code.
+  useEffect(() => {
+    const fromUrl = searchParams.get("ref");
+    if (fromUrl) {
+      const code = fromUrl.toUpperCase().trim();
+      try { sessionStorage.setItem("hajr_ref", code); } catch {}
+      setReferralCode(code);
+      return;
+    }
+    try {
+      const cached = sessionStorage.getItem("hajr_ref");
+      if (cached) setReferralCode(cached);
+    } catch {}
+  }, [searchParams]);
 
   const {
     register,
@@ -61,6 +79,7 @@ export function RegisterForm() {
           nameAr: data.nameAr,
           phone: data.phone,
           role: data.role,
+          referralCode: referralCode ?? undefined,
         }),
       });
       if (!res.ok) {
@@ -86,6 +105,11 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      {referralCode && (
+        <div className="rounded-lg border border-hajr-mint bg-hajr-mint/15 px-3 py-2 text-xs text-hajr-deep-navy">
+          {t("Marketer.referralBannerLanding")} <span className="font-mono font-bold">{referralCode}</span>
+        </div>
+      )}
       <div className="space-y-2">
         <Label>{t("Auth.iAm")}</Label>
         <div className="grid grid-cols-2 gap-2">

@@ -36,6 +36,8 @@ export default async function LandingPage() {
     { code: "ESSENTIAL", price: 250, sessions: 8, lab: false, featured: false },
     { code: "INTEGRATED", price: 300, sessions: 12, lab: true, featured: true },
     { code: "PRIVATE", price: 800, sessions: 16, lab: true, featured: false },
+    { code: "STEP_PREP_PKG", price: 600, sessions: 16, lab: true, featured: false },
+    { code: "IELTS_PREP_PKG", price: 800, sessions: 16, lab: true, featured: false },
   ];
 
   const stats = [
@@ -228,7 +230,7 @@ export default async function LandingPage() {
           <h2 className="text-3xl font-bold text-hajr-navy sm:text-4xl">{t("Landing.packagesTitle")}</h2>
           <p className="mt-3 text-hajr-muted">{t("Landing.packagesSubtitle")}</p>
         </div>
-        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-3 md:items-center">
+        <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3 md:items-center">
           {packages.map((pk) => (
             <Card
               key={pk.code}
