@@ -12,6 +12,10 @@ import {
   CheckSquare,
   Sparkles,
   Download,
+  UserCog,
+  Users,
+  GraduationCap,
+  FileArchive,
 } from "lucide-react";
 import { loadDeliveryStats } from "@/lib/delivery/stats";
 
@@ -70,6 +74,48 @@ const ARTIFACTS: Artifact[] = [
     titleKey: "handoverChecklist",
     descKey: "handoverChecklistDesc",
     href: "/api/admin/delivery/checklist",
+  },
+  {
+    icon: UserCog,
+    titleKey: "adminManualEn",
+    descKey: "adminManualEnDesc",
+    href: "/api/admin/manuals/admin?lang=en",
+  },
+  {
+    icon: UserCog,
+    titleKey: "adminManualAr",
+    descKey: "adminManualArDesc",
+    href: "/api/admin/manuals/admin?lang=ar",
+  },
+  {
+    icon: Users,
+    titleKey: "teacherManualEn",
+    descKey: "teacherManualEnDesc",
+    href: "/api/admin/manuals/teacher?lang=en",
+  },
+  {
+    icon: Users,
+    titleKey: "teacherManualAr",
+    descKey: "teacherManualArDesc",
+    href: "/api/admin/manuals/teacher?lang=ar",
+  },
+  {
+    icon: GraduationCap,
+    titleKey: "studentManualEn",
+    descKey: "studentManualEnDesc",
+    href: "/api/admin/manuals/student?lang=en",
+  },
+  {
+    icon: GraduationCap,
+    titleKey: "studentManualAr",
+    descKey: "studentManualArDesc",
+    href: "/api/admin/manuals/student?lang=ar",
+  },
+  {
+    icon: FileArchive,
+    titleKey: "manualsZip",
+    descKey: "manualsZipDesc",
+    href: "/api/admin/manuals/all",
   },
 ];
 

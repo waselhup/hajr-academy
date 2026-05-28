@@ -44,6 +44,19 @@ agreement (20% rev-share) is signed and the support tier kicks in.
 - [ ] **Support tier acknowledged** — owner has read README §8 and
       understands what is and isn't covered free-of-charge post-handover.
 
+- [ ] **Admin manual reviewed and approved** — owner has downloaded the
+      bilingual admin manual from `/admin/manuals` and confirmed it
+      covers every operational task they need.
+
+- [ ] **Teacher manual reviewed and approved** — bilingual teacher manual
+      downloaded; head-of-teaching has signed off.
+
+- [ ] **Student manual reviewed and approved** — bilingual student
+      manual downloaded and ready for distribution to new students.
+
+- [ ] **All 3 manuals distributed to relevant users** — copies emailed
+      to admins, teachers, and students (or linked from internal docs).
+
 ---
 
 Signed: _______________________________   Date: _______________

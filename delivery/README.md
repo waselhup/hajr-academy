@@ -137,4 +137,30 @@ See `FEATURE-MATRIX.csv` (downloadable live at
 See `HANDOVER-CHECKLIST.md`. Owner ticks each box, signs the partnership
 agreement, and the 20% rev-share kicks in.
 
+---
+
+## 12 · User Manuals
+
+Three role-based manuals, each in Arabic and English (6 deliverables total):
+
+| Role | English | Arabic |
+| ---- | ------- | ------ |
+| Admin | `/api/admin/manuals/admin?lang=en` | `/api/admin/manuals/admin?lang=ar` |
+| Teacher | `/api/admin/manuals/teacher?lang=en` | `/api/admin/manuals/teacher?lang=ar` |
+| Student | `/api/admin/manuals/student?lang=en` | `/api/admin/manuals/student?lang=ar` |
+
+ZIP bundle of all six: `/api/admin/manuals/all`
+
+UI hub: `/admin/manuals` (lists every download in a single grid + ZIP).
+
+Each manual is a self-contained HTML document optimized for "Save as PDF"
+from any modern browser. Missing screenshots render as placeholder frames
+so the document never breaks. To refresh screenshots, run:
+
+```
+npx tsx scripts/capture-manual-screenshots.ts
+```
+
+while the dev server is running on `http://localhost:3000`.
+
 — Hajr A° v2.0 · Built with care.
