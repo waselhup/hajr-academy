@@ -49,3 +49,7 @@ next-env.d.ts
 prisma/seed-p6-chunk-*.sql
 prisma/seed-phase-6.sql
 prisma/seed-phase-6-stmts.json
+
+# Credentials handover — NEVER commit
+HAJR_CREDENTIALS_HANDOVER.*
+../HAJR_CREDENTIALS_HANDOVER.*
