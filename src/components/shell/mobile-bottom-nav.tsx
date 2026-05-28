@@ -15,7 +15,8 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   Home, Calendar as CalendarIcon, MessageSquare, User as UserIcon,
-  Search, Users as UsersIcon,
+  Search, Users as UsersIcon, FlaskConical, Radio, BarChart3,
+  Receipt, BookText, Megaphone, Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { Role } from "@prisma/client";
@@ -30,40 +31,46 @@ type Tab = {
 
 const TABS_BY_ROLE: Record<Role, Tab[]> = {
   SUPER_ADMIN: [
-    { key: "Nav.bottomNavHome",     href: "/admin",     icon: Home },
-    { key: "Nav.bottomNavCalendar", href: "/calendar",  icon: CalendarIcon },
-    { key: "Nav.bottomNavMessages", href: "/messages",  icon: MessageSquare, badge: "messages" },
-    { key: "Nav.bottomNavSearch",   href: "#cmdk",      icon: Search, cmdK: true },
+    { key: "Nav.bottomNavHome",     href: "/admin",       icon: Home },
+    { key: "Nav.bottomNavCalendar", href: "/calendar",    icon: CalendarIcon },
+    { key: "Nav.bottomNavMessages", href: "/messages",    icon: MessageSquare, badge: "messages" },
+    { key: "Nav.bottomNavLive",     href: "/admin/live",  icon: Radio },
+    { key: "Nav.bottomNavSearch",   href: "#cmdk",        icon: Search, cmdK: true },
   ],
   ADMIN: [
-    { key: "Nav.bottomNavHome",     href: "/admin",     icon: Home },
-    { key: "Nav.bottomNavCalendar", href: "/calendar",  icon: CalendarIcon },
-    { key: "Nav.bottomNavMessages", href: "/messages",  icon: MessageSquare, badge: "messages" },
-    { key: "Nav.bottomNavSearch",   href: "#cmdk",      icon: Search, cmdK: true },
+    { key: "Nav.bottomNavHome",     href: "/admin",       icon: Home },
+    { key: "Nav.bottomNavCalendar", href: "/calendar",    icon: CalendarIcon },
+    { key: "Nav.bottomNavMessages", href: "/messages",    icon: MessageSquare, badge: "messages" },
+    { key: "Nav.bottomNavLive",     href: "/admin/live",  icon: Radio },
+    { key: "Nav.bottomNavSearch",   href: "#cmdk",        icon: Search, cmdK: true },
   ],
   TEACHER: [
     { key: "Nav.bottomNavHome",     href: "/teacher",          icon: Home },
+    { key: "Nav.bottomNavClasses",  href: "/teacher/classes",  icon: BookText },
+    { key: "Nav.bottomNavMessages", href: "/messages",         icon: MessageSquare, badge: "messages" },
     { key: "Nav.bottomNavCalendar", href: "/calendar",         icon: CalendarIcon },
-    { key: "Nav.bottomNavStudents", href: "/teacher/students", icon: UsersIcon },
     { key: "Nav.bottomNavProfile",  href: "/teacher/profile",  icon: UserIcon },
   ],
   STUDENT: [
     { key: "Nav.bottomNavHome",     href: "/student",         icon: Home },
-    { key: "Nav.bottomNavCalendar", href: "/calendar",        icon: CalendarIcon },
+    { key: "Nav.bottomNavClasses",  href: "/student/classes", icon: BookText },
+    { key: "Nav.bottomNavLab",      href: "/student/lab",     icon: FlaskConical },
     { key: "Nav.bottomNavMessages", href: "/messages",        icon: MessageSquare, badge: "messages" },
     { key: "Nav.bottomNavProfile",  href: "/student/profile", icon: UserIcon },
   ],
   PARENT: [
-    { key: "Nav.bottomNavHome",     href: "/parent",   icon: Home },
-    { key: "Nav.bottomNavCalendar", href: "/calendar", icon: CalendarIcon },
-    { key: "Nav.bottomNavMessages", href: "/messages", icon: MessageSquare, badge: "messages" },
-    { key: "Nav.bottomNavProfile",  href: "/parent",   icon: UserIcon },
+    { key: "Nav.bottomNavHome",     href: "/parent",          icon: Home },
+    { key: "Nav.bottomNavReports",  href: "/parent/reports",  icon: BarChart3 },
+    { key: "Nav.bottomNavMessages", href: "/messages",        icon: MessageSquare, badge: "messages" },
+    { key: "Nav.bottomNavBilling",  href: "/parent/finance",  icon: Receipt },
+    { key: "Nav.bottomNavCalendar", href: "/calendar",        icon: CalendarIcon },
   ],
   MARKETER: [
-    { key: "Nav.bottomNavHome",     href: "/marketer",          icon: Home },
-    { key: "Nav.bottomNavCalendar", href: "/calendar",          icon: CalendarIcon },
-    { key: "Nav.bottomNavMessages", href: "/messages",          icon: MessageSquare, badge: "messages" },
-    { key: "Nav.bottomNavProfile",  href: "/marketer/profile",  icon: UserIcon },
+    { key: "Nav.bottomNavHome",        href: "/marketer",                 icon: Home },
+    { key: "Nav.bottomNavReferrals",   href: "/marketer/referrals",       icon: Megaphone },
+    { key: "Nav.bottomNavCommissions", href: "/marketer/commissions",     icon: Wallet },
+    { key: "Nav.bottomNavMessages",    href: "/messages",                 icon: MessageSquare, badge: "messages" },
+    { key: "Nav.bottomNavProfile",     href: "/marketer/profile",         icon: UserIcon },
   ],
 };
 
@@ -92,7 +99,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
       className="fixed inset-x-0 bottom-0 z-30 border-t border-hajr-border bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.04)] sm:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <ul className="grid h-16 grid-cols-4">
+      <ul className="grid h-16 grid-cols-5">
         {tabs.map((tab) => {
           const active =
             tab.cmdK ? false : path === tab.href || path.startsWith(tab.href + "/");
@@ -124,7 +131,6 @@ export function MobileBottomNav({ role }: { role: Role }) {
                 <button
                   className={classes}
                   onClick={() => {
-                    // Dispatch the same event the AdminCommandPalette listens on (Cmd/Ctrl+K)
                     window.dispatchEvent(new CustomEvent("hajr:open-command-palette"));
                   }}
                   aria-label={t(tab.key as any)}

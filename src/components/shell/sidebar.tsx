@@ -32,6 +32,32 @@ import {
   Palette,
   Inbox,
   MessagesSquare,
+  Award,
+  Megaphone,
+  LineChart,
+  Package,
+  ShieldQuestion,
+  Mic,
+  Send,
+  TestTube,
+  LifeBuoy,
+  ClipboardList,
+  HandCoins,
+  Sparkles,
+  CalendarCheck,
+  PiggyBank,
+  Bookmark,
+  Languages,
+  Bell,
+  CreditCard,
+  ScrollText,
+  Headphones,
+  ArrowLeftRight,
+  ActivitySquare,
+  CalendarRange,
+  ChartBar,
+  ShieldAlert,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HajrLogo } from "@/components/brand/logo";
@@ -51,10 +77,9 @@ export type NavGroup = {
   superAdminOnly?: boolean;
 };
 
-/**
- * Admin navigation as 7 groups + a top-level Dashboard link.
- * Used by both desktop sidebar and the mobile drawer.
- */
+/* =============================================================
+ * ADMIN navigation — 7 groups, 36 items (covers every admin hub)
+ * ============================================================= */
 export const ADMIN_DASHBOARD_ITEM: NavItem = {
   key: "Nav.dashboard",
   href: "/admin",
@@ -67,9 +92,12 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     icon: Users,
     items: [
       { key: "Nav.students", href: "/admin/students", icon: Users },
+      { key: "Nav.studentsTransfer", href: "/admin/students/transfer", icon: ArrowLeftRight },
       { key: "Nav.teachers", href: "/admin/teachers", icon: GraduationCap },
+      { key: "Nav.teacherActivity", href: "/admin/teacher-activity", icon: ActivitySquare },
+      { key: "Nav.teacherMeetings", href: "/admin/teacher-meetings", icon: CalendarCheck },
       { key: "Nav.parents", href: "/admin/parents", icon: UserIcon },
-      { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
+      { key: "Nav.parentInvites", href: "/admin/parent-invites", icon: Send },
     ],
   },
   {
@@ -79,7 +107,10 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.programs", href: "/admin/programs", icon: BookOpen },
       { key: "Nav.classes", href: "/admin/classes", icon: BookText },
       { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
+      { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardList },
       { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
+      { key: "Nav.placementTests", href: "/admin/placement-tests", icon: TestTube },
+      { key: "Nav.speakingClub", href: "/admin/speaking-club", icon: Mic },
     ],
   },
   {
@@ -88,14 +119,23 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { key: "Nav.testBank", href: "/admin/test-bank", icon: BookOpen },
       { key: "Nav.mockExams", href: "/admin/exams", icon: ClipboardCheck },
-      { key: "Nav.lab", href: "/admin/lab/exercises", icon: FlaskConical },
+      { key: "Nav.labHub", href: "/admin/lab", icon: FlaskConical },
+      { key: "Nav.stepBank", href: "/admin/step-bank", icon: Bookmark },
       { key: "Nav.blackboards", href: "/admin/blackboards", icon: Palette },
+      { key: "Nav.certificates", href: "/admin/certificates", icon: Award },
     ],
   },
   {
     key: "Nav.groupFinance",
     icon: Wallet,
-    items: [{ key: "Nav.finance", href: "/admin/finance", icon: Wallet }],
+    items: [
+      { key: "Nav.financeOverview", href: "/admin/finance", icon: Wallet },
+      { key: "Nav.invoices", href: "/admin/finance/invoices", icon: Receipt },
+      { key: "Nav.subscriptions", href: "/admin/finance/subscriptions", icon: Package },
+      { key: "Nav.promoCodes", href: "/admin/finance/promo-codes", icon: Sparkles },
+      { key: "Nav.refunds", href: "/admin/finance/refunds", icon: HandCoins },
+      { key: "Nav.paymentRequests", href: "/admin/payment-requests", icon: PiggyBank },
+    ],
   },
   {
     key: "Nav.groupComms",
@@ -105,23 +145,42 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.adminChats", href: "/admin/communications/chats", icon: MessagesSquare },
       { key: "Nav.contactRequests", href: "/admin/communications/contacts", icon: Inbox },
       { key: "Nav.commsTemplates", href: "/admin/communications/templates", icon: FileText },
+      { key: "Nav.commsLogs", href: "/admin/communications/logs", icon: ScrollText },
       { key: "Nav.commsHub", href: "/admin/communications", icon: BarChart3 },
+    ],
+  },
+  {
+    key: "Nav.groupOperations",
+    icon: Radio,
+    items: [
+      { key: "Nav.live", href: "/admin/live", icon: Radio },
+      { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+      { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
+      { key: "Nav.delivery", href: "/admin/delivery", icon: Package },
+      { key: "Nav.validation", href: "/admin/validation", icon: ShieldCheck },
+      { key: "Nav.manuals", href: "/admin/manuals", icon: BookCheck },
+      { key: "Nav.brandKit", href: "/admin/brand-kit", icon: Palette },
     ],
   },
   {
     key: "Nav.groupSystem",
     icon: Settings,
     items: [
-      { key: "Nav.live", href: "/admin/live", icon: Radio },
-      { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
-      { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
+      { key: "Nav.tickets", href: "/admin/tickets", icon: LifeBuoy },
+      { key: "Nav.adminMarketers", href: "/admin/marketers", icon: Megaphone },
+      { key: "Nav.adminCommissions", href: "/admin/marketers/commissions", icon: LineChart },
+      { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
+      { key: "Nav.teacherPayouts", href: "/admin/teachers/payments", icon: CreditCard },
+      { key: "Nav.qaI18n", href: "/admin/qa/i18n", icon: Languages, superAdminOnly: true },
+      { key: "Nav.qaNotifications", href: "/admin/qa/notifications", icon: Bell, superAdminOnly: true },
+      { key: "Nav.qaAuditLog", href: "/admin/qa/audit-log", icon: ShieldAlert, superAdminOnly: true },
       { key: "Nav.auditLog", href: "/admin/audit-log", icon: ShieldCheck, superAdminOnly: true },
       { key: "Nav.settings", href: "/admin/settings", icon: Settings, superAdminOnly: true },
     ],
   },
 ];
 
-/** Filter groups & items by role (drop superAdminOnly when ADMIN). */
+/** Filter admin groups & items by role (drop superAdminOnly when ADMIN). */
 export function filterAdminGroups(role: Role): NavGroup[] {
   const isSuper = role === "SUPER_ADMIN";
   return ADMIN_NAV_GROUPS
@@ -133,7 +192,6 @@ export function filterAdminGroups(role: Role): NavGroup[] {
     .filter((g) => g.items.length > 0);
 }
 
-/** Flatten admin nav for active-state matching. */
 function adminFlatItems(role: Role): NavItem[] {
   return [
     ADMIN_DASHBOARD_ITEM,
@@ -141,9 +199,144 @@ function adminFlatItems(role: Role): NavItem[] {
   ];
 }
 
+/* =============================================================
+ * TEACHER navigation — 3 groups
+ * ============================================================= */
+export const TEACHER_DASHBOARD_ITEM: NavItem = {
+  key: "Nav.dashboard",
+  href: "/teacher",
+  icon: LayoutDashboard,
+};
+
+export const TEACHER_NAV_GROUPS: NavGroup[] = [
+  {
+    key: "Nav.groupTeaching",
+    icon: GraduationCap,
+    items: [
+      { key: "Nav.myClasses", href: "/teacher/classes", icon: BookText },
+      { key: "Nav.myStudents", href: "/teacher/students", icon: Users },
+      { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
+      { key: "Nav.attendance", href: "/teacher/attendance", icon: ClipboardList },
+      { key: "Nav.labTeacher", href: "/teacher/lab", icon: FlaskConical },
+      { key: "Nav.blackboard", href: "/teacher/blackboard", icon: Palette },
+      { key: "Nav.privateLessons", href: "/teacher/private-lessons", icon: Headphones },
+      { key: "Nav.meetings", href: "/teacher/meetings", icon: CalendarCheck },
+    ],
+  },
+  {
+    key: "Nav.groupPersonal",
+    icon: UserIcon,
+    items: [
+      { key: "Nav.mySalary", href: "/teacher/salary", icon: Wallet },
+      { key: "Nav.payoutRequests", href: "/teacher/payment-requests", icon: PiggyBank },
+      { key: "Nav.readiness", href: "/teacher/readiness", icon: ShieldQuestion },
+      { key: "Nav.publicProfile", href: "/teacher/profile/public", icon: Globe },
+      { key: "Nav.profile", href: "/teacher/profile", icon: UserIcon },
+    ],
+  },
+];
+
+/* =============================================================
+ * STUDENT navigation — 3 groups
+ * ============================================================= */
+export const STUDENT_DASHBOARD_ITEM: NavItem = {
+  key: "Nav.dashboard",
+  href: "/student",
+  icon: LayoutDashboard,
+};
+
+export const STUDENT_NAV_GROUPS: NavGroup[] = [
+  {
+    key: "Nav.groupLearning",
+    icon: GraduationCap,
+    items: [
+      { key: "Nav.myClasses", href: "/student/classes", icon: BookText },
+      { key: "Nav.assignments", href: "/student/assignments", icon: BookCheck },
+      { key: "Nav.labStudent", href: "/student/lab", icon: FlaskConical },
+      { key: "Nav.studentExams", href: "/student/exams", icon: ClipboardCheck },
+      { key: "Nav.studentStep", href: "/student/step", icon: Bookmark },
+      { key: "Nav.speakingClub", href: "/student/speaking-club", icon: Mic },
+      { key: "Nav.privateLessons", href: "/student/private-lessons", icon: Headphones },
+    ],
+  },
+  {
+    key: "Nav.groupAchievements",
+    icon: Award,
+    items: [
+      { key: "Nav.progress", href: "/student/progress", icon: BarChart3 },
+      { key: "Nav.studentCertificates", href: "/student/certificates", icon: Award },
+    ],
+  },
+  {
+    key: "Nav.groupAccount",
+    icon: UserIcon,
+    items: [
+      { key: "Nav.myInvoices", href: "/student/billing", icon: Receipt },
+      { key: "Nav.myFinance", href: "/student/finance", icon: Wallet },
+      { key: "Nav.profile", href: "/student/profile", icon: UserIcon },
+    ],
+  },
+];
+
+/* =============================================================
+ * PARENT navigation — 3 groups (Reports = the moat)
+ * ============================================================= */
+export const PARENT_DASHBOARD_ITEM: NavItem = {
+  key: "Nav.dashboard",
+  href: "/parent",
+  icon: LayoutDashboard,
+};
+
+export const PARENT_NAV_GROUPS: NavGroup[] = [
+  {
+    key: "Nav.groupChildren",
+    icon: School,
+    items: [
+      { key: "Nav.linkChild", href: "/parent/link", icon: UserPlus },
+    ],
+  },
+  {
+    key: "Nav.groupReports",
+    icon: ChartBar,
+    items: [
+      { key: "Nav.parentReports", href: "/parent/reports", icon: FileText },
+      { key: "Nav.attendance", href: "/parent/attendance", icon: Calendar },
+      { key: "Nav.progress", href: "/parent/progress", icon: BarChart3 },
+    ],
+  },
+  {
+    key: "Nav.groupBilling",
+    icon: Wallet,
+    items: [
+      { key: "Nav.invoicesAndPayments", href: "/parent/finance", icon: Receipt },
+    ],
+  },
+];
+
+/* =============================================================
+ * MARKETER — flat (only 7 items, no grouping needed per RULE A)
+ * ============================================================= */
+
+/* =============================================================
+ * Shared trailing items that appear under every non-admin role
+ * (Messages, Calendar, Notifications, Tickets)
+ * ============================================================= */
+function sharedItemsFor(role: Role): NavItem[] {
+  const items: NavItem[] = [
+    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
+    { key: "Nav.calendar", href: "/calendar", icon: Calendar },
+  ];
+  if (role === "PARENT") {
+    items.push({ key: "Nav.notifications", href: "/settings/notifications", icon: Bell });
+  }
+  if (role === "TEACHER" || role === "STUDENT" || role === "PARENT") {
+    items.push({ key: "Nav.tickets", href: "/tickets", icon: LifeBuoy });
+  }
+  return items;
+}
+
 export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
-  // Admin/super-admin lists are flat fallbacks for legacy isNavActive
-  // callers; the real rendering uses ADMIN_NAV_GROUPS.
+  // Flat fallbacks for legacy isNavActive() callers.
   SUPER_ADMIN: [
     ADMIN_DASHBOARD_ITEM,
     ...ADMIN_NAV_GROUPS.flatMap((g) => g.items),
@@ -155,44 +348,64 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     ),
   ],
   TEACHER: [
-    { key: "Nav.dashboard", href: "/teacher", icon: LayoutDashboard },
-    { key: "Nav.myClasses", href: "/teacher/classes", icon: BookText },
-    { key: "Nav.myStudents", href: "/teacher/students", icon: Users },
-    { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
-    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
-    { key: "Nav.profile", href: "/teacher/profile", icon: UserIcon },
+    TEACHER_DASHBOARD_ITEM,
+    ...TEACHER_NAV_GROUPS.flatMap((g) => g.items),
+    ...sharedItemsFor("TEACHER"),
   ],
   STUDENT: [
-    { key: "Nav.dashboard", href: "/student", icon: LayoutDashboard },
-    { key: "Nav.myClasses", href: "/student/classes", icon: BookText },
-    { key: "Nav.assignments", href: "/student/assignments", icon: BookCheck },
-    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
-    { key: "Nav.myInvoices", href: "/student/billing", icon: Receipt },
+    STUDENT_DASHBOARD_ITEM,
+    ...STUDENT_NAV_GROUPS.flatMap((g) => g.items),
+    ...sharedItemsFor("STUDENT"),
   ],
   PARENT: [
-    { key: "Nav.dashboard", href: "/parent", icon: LayoutDashboard },
-    { key: "Nav.children", href: "/parent/link", icon: School },
-    { key: "Nav.attendance", href: "/parent/attendance", icon: Calendar },
-    { key: "Nav.progress", href: "/parent/progress", icon: BarChart3 },
-    { key: "Nav.finance", href: "/parent/finance", icon: Wallet },
-    { key: "Nav.messages", href: "/messages", icon: MessageSquare },
-    { key: "Nav.settings", href: "/settings/notifications", icon: Settings },
+    PARENT_DASHBOARD_ITEM,
+    ...PARENT_NAV_GROUPS.flatMap((g) => g.items),
+    ...sharedItemsFor("PARENT"),
   ],
   MARKETER: [
     { key: "Nav.marketerDashboard", href: "/marketer", icon: LayoutDashboard },
     { key: "Nav.marketerReferrals", href: "/marketer/referrals", icon: UserPlus },
     { key: "Nav.marketerCommissions", href: "/marketer/commissions", icon: Wallet },
+    { key: "Nav.marketerPayoutRequests", href: "/marketer/payment-requests", icon: PiggyBank },
     { key: "Nav.marketerProfile", href: "/marketer/profile", icon: UserIcon },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.calendar", href: "/calendar", icon: Calendar },
   ],
 };
 
+/** Role → grouped nav (or null if the role uses a flat list). */
+export function groupsForRole(role: Role): {
+  dashboard: NavItem;
+  groups: NavGroup[];
+  trailing: NavItem[];
+} | null {
+  if (role === "TEACHER") {
+    return {
+      dashboard: TEACHER_DASHBOARD_ITEM,
+      groups: TEACHER_NAV_GROUPS,
+      trailing: sharedItemsFor("TEACHER"),
+    };
+  }
+  if (role === "STUDENT") {
+    return {
+      dashboard: STUDENT_DASHBOARD_ITEM,
+      groups: STUDENT_NAV_GROUPS,
+      trailing: sharedItemsFor("STUDENT"),
+    };
+  }
+  if (role === "PARENT") {
+    return {
+      dashboard: PARENT_DASHBOARD_ITEM,
+      groups: PARENT_NAV_GROUPS,
+      trailing: sharedItemsFor("PARENT"),
+    };
+  }
+  return null;
+}
+
 /**
  * Whether `href` is the active nav item for `pathname`.
- *
- * Strips the `/ar` | `/en` locale prefix, then matches a route prefix.
- * Among sibling items, the longest matching href wins.
+ * Strips locale prefix, longest-prefix-wins among siblings.
  */
 export function isNavActive(
   pathname: string,
@@ -208,7 +421,6 @@ export function isNavActive(
   return longer.length === 0;
 }
 
-/** Is any item in this group the active route? */
 function isGroupActive(pathname: string, group: NavGroup, allFlat: NavItem[]): boolean {
   return group.items.some((it) => isNavActive(pathname, it.href, allFlat));
 }
@@ -216,14 +428,14 @@ function isGroupActive(pathname: string, group: NavGroup, allFlat: NavItem[]): b
 const LS_PREFIX = "hajr.nav.";
 
 export function Sidebar({ role }: { role: Role }) {
-  const t = useTranslations();
-  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const isAdminish = role === "SUPER_ADMIN" || role === "ADMIN";
+  const grouped = groupsForRole(role);
 
   if (isAdminish) {
     return (
-      <AdminSidebar
+      <GroupedSidebar
+        kind="admin"
         role={role}
         collapsed={collapsed}
         onToggleCollapse={() => setCollapsed((c) => !c)}
@@ -231,6 +443,38 @@ export function Sidebar({ role }: { role: Role }) {
     );
   }
 
+  if (grouped) {
+    return (
+      <GroupedSidebar
+        kind="role"
+        role={role}
+        collapsed={collapsed}
+        onToggleCollapse={() => setCollapsed((c) => !c)}
+      />
+    );
+  }
+
+  // Marketer (and any future flat role) — flat list.
+  return (
+    <FlatSidebar
+      role={role}
+      collapsed={collapsed}
+      onToggle={() => setCollapsed((c) => !c)}
+    />
+  );
+}
+
+function FlatSidebar({
+  role,
+  collapsed,
+  onToggle,
+}: {
+  role: Role;
+  collapsed: boolean;
+  onToggle: () => void;
+}) {
+  const t = useTranslations();
+  const pathname = usePathname();
   const items = NAV_BY_ROLE[role];
   return (
     <aside
@@ -239,7 +483,7 @@ export function Sidebar({ role }: { role: Role }) {
         collapsed ? "w-16" : "w-60"
       )}
     >
-      <SidebarHeader collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+      <SidebarHeader collapsed={collapsed} onToggle={onToggle} />
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         <ul className="space-y-0.5">
           {items.map((item) => {
@@ -308,31 +552,48 @@ function SidebarFooter({ collapsed, roleLabel }: { collapsed: boolean; roleLabel
   );
 }
 
-/** ─────────────── Admin sidebar with collapsible groups ─────────────── */
-function AdminSidebar({
+/* ─────────── Grouped sidebar (Admin + Teacher/Student/Parent) ─────────── */
+
+function GroupedSidebar({
+  kind,
   role,
   collapsed,
   onToggleCollapse,
 }: {
+  kind: "admin" | "role";
   role: Role;
   collapsed: boolean;
   onToggleCollapse: () => void;
 }) {
   const t = useTranslations();
   const pathname = usePathname();
-  const groups = filterAdminGroups(role);
-  const allFlat = adminFlatItems(role);
 
-  // Per-group open/closed state, persisted in localStorage. A group is
-  // open when LS says "open", OR when the active route lives inside it,
-  // OR (default) when LS is empty for that group.
+  let dashboard: NavItem;
+  let groups: NavGroup[];
+  let trailing: NavItem[] = [];
+
+  if (kind === "admin") {
+    dashboard = ADMIN_DASHBOARD_ITEM;
+    groups = filterAdminGroups(role);
+  } else {
+    const g = groupsForRole(role)!;
+    dashboard = g.dashboard;
+    groups = g.groups;
+    trailing = g.trailing;
+  }
+
+  const allFlat: NavItem[] = [
+    dashboard,
+    ...groups.flatMap((g) => g.items),
+    ...trailing,
+  ];
+
   const [openMap, setOpenMap] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const g of groups) init[g.key] = true;
     return init;
   });
 
-  // Hydrate from localStorage once on mount + auto-open active group.
   useEffect(() => {
     const next: Record<string, boolean> = {};
     for (const g of groups) {
@@ -341,7 +602,7 @@ function AdminSidebar({
       const active = isGroupActive(pathname, g, allFlat);
       if (active) next[g.key] = true;
       else if (stored === "closed") next[g.key] = false;
-      else next[g.key] = true; // default open
+      else next[g.key] = true;
     }
     setOpenMap(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -367,18 +628,10 @@ function AdminSidebar({
       <SidebarHeader collapsed={collapsed} onToggle={onToggleCollapse} />
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
-        {/* Top-level dashboard link (always visible, no group) */}
-        <SidebarLink
-          item={ADMIN_DASHBOARD_ITEM}
-          pathname={pathname}
-          allFlat={allFlat}
-          collapsed={collapsed}
-          t={t}
-        />
+        <SidebarLink item={dashboard} pathname={pathname} allFlat={allFlat} collapsed={collapsed} t={t} />
 
         <div className="mt-2 space-y-1">
           {groups.map((g) => {
-            // Collapsed mode: flatten — just render items with icons.
             if (collapsed) {
               return g.items.map((item) => (
                 <SidebarLink
@@ -433,6 +686,23 @@ function AdminSidebar({
             );
           })}
         </div>
+
+        {trailing.length > 0 && (
+          <div className={cn("mt-3 pt-3", !collapsed && "border-t border-white/10")}>
+            <ul className="space-y-0.5">
+              {trailing.map((item) => (
+                <SidebarLink
+                  key={item.key}
+                  item={item}
+                  pathname={pathname}
+                  allFlat={allFlat}
+                  collapsed={collapsed}
+                  t={t}
+                />
+              ))}
+            </ul>
+          </div>
+        )}
       </nav>
 
       <SidebarFooter collapsed={collapsed} roleLabel={t(("Roles." + role) as any)} />

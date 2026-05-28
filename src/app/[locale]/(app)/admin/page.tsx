@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { fmtRiyadh } from "@/lib/format";
 import { AdminCommandCenter, type DashboardPayload } from "./_components/admin-command-center";
+import { MoatCards } from "@/components/shell/moat-cards";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -368,6 +369,7 @@ export default async function AdminDashboard({
         </p>
       </div>
       <AdminCommandCenter locale={locale} payload={payload} />
+      <MoatCards role="admin" locale={locale} />
     </div>
   );
 }

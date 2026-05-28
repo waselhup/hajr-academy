@@ -8,6 +8,7 @@ import { getChildrenSummary } from "@/lib/parent/children";
 import {
   CalendarDays, BarChart3, CreditCard, MessageSquare, UserPlus, Clock,
 } from "lucide-react";
+import { MoatCards } from "@/components/shell/moat-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -166,6 +167,8 @@ export default async function ParentDashboardPage({
           </Button>
         </CardContent>
       </Card>
+
+      <MoatCards role="parent" locale={locale} />
     </div>
   );
 }

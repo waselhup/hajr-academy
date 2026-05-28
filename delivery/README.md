@@ -163,4 +163,30 @@ npx tsx scripts/capture-manual-screenshots.ts
 
 while the dev server is running on `http://localhost:3000`.
 
+---
+
+## 13 · Navigation
+
+A full audit of the role-scoped information architecture lives at
+[`NAVIGATION-AUDIT.md`](NAVIGATION-AUDIT.md).
+
+Highlights of the 2026-05-28 IA rebuild:
+
+- All 147 page routes now reachable through the sidebar, mobile nav, or
+  dashboard "Explore the platform" cards — **100% coverage** (was ~34%).
+- Admin nav: 7 collapsible groups (People · Academics · Content · Finance ·
+  Comms · Operations · System) covering 36 hubs.
+- Teacher / Student / Parent dashboards each gained role-scoped grouped
+  sidebars (Teaching · Personal, Learning · Achievements · Account,
+  Children · Reports · Billing).
+- Mobile bottom-nav grew from 4 → 5 slots per role so the most-used
+  feature surfaces alongside Messages/Calendar.
+- All new keys exist in both `ar.json` and `en.json` (1841 each).
+
+To re-verify coverage after future nav changes:
+
+```
+node scripts/nav-coverage.cjs
+```
+
 — Hajr A° v2.0 · Built with care.

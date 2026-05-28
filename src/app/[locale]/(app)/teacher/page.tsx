@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
+import { MoatCards } from "@/components/shell/moat-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -128,6 +129,8 @@ export default async function TeacherDashboardPage({
           </div>
         )}
       </div>
+
+      <MoatCards role="teacher" locale={locale} />
     </div>
   );
 }

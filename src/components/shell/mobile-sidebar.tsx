@@ -13,6 +13,7 @@ import {
   isNavActive,
   ADMIN_DASHBOARD_ITEM,
   filterAdminGroups,
+  groupsForRole,
   type NavItem,
   type NavGroup,
 } from "./sidebar";
@@ -21,9 +22,10 @@ const LS_PREFIX = "hajr.nav.";
 
 export function MobileSidebar({ role }: { role: Role }) {
   const [open, setOpen] = useState(false);
-  const t = useTranslations();
   const pathname = usePathname();
+  const t = useTranslations();
   const isAdminish = role === "SUPER_ADMIN" || role === "ADMIN";
+  const grouped = groupsForRole(role);
 
   return (
     <>
@@ -52,7 +54,21 @@ export function MobileSidebar({ role }: { role: Role }) {
               style={{ maxHeight: "calc(100vh - 4rem)" }}
             >
               {isAdminish ? (
-                <AdminMobileNav role={role} pathname={pathname} t={t} onNavigate={() => setOpen(false)} />
+                <GroupedMobileNav
+                  kind="admin"
+                  role={role}
+                  pathname={pathname}
+                  t={t}
+                  onNavigate={() => setOpen(false)}
+                />
+              ) : grouped ? (
+                <GroupedMobileNav
+                  kind="role"
+                  role={role}
+                  pathname={pathname}
+                  t={t}
+                  onNavigate={() => setOpen(false)}
+                />
               ) : (
                 <FlatMobileNav role={role} pathname={pathname} t={t} onNavigate={() => setOpen(false)} />
               )}
@@ -111,19 +127,33 @@ function FlatMobileNav({
   );
 }
 
-function AdminMobileNav({
+function GroupedMobileNav({
+  kind,
   role,
   pathname,
   t,
   onNavigate,
 }: {
+  kind: "admin" | "role";
   role: Role;
   pathname: string;
   t: (k: string) => string;
   onNavigate: () => void;
 }) {
-  const groups = filterAdminGroups(role);
-  const allFlat: NavItem[] = [ADMIN_DASHBOARD_ITEM, ...groups.flatMap((g) => g.items)];
+  let dashboard: NavItem;
+  let groups: NavGroup[];
+  let trailing: NavItem[] = [];
+
+  if (kind === "admin") {
+    dashboard = ADMIN_DASHBOARD_ITEM;
+    groups = filterAdminGroups(role);
+  } else {
+    const g = groupsForRole(role)!;
+    dashboard = g.dashboard;
+    groups = g.groups;
+    trailing = g.trailing;
+  }
+  const allFlat: NavItem[] = [dashboard, ...groups.flatMap((g) => g.items), ...trailing];
 
   const [openMap, setOpenMap] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
@@ -157,7 +187,7 @@ function AdminMobileNav({
 
   return (
     <div>
-      <MobileLink item={ADMIN_DASHBOARD_ITEM} pathname={pathname} allFlat={allFlat} t={t} onNavigate={onNavigate} />
+      <MobileLink item={dashboard} pathname={pathname} allFlat={allFlat} t={t} onNavigate={onNavigate} />
       <div className="mt-2 space-y-1">
         {groups.map((g) => {
           const open = !!openMap[g.key];
@@ -201,6 +231,23 @@ function AdminMobileNav({
           );
         })}
       </div>
+
+      {trailing.length > 0 && (
+        <div className="mt-3 border-t border-white/10 pt-3">
+          <ul className="space-y-0.5">
+            {trailing.map((item) => (
+              <MobileLink
+                key={item.key}
+                item={item}
+                pathname={pathname}
+                allFlat={allFlat}
+                t={t}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 }

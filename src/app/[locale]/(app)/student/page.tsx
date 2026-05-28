@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { getStudentScope } from "@/lib/student/scope";
 import { LiveClassBanner } from "@/components/class/live-class-banner";
 import { StudentHero, type DashboardData } from "./_components/student-hero";
+import { MoatCards } from "@/components/shell/moat-cards";
 
 export const dynamic = "force-dynamic";
 
@@ -297,6 +298,7 @@ export default async function StudentDashboardPage({
         <LiveClassBanner userId={session.user.id} classIds={scope.classIds} />
       )}
       <StudentHero locale={locale} data={data} />
+      <MoatCards role="student" locale={locale} />
     </div>
   );
 }
