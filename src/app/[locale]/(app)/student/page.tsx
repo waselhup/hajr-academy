@@ -6,6 +6,7 @@ import { getStudentScope } from "@/lib/student/scope";
 import { LiveClassBanner } from "@/components/class/live-class-banner";
 import { StudentHero, type DashboardData } from "./_components/student-hero";
 import { MoatCards } from "@/components/shell/moat-cards";
+import { GamificationCard } from "@/components/gamification/gamification-card";
 
 export const dynamic = "force-dynamic";
 
@@ -297,6 +298,7 @@ export default async function StudentDashboardPage({
       {scope && (
         <LiveClassBanner userId={session.user.id} classIds={scope.classIds} />
       )}
+      <GamificationCard />
       <StudentHero locale={locale} data={data} />
       <MoatCards role="student" locale={locale} />
     </div>

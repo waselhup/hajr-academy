@@ -209,6 +209,23 @@ async function handleMeetingEnded(meetingId: string) {
   // Async AI lesson summary — failure-isolated, doesn't block the webhook.
   enqueueLessonSummary(cs.id);
 
+  // Sprint 7B: award class-attended XP to every present/late student.
+  // Best-effort; isolated from the rest of the webhook.
+  try {
+    const { awardXp } = await import("@/lib/gamification/xp");
+    const attended = await prisma.attendance.findMany({
+      where: { sessionId: cs.id, status: { in: ["PRESENT", "LATE"] } },
+      select: { studentId: true },
+    });
+    for (const a of attended) {
+      awardXp({
+        studentId: a.studentId,
+        reason: "class_attended",
+        points: 10,
+      }).catch(() => {});
+    }
+  } catch {}
+
   // Broadcast session_ended so live banners auto-dismiss + the admin
   // monitor refreshes. Best-effort.
   try {

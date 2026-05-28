@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import type { InvoiceLineItem } from "@/lib/finance/invoice-pdf";
 import { PayInvoiceClient } from "@/app/[locale]/(app)/student/billing/pay/[invoiceId]/pay-client";
+import { ParentRatingCard } from "@/components/ratings/parent-rating-card";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,7 @@ export default async function ParentPayInvoicePage({
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <h1 className="text-2xl font-bold">{t("payInvoice")}</h1>
+      <ParentRatingCard childId={invoice.studentId} />
       <PayInvoiceClient
         invoice={{
           id: invoice.id,

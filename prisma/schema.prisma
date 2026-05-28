@@ -1651,20 +1651,35 @@ model TeacherMeetingAttendee {
 }
 
 model TeacherRating {
-  id         String         @id @default(uuid())
-  teacherId  String
-  teacher    TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  raterId    String
-  rater      User           @relation(fields: [raterId], references: [id], onDelete: Cascade)
-  raterRole  Role
-  sessionId  String?
-  rating     Int
-  comment    String?        @db.Text
-  isApproved Boolean        @default(true)
-  createdAt  DateTime       @default(now())
+  id                    String              @id @default(uuid())
+  teacherId             String
+  teacher               TeacherProfile      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  raterId               String
+  rater                 User                @relation(fields: [raterId], references: [id], onDelete: Cascade)
+  raterRole             Role
+  sessionId             String?
+  rating                Int
+  comment               String?             @db.Text
+  isApproved            Boolean             @default(true)
+  createdAt             DateTime            @default(now())
+
+  // Sprint 7B — rating system extensions
+  kind                  TeacherRatingKind   @default(POST_SESSION)
+  studentNoteForParent  String?             @db.Text
+  improved              String?
+  month                 Int?
+  year                  Int?
 
   @@index([teacherId, createdAt])
+  @@index([kind, createdAt])
   @@unique([teacherId, raterId, sessionId])
+  @@unique([teacherId, raterId, kind, year, month], name: "teacherRating_monthly_uniq")
+}
+
+enum TeacherRatingKind {
+  POST_SESSION
+  MONTHLY
+  PARENT_MONTHLY
 }
 
 // ─────────────────────── SPRINT 4 — RETENTION & TRUST ───────────────────────
@@ -2007,4 +2022,63 @@ model PageVisit {
   @@index([userId, enteredAt])
   @@index([route, enteredAt])
   @@index([sessionId])
+}
+
+// ─────────────────────── SPRINT 7B — GAMIFICATION ───────────────────────
+
+enum AgeTier {
+  TIER_1_3
+  TIER_4_6
+  MIDDLE
+  HIGH
+}
+
+model StudentGamification {
+  id              String   @id @default(uuid())
+  studentId       String   @unique
+  xp              Int      @default(0)
+  level           Int      @default(1)
+  streakDays      Int      @default(0)
+  lastActiveDate  DateTime @default(now())
+  ageTier         AgeTier  @default(MIDDLE)
+  avatarFrame     String   @default("none")
+  title           String   @default("")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  achievements    StudentAchievement[]
+
+  @@index([xp])
+  @@index([level])
+}
+
+model Achievement {
+  id            String  @id @default(uuid())
+  key           String  @unique
+  nameAr        String
+  nameEn        String
+  descriptionAr String  @db.Text
+  descriptionEn String  @db.Text
+  iconKey       String
+  xpReward      Int     @default(10)
+  ageTier       AgeTier?
+  category      String
+  isActive      Boolean @default(true)
+  createdAt     DateTime @default(now())
+
+  earned        StudentAchievement[]
+}
+
+model StudentAchievement {
+  id             String              @id @default(uuid())
+  studentId      String
+  gamification   StudentGamification @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  achievementId  String
+  achievement    Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt       DateTime            @default(now())
+  isClaimed      Boolean             @default(false)
+  claimedAt      DateTime?
+
+  @@unique([studentId, achievementId])
+  @@index([studentId, earnedAt])
 }

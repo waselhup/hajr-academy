@@ -173,6 +173,16 @@ export async function POST(
       },
     });
 
+    // Sprint 7B: award XP for the completed lab attempt (best-effort)
+    try {
+      const { awardXp } = await import("@/lib/gamification/xp");
+      await awardXp({
+        studentId: student.id,
+        reason: "lab_exercise_passed",
+        points: Math.max(0, Math.round(pointsEarned)),
+      });
+    } catch {}
+
     // Phase 7: notify the student that their feedback is ready.
     try {
       const { triggerLabFeedbackReady } = await import("@/lib/comms/triggers");

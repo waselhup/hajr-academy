@@ -1,14 +1,12 @@
 /**
- * Pure XP & level engine for student gamification (Sprint 7B).
+ * XP & level engine + auto-unlock check.
  *
- * In Commit A this module exposes only the headers needed by other Sprint 7A
- * hooks (library progress, classroom completion). The full implementation —
- * StudentGamification model writes, achievement unlock loop, level-up notify —
- * lands in Sprint 7B alongside the gamification schema.
+ * All public functions are best-effort: callers MUST never block on these.
  *
- * All public functions are best-effort: callers MUST never block on XP.
+ * Level formula: level = floor(sqrt(xp / 100)) + 1
  */
 import { prisma } from "@/lib/prisma";
+import type { AgeTier } from "@prisma/client";
 
 export interface AwardParams {
   studentId: string;
@@ -16,7 +14,6 @@ export interface AwardParams {
   points: number;
 }
 
-/** XP → Level: floor(sqrt(xp / 100)) + 1 */
 export function levelFromXp(xp: number): number {
   if (xp <= 0) return 1;
   return Math.floor(Math.sqrt(xp / 100)) + 1;
@@ -39,32 +36,142 @@ export function xpProgressInLevel(xp: number): { pct: number; current: number; n
   };
 }
 
+export function computeAgeTier(
+  birthDate: Date | null,
+  gradeLevel: string | null
+): AgeTier {
+  if (gradeLevel) {
+    const num = parseInt(gradeLevel, 10);
+    if (!isNaN(num)) {
+      if (num >= 1 && num <= 3) return "TIER_1_3";
+      if (num >= 4 && num <= 6) return "TIER_4_6";
+      if (num >= 7 && num <= 9) return "MIDDLE";
+      if (num >= 10 && num <= 12) return "HIGH";
+    }
+  }
+  if (birthDate) {
+    const age = (Date.now() - birthDate.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (age < 10) return "TIER_1_3";
+    if (age < 13) return "TIER_4_6";
+    if (age < 16) return "MIDDLE";
+    return "HIGH";
+  }
+  return "MIDDLE";
+}
+
 /**
- * Best-effort XP award. No-op when StudentGamification model is not yet
- * present (Commit A). Sprint 7B will replace this with the real writer.
+ * Award XP. Updates StudentGamification.
+ * Also updates streakDays and re-checks any "first X" achievements.
+ *
+ * Returns the updated row, or null on any error (best-effort).
  */
 export async function awardXp(params: AwardParams): Promise<void> {
+  if (params.points <= 0) return;
   try {
-    // Avoid blowing up before the Sprint 7B migration lands.
-    const client = prisma as unknown as {
-      studentGamification?: {
-        upsert: (args: unknown) => Promise<unknown>;
-      };
-    };
-    if (!client.studentGamification) return;
-    await client.studentGamification.upsert({
-      where: { studentId: params.studentId } as never,
+    const sp = await prisma.studentProfile.findUnique({
+      where: { id: params.studentId },
+      select: { id: true, birthDate: true, gradeLevel: true },
+    });
+    if (!sp) return;
+    const ageTier = computeAgeTier(sp.birthDate, sp.gradeLevel);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await prisma.studentGamification.findUnique({
+      where: { studentId: params.studentId },
+    });
+
+    let newStreak = existing?.streakDays ?? 0;
+    let streakBonus = 0;
+    if (existing) {
+      const last = new Date(existing.lastActiveDate);
+      last.setHours(0, 0, 0, 0);
+      const dayMs = 86400_000;
+      const diffDays = Math.round((today.getTime() - last.getTime()) / dayMs);
+      if (diffDays === 0) {
+        // same day — keep streak
+      } else if (diffDays === 1) {
+        newStreak += 1;
+        if (newStreak % 7 === 0) streakBonus = 20;
+      } else {
+        newStreak = 1; // reset
+      }
+    } else {
+      newStreak = 1;
+    }
+
+    const totalPoints = Math.round(params.points + streakBonus);
+    const next = await prisma.studentGamification.upsert({
+      where: { studentId: params.studentId },
       create: {
         studentId: params.studentId,
-        xp: Math.max(0, Math.round(params.points)),
+        xp: totalPoints,
+        level: levelFromXp(totalPoints),
+        streakDays: newStreak,
         lastActiveDate: new Date(),
-      } as never,
+        ageTier,
+      },
       update: {
-        xp: { increment: Math.max(0, Math.round(params.points)) },
+        xp: { increment: totalPoints },
+        streakDays: newStreak,
         lastActiveDate: new Date(),
-      } as never,
+        ageTier,
+      },
     });
+
+    // Refresh level based on new total
+    const fresh = await prisma.studentGamification.findUnique({
+      where: { studentId: params.studentId },
+    });
+    if (fresh && fresh.level !== levelFromXp(fresh.xp)) {
+      await prisma.studentGamification.update({
+        where: { studentId: params.studentId },
+        data: { level: levelFromXp(fresh.xp) },
+      });
+    }
+
+    // Best-effort achievement check
+    await maybeUnlockAchievements(params.studentId, params.reason).catch(() => {});
   } catch {
     // best-effort
+  }
+}
+
+async function maybeUnlockAchievements(studentId: string, reason: string) {
+  const REASON_TO_KEYS: Record<string, string[]> = {
+    first_login: ["first_login"],
+    class_attended: ["first_class"],
+    homework_done: ["first_homework"],
+    library_item_completed: ["first_library_item"],
+    library_exercise_passed: [],
+    step_module_passed: ["first_step_module"],
+    monthly_billing: ["month_one_complete"],
+  };
+  const candidateKeys = REASON_TO_KEYS[reason] ?? [];
+  if (candidateKeys.length === 0) return;
+
+  for (const key of candidateKeys) {
+    try {
+      const ach = await prisma.achievement.findUnique({ where: { key } });
+      if (!ach || !ach.isActive) continue;
+      const alreadyEarned = await prisma.studentAchievement.findUnique({
+        where: { studentId_achievementId: { studentId, achievementId: ach.id } },
+      });
+      if (alreadyEarned) continue;
+      await prisma.studentAchievement.create({
+        data: { studentId, achievementId: ach.id },
+      });
+      if (ach.xpReward > 0) {
+        await prisma.studentGamification
+          .update({
+            where: { studentId },
+            data: { xp: { increment: ach.xpReward } },
+          })
+          .catch(() => {});
+      }
+    } catch {
+      // skip
+    }
   }
 }
