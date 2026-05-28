@@ -266,7 +266,6 @@ export const STUDENT_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.labStudent", href: "/student/lab", icon: FlaskConical },
       { key: "Nav.libraryHub", href: "/student/library", icon: Library },
       { key: "Nav.studentExams", href: "/student/exams", icon: ClipboardCheck },
-      { key: "Nav.studentStep", href: "/student/step", icon: Bookmark },
       { key: "Nav.speakingClub", href: "/student/speaking-club", icon: Mic },
       { key: "Nav.privateLessons", href: "/student/private-lessons", icon: Headphones },
     ],

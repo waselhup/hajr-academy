@@ -27,6 +27,25 @@ const nextConfig = {
    * Scoped to `/:locale/classroom/...` only — applying these headers
    * site-wide would risk other pages' third-party resources.
    */
+  /**
+   * /student/step was a Phase-6 stub. The page is now folded into
+   * /student/exams as a STEP tab. Redirect old bookmarks (with and without
+   * a locale prefix) so external links keep working.
+   */
+  async redirects() {
+    return [
+      {
+        source: "/:locale(ar|en)/student/step",
+        destination: "/:locale/student/exams?tab=STEP",
+        permanent: true,
+      },
+      {
+        source: "/student/step",
+        destination: "/student/exams?tab=STEP",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

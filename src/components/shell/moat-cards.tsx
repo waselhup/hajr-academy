@@ -10,7 +10,7 @@ import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   BookCheck, Package, Palette, ShieldCheck, FileText, ChartBar,
-  FlaskConical, ClipboardCheck, Bookmark, Mic, Headphones, Award,
+  FlaskConical, ClipboardCheck, Mic, Headphones, Award,
   BarChart3, Wallet, ShieldQuestion, Globe, CalendarCheck, PiggyBank,
   Receipt, UserPlus, Radio, Video, Bot, ArrowRight, type LucideIcon,
 } from "lucide-react";
@@ -42,7 +42,6 @@ const TEACHER_CARDS: MoatCard[] = [
 const STUDENT_CARDS: MoatCard[] = [
   { key: "Nav.labStudent",          href: "/student/lab",             icon: FlaskConical,    blurb: "Moat.labBlurb" },
   { key: "Nav.studentExams",        href: "/student/exams",           icon: ClipboardCheck,  blurb: "Moat.examsBlurb" },
-  { key: "Nav.studentStep",         href: "/student/step",            icon: Bookmark,        blurb: "Moat.stepBlurb" },
   { key: "Nav.studentCertificates", href: "/student/certificates",    icon: Award,           blurb: "Moat.certificatesBlurb" },
   { key: "Nav.speakingClub",        href: "/student/speaking-club",   icon: Mic,             blurb: "Moat.speakingClubBlurb" },
   { key: "Nav.privateLessons",      href: "/student/private-lessons", icon: Headphones,      blurb: "Moat.privateLessonsBlurb" },
