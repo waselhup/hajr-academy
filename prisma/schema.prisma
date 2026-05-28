@@ -1849,3 +1849,162 @@ model BrandKitAsset {
 
   @@index([category, sortOrder])
 }
+
+// ─────────────────────── SPRINT 7A — LIBRARY ───────────────────────
+
+enum LibraryItemType {
+  ARTICLE
+  VIDEO
+  EXERCISE
+  AUDIO
+  PDF
+}
+
+enum LibrarySkillLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+  ALL
+}
+
+enum LibraryAgeTier {
+  TIER_1_3
+  TIER_4_6
+  MIDDLE
+  HIGH
+  ALL
+}
+
+enum LibraryProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model LibraryItem {
+  id               String                @id @default(uuid())
+  title            String
+  titleAr          String
+  description      String?               @db.Text
+  descriptionAr    String?               @db.Text
+  type             LibraryItemType
+  skillLevel       LibrarySkillLevel     @default(ALL)
+  targetAgeTier    LibraryAgeTier        @default(ALL)
+  contentUrl       String?
+  contentHtml      String?               @db.Text
+  durationMinutes  Int                   @default(5)
+  thumbnailUrl     String?
+  authorId         String?
+  isPublished      Boolean               @default(false)
+  publishedAt      DateTime?
+  viewCount        Int                   @default(0)
+  exerciseData     Json?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  tags             LibraryItemTag[]
+  progress         LibraryProgress[]
+  exerciseAttempts LibraryExerciseAttempt[]
+
+  @@index([type, isPublished])
+  @@index([targetAgeTier, skillLevel])
+  @@index([authorId])
+}
+
+model LibraryItemTag {
+  id     String      @id @default(uuid())
+  itemId String
+  item   LibraryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  tag    String
+
+  @@unique([itemId, tag])
+  @@index([tag])
+}
+
+model LibraryProgress {
+  id            String                @id @default(uuid())
+  studentId     String
+  libraryItemId String
+  libraryItem   LibraryItem           @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+  status        LibraryProgressStatus @default(NOT_STARTED)
+  progressPct   Int                   @default(0)
+  timeSpentSec  Int                   @default(0)
+  lastAccessAt  DateTime              @default(now())
+  completedAt   DateTime?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@unique([studentId, libraryItemId])
+  @@index([studentId, status])
+}
+
+model LibraryExerciseAttempt {
+  id            String      @id @default(uuid())
+  libraryItemId String
+  libraryItem   LibraryItem @relation(fields: [libraryItemId], references: [id], onDelete: Cascade)
+  studentId     String
+  score         Int         @default(0)
+  answersJson   Json
+  completedAt   DateTime    @default(now())
+
+  @@index([studentId, completedAt])
+  @@index([libraryItemId])
+}
+
+// ─────────────────────── SPRINT 7A — TECH CHECK ───────────────────────
+
+model TechCheck {
+  id                 String   @id @default(uuid())
+  teacherId          String
+  sessionId          String?
+  downloadMbps       Decimal  @db.Decimal(6, 2)
+  uploadMbps         Decimal  @db.Decimal(6, 2)
+  latencyMs          Int
+  audioPeakDb        Decimal  @db.Decimal(5, 2)
+  cameraOk           Boolean
+  micOk              Boolean
+  score              Int
+  passed             Boolean
+  failureReasons     String[]
+  createdAt          DateTime @default(now())
+
+  @@index([teacherId, createdAt])
+  @@index([passed, createdAt])
+}
+
+// ─────────────────────── SPRINT 7A — ACTIVITY ANALYTICS ───────────────────────
+
+model UserSession {
+  id             String     @id @default(uuid())
+  userId         String
+  role           Role
+  startedAt      DateTime   @default(now())
+  endedAt        DateTime?
+  ipHash         String?
+  userAgentHash  String?
+  durationSec    Int        @default(0)
+
+  pageVisits     PageVisit[]
+
+  @@index([userId, startedAt])
+  @@index([startedAt])
+  @@index([endedAt])
+}
+
+model PageVisit {
+  id           String       @id @default(uuid())
+  userId       String
+  sessionId    String?
+  session      UserSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  route        String
+  enteredAt    DateTime     @default(now())
+  leftAt       DateTime?
+  durationSec  Int          @default(0)
+
+  @@index([userId, enteredAt])
+  @@index([route, enteredAt])
+  @@index([sessionId])
+}

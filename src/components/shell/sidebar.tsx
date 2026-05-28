@@ -58,6 +58,11 @@ import {
   ChartBar,
   ShieldAlert,
   Globe,
+  Library,
+  Wifi,
+  Gauge,
+  Trophy,
+  Star,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HajrLogo } from "@/components/brand/logo";
@@ -122,6 +127,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.labHub", href: "/admin/lab", icon: FlaskConical },
       { key: "Nav.stepBank", href: "/admin/step-bank", icon: Bookmark },
       { key: "Nav.blackboards", href: "/admin/blackboards", icon: Palette },
+      { key: "Nav.libraryHub", href: "/admin/library", icon: Library },
       { key: "Nav.certificates", href: "/admin/certificates", icon: Award },
     ],
   },
@@ -160,6 +166,9 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.validation", href: "/admin/validation", icon: ShieldCheck },
       { key: "Nav.manuals", href: "/admin/manuals", icon: BookCheck },
       { key: "Nav.brandKit", href: "/admin/brand-kit", icon: Palette },
+      { key: "Nav.techChecks", href: "/admin/tech-checks", icon: Wifi },
+      { key: "Nav.analytics", href: "/admin/analytics", icon: Gauge },
+      { key: "Nav.ratingsHub", href: "/admin/ratings", icon: Star },
     ],
   },
   {
@@ -218,9 +227,11 @@ export const TEACHER_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },
       { key: "Nav.attendance", href: "/teacher/attendance", icon: ClipboardList },
       { key: "Nav.labTeacher", href: "/teacher/lab", icon: FlaskConical },
+      { key: "Nav.libraryHub", href: "/teacher/library", icon: Library },
       { key: "Nav.blackboard", href: "/teacher/blackboard", icon: Palette },
       { key: "Nav.privateLessons", href: "/teacher/private-lessons", icon: Headphones },
       { key: "Nav.meetings", href: "/teacher/meetings", icon: CalendarCheck },
+      { key: "Nav.techCheck", href: "/teacher/tech-check", icon: Wifi },
     ],
   },
   {
@@ -253,6 +264,7 @@ export const STUDENT_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.myClasses", href: "/student/classes", icon: BookText },
       { key: "Nav.assignments", href: "/student/assignments", icon: BookCheck },
       { key: "Nav.labStudent", href: "/student/lab", icon: FlaskConical },
+      { key: "Nav.libraryHub", href: "/student/library", icon: Library },
       { key: "Nav.studentExams", href: "/student/exams", icon: ClipboardCheck },
       { key: "Nav.studentStep", href: "/student/step", icon: Bookmark },
       { key: "Nav.speakingClub", href: "/student/speaking-club", icon: Mic },
@@ -265,6 +277,7 @@ export const STUDENT_NAV_GROUPS: NavGroup[] = [
     items: [
       { key: "Nav.progress", href: "/student/progress", icon: BarChart3 },
       { key: "Nav.studentCertificates", href: "/student/certificates", icon: Award },
+      { key: "Nav.achievements", href: "/student/achievements", icon: Trophy },
     ],
   },
   {

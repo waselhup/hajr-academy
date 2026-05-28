@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
 import { MoatCards } from "@/components/shell/moat-cards";
+import { TechCheckBanner } from "@/components/teacher/tech-check-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -69,6 +70,8 @@ export default async function TeacherDashboardPage({
         </h1>
         <Badge variant="info">{t("Roles.TEACHER")}</Badge>
       </div>
+
+      <TechCheckBanner locale={locale} userId={session.user.id} />
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>

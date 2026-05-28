@@ -12,11 +12,13 @@
 import { prisma } from "@/lib/prisma";
 import { triggerClassReminder, triggerPaymentOverdue } from "./triggers";
 import { runFinanceTick, type FinanceCronSummary } from "@/lib/finance/cron";
+import { endStaleSessions } from "@/lib/analytics/sessions";
 
 export interface CronSummary {
   classReminders: number;
   overdueReminders: number;
   finance: FinanceCronSummary;
+  staleSessionsClosed: number;
   errors: string[];
 }
 
@@ -33,6 +35,7 @@ export async function runCommsTick(): Promise<CronSummary> {
       renewalReminders: 0,
       errors: [],
     },
+    staleSessionsClosed: 0,
     errors: [],
   };
 
@@ -102,6 +105,15 @@ export async function runCommsTick(): Promise<CronSummary> {
   } catch (e) {
     summary.errors.push(
       `finance tick: ${e instanceof Error ? e.message : "failed"}`
+    );
+  }
+
+  // ── Sprint 7 analytics: close UserSessions idle > 30 min ──
+  try {
+    summary.staleSessionsClosed = await endStaleSessions();
+  } catch (e) {
+    summary.errors.push(
+      `session sweep: ${e instanceof Error ? e.message : "failed"}`
     );
   }
 

@@ -7,6 +7,7 @@ import { SessionProvider } from "@/components/providers/session-provider";
 import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
 import AdminChatPanel from "@/components/admin/AdminChatPanel";
 import HajrChatPanel from "@/components/shared/HajrChatPanel";
+import { PageVisitTracker } from "@/components/analytics/page-visit-tracker";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -30,6 +31,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </div>
       </div>
       <MobileBottomNav role={session.user.role} />
+      <PageVisitTracker />
       {isAdmin ? (
         <>
           <AdminCommandPalette />

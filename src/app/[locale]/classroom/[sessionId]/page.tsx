@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { resolveClassroomAccess } from "@/lib/classroom";
 import { logAudit } from "@/lib/audit";
+import { hasValidTechCheck } from "@/lib/teacher/tech-check-gate";
 import { ClassroomClient } from "./classroom-client";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,17 @@ export default async function ClassroomPage({
   }
 
   const s = access.session!;
+
+  // Tech check gate — teachers only. Block entry unless they have a passing
+  // check in the last 4 hours.
+  if (session.user.role === "TEACHER") {
+    const ok = await hasValidTechCheck(session.user.id);
+    if (!ok) {
+      const target = `/${locale}/classroom/${sessionId}`;
+      redirect(`/${locale}/teacher/tech-check?return=${encodeURIComponent(target)}`);
+    }
+  }
+
   if (!s.meetingId) {
     // Meeting not created yet — host must Start Class first.
     return (
