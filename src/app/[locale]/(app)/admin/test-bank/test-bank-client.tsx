@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations } from "next-intl";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,18 +23,49 @@ interface Question {
 
 const SECTIONS = ["READING", "LISTENING", "GRAMMAR", "VOCABULARY", "WRITING"];
 
-export function TestBankClient() {
+type TestTypeFilter = "" | "STEP" | "IELTS_PRACTICE" | "TOEFL_PRACTICE";
+
+const TYPE_OPTIONS: { value: TestTypeFilter; labelKey: string }[] = [
+  { value: "", labelKey: "tabAll" },
+  { value: "STEP", labelKey: "tabStep" },
+  { value: "IELTS_PRACTICE", labelKey: "tabIelts" },
+  { value: "TOEFL_PRACTICE", labelKey: "tabToefl" },
+];
+
+export function TestBankClient({
+  initialType = "",
+}: {
+  initialType?: TestTypeFilter;
+}) {
   const t = useTranslations("Exam");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [section, setSection] = useState("");
+  const [testType, setTestType] = useState<TestTypeFilter>(initialType);
   const [q, setQ] = useState("");
   const [difficultOnly, setDifficultOnly] = useState(false);
   const [importResult, setImportResult] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // Keep ?type= in the URL in sync with state so the filter survives
+  // refresh and back/forward.
+  useEffect(() => {
+    const sp = new URLSearchParams(searchParams?.toString() ?? "");
+    if (testType) sp.set("type", testType);
+    else sp.delete("type");
+    const next = sp.toString();
+    const current = searchParams?.toString() ?? "";
+    if (next !== current) {
+      router.replace(next ? `${pathname}?${next}` : pathname, { scroll: false });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [testType]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -41,6 +73,7 @@ export function TestBankClient() {
       const sp = new URLSearchParams();
       sp.set("page", String(page));
       if (section) sp.set("section", section);
+      if (testType) sp.set("type", testType);
       if (q) sp.set("q", q);
       if (difficultOnly) sp.set("difficult", "1");
       const res = await fetch(`/api/admin/test-bank/questions?${sp}`);
@@ -52,7 +85,7 @@ export function TestBankClient() {
     } finally {
       setLoading(false);
     }
-  }, [page, section, q, difficultOnly]);
+  }, [page, section, testType, q, difficultOnly]);
 
   useEffect(() => {
     load();
@@ -98,6 +131,21 @@ export function TestBankClient() {
           }}
           className="max-w-xs"
         />
+        <select
+          value={testType}
+          onChange={(e) => {
+            setPage(1);
+            setTestType(e.target.value as TestTypeFilter);
+          }}
+          className="rounded-md border p-2 text-sm"
+          aria-label="Test type"
+        >
+          {TYPE_OPTIONS.map((opt) => (
+            <option key={opt.value || "all"} value={opt.value}>
+              {t(opt.labelKey)}
+            </option>
+          ))}
+        </select>
         <select
           value={section}
           onChange={(e) => {

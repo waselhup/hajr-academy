@@ -46,7 +46,6 @@ import {
   Sparkles,
   CalendarCheck,
   PiggyBank,
-  Bookmark,
   Languages,
   Bell,
   CreditCard,
@@ -125,7 +124,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.testBank", href: "/admin/test-bank", icon: BookOpen },
       { key: "Nav.mockExams", href: "/admin/exams", icon: ClipboardCheck },
       { key: "Nav.labHub", href: "/admin/lab", icon: FlaskConical },
-      { key: "Nav.stepBank", href: "/admin/step-bank", icon: Bookmark },
       { key: "Nav.blackboards", href: "/admin/blackboards", icon: Palette },
       { key: "Nav.libraryHub", href: "/admin/library", icon: Library },
       { key: "Nav.certificates", href: "/admin/certificates", icon: Award },
@@ -184,7 +182,9 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.qaNotifications", href: "/admin/qa/notifications", icon: Bell, superAdminOnly: true },
       { key: "Nav.qaAuditLog", href: "/admin/qa/audit-log", icon: ShieldAlert, superAdminOnly: true },
       { key: "Nav.auditLog", href: "/admin/audit-log", icon: ShieldCheck, superAdminOnly: true },
-      { key: "Nav.settings", href: "/admin/settings", icon: Settings, superAdminOnly: true },
+      // Nav.settings entry hidden until SystemSettings backend ships (v2.1).
+      // The page file at /admin/settings is intentionally kept reachable
+      // by URL so this slot can flip back on without route churn.
     ],
   },
 ];

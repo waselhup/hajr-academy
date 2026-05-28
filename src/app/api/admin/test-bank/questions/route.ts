@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 const SECTIONS = ["READING", "LISTENING", "GRAMMAR", "VOCABULARY", "WRITING", "SPEAKING"];
+const TEST_TYPES = ["STEP", "IELTS_PRACTICE", "TOEFL_PRACTICE"];
 const PAGE_SIZE = 50;
 
 /**
@@ -28,6 +29,7 @@ export async function GET(req: NextRequest) {
     const sp = req.nextUrl.searchParams;
     const page = Math.max(1, parseInt(sp.get("page") ?? "1", 10));
     const section = sp.get("section");
+    const testType = sp.get("type");
     const difficulty = sp.get("difficulty");
     const topic = sp.get("topic");
     const q = (sp.get("q") ?? "").trim();
@@ -36,6 +38,9 @@ export async function GET(req: NextRequest) {
     const where: Prisma.TestQuestionWhereInput = {};
     if (section && SECTIONS.includes(section)) {
       where.section = section as Prisma.TestQuestionWhereInput["section"];
+    }
+    if (testType && TEST_TYPES.includes(testType)) {
+      where.testType = testType as Prisma.TestQuestionWhereInput["testType"];
     }
     if (difficulty) {
       const d = parseInt(difficulty, 10);

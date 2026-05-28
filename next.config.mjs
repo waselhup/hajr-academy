@@ -34,6 +34,8 @@ const nextConfig = {
    */
   async redirects() {
     return [
+      // /student/step was a Phase-6 stub. The page is now folded into
+      // /student/exams as a STEP tab.
       {
         source: "/:locale(ar|en)/student/step",
         destination: "/:locale/student/exams?tab=STEP",
@@ -42,6 +44,18 @@ const nextConfig = {
       {
         source: "/student/step",
         destination: "/student/exams?tab=STEP",
+        permanent: true,
+      },
+      // /admin/step-bank was a Phase-6 stub. The same TestQuestion table
+      // already backs /admin/test-bank — STEP rows surface as a filter.
+      {
+        source: "/:locale(ar|en)/admin/step-bank",
+        destination: "/:locale/admin/test-bank?type=STEP",
+        permanent: true,
+      },
+      {
+        source: "/admin/step-bank",
+        destination: "/admin/test-bank?type=STEP",
         permanent: true,
       },
     ];
