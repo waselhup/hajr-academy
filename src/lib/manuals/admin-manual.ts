@@ -234,8 +234,22 @@ function adminChapters(lang: Lang): ManualChapter[] {
         {
           title: ar ? "إنشاء برنامج" : "Creating a program",
           body: ar
-            ? `<p>البرنامج هو الإطار العلوي (مثل "STEP المكثف" أو "محادثة A1"). من <b>البرامج → + جديد</b> أدخل الاسم، الوصف، المدة المتوقعة بالأسابيع، والمستوى المستهدف.</p>`
-            : `<p>A program is the top-level container (e.g. "STEP Intensive" or "Conversation A1"). From <b>Programs → + New</b> enter the name, description, expected duration in weeks, and target level.</p>`,
+            ? `<p>البرنامج هو الإطار العلوي (مثل "STEP المكثف" أو "محادثة الأطفال"). من <b>البرامج → برنامج جديد</b> أدخل:</p>
+            <ul>
+              <li><b>الرمز</b> — معرّف فريد بحروف إنجليزية كبيرة (مثل <code>KIDS_ENGLISH</code>). يُستخدم تلقائياً في رموز المجموعات.</li>
+              <li><b>النوع</b> — مجموعة / فردي / مدارس (B2B) / تعلّم ذاتي</li>
+              <li>الاسم والوصف بالعربية والإنجليزية</li>
+              <li>السعر الافتراضي بالريال، والمدة بالساعات (اختياري)</li>
+            </ul>
+            <p>بعد الإنشاء يظهر البرنامج كبطاقة، وتقدر تعدّله أو تفعّله/توقفه من المفتاح. لا يمكن تكرار نفس الرمز.</p>`
+            : `<p>A program is the top-level container (e.g. "STEP Intensive" or "Kids English"). From <b>Programs → New program</b> enter:</p>
+            <ul>
+              <li><b>Code</b> — a unique uppercase identifier (e.g. <code>KIDS_ENGLISH</code>). Used automatically in cohort codes.</li>
+              <li><b>Type</b> — Group / Private / School (B2B) / Self-study</li>
+              <li>Name and description in Arabic and English</li>
+              <li>Default price in SAR, and duration in hours (optional)</li>
+            </ul>
+            <p>After creating, the program shows as a card you can edit or toggle active/inactive. Codes must be unique.</p>`,
         },
         {
           title: ar ? "إنشاء فصل + مجموعة" : "Creating a class + cohort",
@@ -282,6 +296,32 @@ function adminChapters(lang: Lang): ManualChapter[] {
       number: 4,
       title: ar ? "المالية" : "Finance",
       sections: [
+        {
+          title: ar ? "طلبات الشراء (من الصفحة الرئيسية)" : "Purchase orders (from the landing page)",
+          body: ar
+            ? `<p>عندما يشتري عميل باقة من الصفحة الرئيسية، يصلك طلب جديد في <b>المالية → طلبات الشراء</b> (<code>/admin/orders</code>) ويصلك إشعار فوري. الطلب يحتوي: اسم الطالب، رقم الجوال، البريد (إن وُجد)، الباقة، والمبلغ، مع حالة الدفع.</p>
+            <p><b>لتجهيز الطالب من الطلب:</b></p>
+            <ol>
+              <li>افتح <b>طلبات الشراء</b> واضغط <b>إنشاء طالب</b> على الطلب الجديد</li>
+              <li>أكمل/أكّد البيانات: الاسم، <b>البريد الإلكتروني (إلزامي لإنشاء الدخول)</b>، الجنس، المستوى، المدرسة (اختياري)</li>
+              <li>اختياري: عيّن الطالب في فصل مباشرةً (يتحقق النظام من السعة والجنس)</li>
+              <li>اضغط <b>إنشاء الحساب</b> — يُنشأ حساب الطالب بكلمة مرور افتراضية (<code>Hajr@2026</code>)، ويصله إشعار ترحيب، وتتحدّث حالة الطلب</li>
+            </ol>
+            <p>العميل يكون قد رأى صفحة ترحيب تخبره أن معلومات الدخول ستصله خلال ٢٤ ساعة وأن فريق هجر سيتواصل معه — فمهمتك إكمال التجهيز خلال هذه المدة.</p>`
+            : `<p>When a customer buys a package on the landing page, a new order arrives in <b>Finance → Purchase Orders</b> (<code>/admin/orders</code>) and you get an instant notification. The order holds: student name, phone, email (if given), package, and amount, with payment status.</p>
+            <p><b>To provision the student from an order:</b></p>
+            <ol>
+              <li>Open <b>Purchase Orders</b> and click <b>Provision</b> on the new order</li>
+              <li>Complete/confirm details: name, <b>email (required to create the login)</b>, gender, level, school (optional)</li>
+              <li>Optionally assign the student to a class right away (the system checks capacity and gender)</li>
+              <li>Click <b>Create account</b> — a student account is created with the default password (<code>Hajr@2026</code>), a welcome notification is sent, and the order status advances</li>
+            </ol>
+            <p>The customer has already seen a welcome page telling them login details arrive within 24 hours and that the Hajr team will contact them — so your job is to finish provisioning within that window.</p>`,
+          tip: ar
+            ? "لو العميل لم يُدخل بريداً عند الشراء، أدخله أنت في خطوة التجهيز — البريد ضروري لإنشاء حساب الدخول."
+            : "If the customer left email blank at checkout, enter it yourself during provisioning — email is required to create the login account.",
+          screenshot: shotPath("admin", "08-finance"),
+        },
         {
           title: ar ? "نظرة على الباقات والاشتراكات" : "Subscription packages overview",
           body: ar
