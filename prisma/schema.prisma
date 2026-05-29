@@ -152,7 +152,7 @@ model ParentStudentLink {
 // ─────────────────────── PROGRAMS & CLASSES ───────────────────────
 model Program {
   id              String      @id @default(uuid())
-  code            ProgramCode @unique
+  code            String      @unique
   nameEn          String
   nameAr          String
   descriptionEn   String
@@ -1045,6 +1045,20 @@ enum PackageType {
   SCHOOL
   STEP_PREP_PKG
   IELTS_PREP_PKG
+}
+
+enum OrderPaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum OrderStatus {
+  NEW
+  STUDENT_CREATED
+  ENROLLED
+  COMPLETED
+  CANCELLED
 }
 
 enum ClassStatus {
@@ -2081,4 +2095,35 @@ model StudentAchievement {
 
   @@unique([studentId, achievementId])
   @@index([studentId, earnedAt])
+}
+
+// Public landing-page purchase orders awaiting admin provisioning.
+// Customer submits (student name + phone required, email optional), pays
+// (mock now, Moyasar-ready), then admin creates the student account and
+// assigns class/program/teacher. Mirrors the TrialRequest lead-capture pattern.
+model PurchaseOrder {
+  id                   String             @id @default(uuid())
+  // Customer-provided at checkout
+  studentName          String
+  phone                String
+  email                String?
+  packageType          PackageType
+  notes                String?
+  // Payment (mock now, Moyasar-ready)
+  amountSar            Decimal            @db.Decimal(10, 2)
+  paymentStatus        OrderPaymentStatus @default(PENDING)
+  moyasarPaymentId     String?
+  paidAt               DateTime?
+  // Admin provisioning workflow
+  status               OrderStatus        @default(NEW)
+  provisionedStudentId String?
+  assignedClassId      String?
+  handledBy            String?
+  handledAt            DateTime?
+  source               String             @default("landing_checkout")
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  @@index([status, createdAt])
+  @@index([paymentStatus])
 }

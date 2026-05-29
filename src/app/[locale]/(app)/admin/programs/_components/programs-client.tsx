@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School } from "lucide-react";
+import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School, Plus } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { updateProgramAction, toggleProgramActiveAction } from "../../_actions/programs";
+import { updateProgramAction, toggleProgramActiveAction, createProgramAction } from "../../_actions/programs";
 import { fmtSAR } from "@/lib/format";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -53,12 +53,19 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
   const locale = useLocale();
   const router = useRouter();
   const [editing, setEditing] = useState<Row | null>(null);
+  const [creating, setCreating] = useState(false);
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-2xl font-bold">{t("ProgramsPage.title")}</h1>
-        <p className="text-sm text-muted-foreground">{t("Common.programs")}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t("ProgramsPage.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("Common.programs")}</p>
+        </div>
+        <Button variant="cta" onClick={() => setCreating(true)}>
+          <Plus className="me-2 h-4 w-4" />
+          {locale === "ar" ? "برنامج جديد" : "New program"}
+        </Button>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -115,7 +122,92 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
           onDone={() => router.refresh()}
         />
       )}
+      {creating && (
+        <CreateDialog
+          locale={locale}
+          onClose={() => setCreating(false)}
+          onDone={() => router.refresh()}
+        />
+      )}
     </div>
+  );
+}
+
+const createFormSchema = z.object({
+  code: z.string().min(2).max(40),
+  nameEn: z.string().min(2),
+  nameAr: z.string().min(2),
+  descriptionEn: z.string().min(2),
+  descriptionAr: z.string().min(2),
+  type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
+  defaultPriceSar: z.coerce.number().nonnegative(),
+  durationHours: z.union([z.coerce.number().int().positive(), z.literal(""), z.null()]).optional(),
+});
+type CreateFormData = z.infer<typeof createFormSchema>;
+
+function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: () => void; onDone: () => void }) {
+  const t = useTranslations();
+  const isAr = locale === "ar";
+  const [isPending, startTransition] = useTransition();
+  const { register, handleSubmit, formState: { errors } } = useForm<CreateFormData>({
+    resolver: zodResolver(createFormSchema),
+    defaultValues: { type: "GROUP", defaultPriceSar: 0, durationHours: "" } as any,
+  });
+
+  const onSubmit = (data: CreateFormData) => {
+    startTransition(async () => {
+      const res = await createProgramAction({
+        code: data.code,
+        nameEn: data.nameEn,
+        nameAr: data.nameAr,
+        descriptionEn: data.descriptionEn,
+        descriptionAr: data.descriptionAr,
+        type: data.type,
+        defaultPriceSar: data.defaultPriceSar,
+        durationHours: typeof data.durationHours === "number" ? data.durationHours : null,
+      });
+      if (!res.ok) {
+        toast.error(res.error === "CODE_EXISTS" ? (isAr ? "هذا الرمز مستخدم مسبقاً" : "Code already exists") : res.error);
+        return;
+      }
+      toast.success(isAr ? "تم إنشاء البرنامج" : "Program created");
+      onDone();
+      onClose();
+    });
+  };
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{isAr ? "برنامج جديد" : "New program"}</DialogTitle>
+          <DialogDescription>{isAr ? "أضف برنامجاً جديداً للأكاديمية" : "Add a new academy program"}</DialogDescription>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={isAr ? "الرمز (حروف إنجليزية)" : "Code"} error={errors.code?.message}>
+            <Input dir="ltr" placeholder="KIDS_ENGLISH" {...register("code")} />
+          </Field>
+          <Field label={isAr ? "النوع" : "Type"} error={errors.type?.message}>
+            <select className="w-full rounded-md border border-hajr-border bg-white p-2 min-h-[40px]" {...register("type")}>
+              <option value="GROUP">{isAr ? "مجموعة" : "Group"}</option>
+              <option value="PRIVATE">{isAr ? "فردي" : "Private"}</option>
+              <option value="B2B">{isAr ? "مدارس (B2B)" : "School (B2B)"}</option>
+              <option value="SELF_STUDY">{isAr ? "تعلّم ذاتي" : "Self-study"}</option>
+            </select>
+          </Field>
+          <Field label={t("Common.name") + " (EN)"} error={errors.nameEn?.message}><Input {...register("nameEn")} /></Field>
+          <Field label={t("Common.name") + " (AR)"} error={errors.nameAr?.message}><Input dir="rtl" {...register("nameAr")} /></Field>
+          <div className="sm:col-span-2"><Field label="Description (EN)" error={errors.descriptionEn?.message}><Textarea rows={2} {...register("descriptionEn")} /></Field></div>
+          <div className="sm:col-span-2"><Field label="Description (AR)" error={errors.descriptionAr?.message}><Textarea rows={2} dir="rtl" {...register("descriptionAr")} /></Field></div>
+          <Field label={t("ProgramsPage.defaultPrice")} error={errors.defaultPriceSar?.message}><Input type="number" step="10" {...register("defaultPriceSar")} /></Field>
+          <Field label={t("ProgramsPage.durationHours")}><Input type="number" {...register("durationHours")} /></Field>
+          <DialogFooter className="sm:col-span-2">
+            <Button type="button" variant="outline" onClick={onClose}>{t("Common.cancel")}</Button>
+            <Button type="submit" disabled={isPending}>{isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{isAr ? "إنشاء" : "Create"}</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

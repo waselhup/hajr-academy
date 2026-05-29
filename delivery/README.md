@@ -1,6 +1,6 @@
 # HAJR A° Academy — Platform v2.0 Final Delivery
 
-> Five sprints. One platform. Zero excuses.
+> Seven sprints. One platform. Zero excuses.
 >
 > This folder is the canonical handover. Everything the owner needs to
 > operate, demo, hand off, and renew the platform lives here or is one
@@ -8,7 +8,7 @@
 
 ---
 
-## 1 · What was delivered (5 sprints summary)
+## 1 · What was delivered (7 sprints summary)
 
 | Sprint | Theme | Key shippables |
 | ------ | ----- | -------------- |
@@ -17,9 +17,20 @@
 | **3** | Support + Identity | Tickets with SLA + Claude triage, public teacher profiles `/teachers/[slug]`, monthly teacher meetings + RSVP, teacher readiness check. |
 | **4** | Reports + Money | Monthly parent PDF reports (Supabase storage + WhatsApp share image), QR-verifiable certificates, self-service payment requests for teachers + marketers, Speaking Club end-to-end. |
 | **5** | AI + Brand + Handover | Auto AI lesson summaries (Claude Haiku), Brand Book PDF + asset library, Teacher Validation Mode (12-tab meeting tool), auto-generated client presentation (PPTX + PDF), QA sweep tools, this handover package. |
+| **6** | Manuals + IA Cleanup | 6 bilingual user manuals (admin/teacher/student × AR/EN), full information-architecture rebuild → 100% nav coverage (no orphaned pages), PlaceholderPage stubs eliminated. |
+| **7** | Library + Tech Check + Analytics + Ratings + Gamification | Content library (Supabase `library-content` bucket), mandatory pre-class tech check, PDPL-safe activity analytics, 3-tier rating system, 4-age-tier gamification (XP engine). |
 
 Full per-feature status: `FEATURE-MATRIX.csv` and live at
 `/admin/delivery → Feature matrix`.
+
+### Platform scale (verified 2026-05-29)
+
+| Metric | Count |
+| ------ | ----- |
+| Prisma models | 72 |
+| Build routes (pages + API) | 259 (production build green, 0 errors) |
+| i18n keys (AR = EN parity) | 2218 = 2218 ✅ |
+| Nav coverage | 100% (no orphaned pages) |
 
 ---
 
@@ -170,23 +181,51 @@ while the dev server is running on `http://localhost:3000`.
 A full audit of the role-scoped information architecture lives at
 [`NAVIGATION-AUDIT.md`](NAVIGATION-AUDIT.md).
 
-Highlights of the 2026-05-28 IA rebuild:
+Highlights of the 2026-05-28 IA rebuild (extended through Sprint 7):
 
-- All 147 page routes now reachable through the sidebar, mobile nav, or
+- All page routes now reachable through the sidebar, mobile nav, or
   dashboard "Explore the platform" cards — **100% coverage** (was ~34%).
 - Admin nav: 7 collapsible groups (People · Academics · Content · Finance ·
-  Comms · Operations · System) covering 36 hubs.
+  Comms · Operations · System).
 - Teacher / Student / Parent dashboards each gained role-scoped grouped
   sidebars (Teaching · Personal, Learning · Achievements · Account,
   Children · Reports · Billing).
 - Mobile bottom-nav grew from 4 → 5 slots per role so the most-used
   feature surfaces alongside Messages/Calendar.
-- All new keys exist in both `ar.json` and `en.json` (1841 each).
+- All keys exist in both `ar.json` and `en.json` — **2218 each** (full parity).
 
 To re-verify coverage after future nav changes:
 
 ```
 node scripts/nav-coverage.cjs
 ```
+
+---
+
+## 14 · Post-handover maintenance mode
+
+The platform is feature-complete for v2.0. After handover it runs in
+**maintenance mode** — no new features until the quarterly v2.1 release.
+
+**What's next**
+- **v2.1 (quarterly):** bundle approved teacher/owner requests into a small
+  dot release. Track incoming requests in `/admin/validation`.
+- **Operations:** follow [`_RUNBOOK.md`](_RUNBOOK.md) for daily / weekly /
+  monthly / quarterly tasks.
+- **Open items:** see [`../BLOCKERS.md`](../BLOCKERS.md). As of 2026-05-29 the
+  critical RLS-exposure issue is **resolved**; the only open follow-up is
+  rotating the DB Postgres password (committed in git history).
+
+**Latest pre-launch QA**
+- A full 6-role walkthrough was run on 2026-05-29 — findings in
+  [`PRELAUNCH-WALKTHROUGH-2026-05-29.md`](PRELAUNCH-WALKTHROUGH-2026-05-29.md).
+  Result: production build green (259/259 routes), i18n parity intact, money
+  pages clean. Three minor bugs found and fixed (MARKETER login redirect,
+  two missing i18n keys, admin form labels). Remaining items are cosmetic
+  polish, safe to batch into v2.1.
+- Known cosmetic warning: set `metadataBase` in the root metadata export to
+  the production URL to get correct social-share (OG/Twitter) image URLs.
+
+---
 
 — Hajr A° v2.0 · Built with care.

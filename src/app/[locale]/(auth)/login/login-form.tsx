@@ -11,6 +11,8 @@ import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ROLE_HOME } from "@/lib/role-home";
+import type { Role } from "@prisma/client";
 
 const schema = z.object({
   email: z.string().email(),
@@ -46,15 +48,8 @@ export function LoginForm() {
       }
       // hit /me to find role and redirect
       const me = await fetch("/api/me").then((r) => r.json()).catch(() => null);
-      const role = me?.role ?? "STUDENT";
-      const home =
-        role === "SUPER_ADMIN" || role === "ADMIN"
-          ? "/admin"
-          : role === "TEACHER"
-            ? "/teacher"
-            : role === "PARENT"
-              ? "/parent"
-              : "/student";
+      const role = (me?.role ?? "STUDENT") as Role;
+      const home = ROLE_HOME[role] ?? "/student";
       router.replace(home);
       router.refresh();
     });

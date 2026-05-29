@@ -29,6 +29,13 @@ function normalizedDatabaseUrl(): string | undefined {
     if (!url.searchParams.get("pool_timeout")) {
       url.searchParams.set("pool_timeout", "20");
     }
+    // Give Prisma more patience establishing a connection to the Supabase
+    // pooler. Cold/idle pooler connections can be slow to accept, surfacing
+    // as P1001 "Can't reach database server" on the first query after idle.
+    // A longer connect_timeout absorbs that instead of failing fast.
+    if (!url.searchParams.get("connect_timeout")) {
+      url.searchParams.set("connect_timeout", "15");
+    }
     return url.toString();
   } catch {
     // Malformed URL — let Prisma surface its own error.

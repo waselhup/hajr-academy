@@ -70,7 +70,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
   return (
     <form onSubmit={submit} className="grid sm:grid-cols-2 gap-3">
       <div>
-        <Label>Title (AR) *</Label>
+        <Label>{isAr ? "العنوان (عربي) *" : "Title (AR) *"}</Label>
         <Input
           value={form.titleAr}
           onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
@@ -78,7 +78,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Title (EN) *</Label>
+        <Label>{isAr ? "العنوان (إنجليزي) *" : "Title (EN) *"}</Label>
         <Input
           value={form.titleEn}
           onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
@@ -86,7 +86,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Description (AR)</Label>
+        <Label>{isAr ? "الوصف (عربي)" : "Description (AR)"}</Label>
         <Textarea
           value={form.descriptionAr}
           onChange={(e) => setForm({ ...form, descriptionAr: e.target.value })}
@@ -94,7 +94,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Description (EN)</Label>
+        <Label>{isAr ? "الوصف (إنجليزي)" : "Description (EN)"}</Label>
         <Textarea
           value={form.descriptionEn}
           onChange={(e) => setForm({ ...form, descriptionEn: e.target.value })}
@@ -102,7 +102,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Scheduled at *</Label>
+        <Label>{isAr ? "موعد الجلسة *" : "Scheduled at *"}</Label>
         <Input
           type="datetime-local"
           value={form.scheduledAt}
@@ -112,7 +112,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label>Duration (min)</Label>
+          <Label>{isAr ? "المدة (دقيقة)" : "Duration (min)"}</Label>
           <Input
             type="number"
             value={form.durationMin}
@@ -120,7 +120,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
           />
         </div>
         <div>
-          <Label>Max attendees</Label>
+          <Label>{isAr ? "الحد الأقصى للحضور" : "Max attendees"}</Label>
           <Input
             type="number"
             value={form.maxAttendees}
@@ -129,7 +129,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         </div>
       </div>
       <div>
-        <Label>Min level (CEFR)</Label>
+        <Label>{isAr ? "الحد الأدنى للمستوى (CEFR)" : "Min level (CEFR)"}</Label>
         <Input
           placeholder="A2 / B1 / B2 / C1"
           value={form.minLevel}
@@ -137,7 +137,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Host teacher</Label>
+        <Label>{isAr ? "المدرّب المضيف" : "Host teacher"}</Label>
         <select
           className="w-full border border-hajr-border rounded-md p-2 min-h-[44px] bg-white"
           value={form.hostTeacherId}
@@ -152,7 +152,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         </select>
       </div>
       <div className="sm:col-span-2">
-        <Label>Zoom join URL</Label>
+        <Label>{isAr ? "رابط Zoom للانضمام" : "Zoom join URL"}</Label>
         <Input
           value={form.zoomJoinUrl}
           onChange={(e) => setForm({ ...form, zoomJoinUrl: e.target.value })}
