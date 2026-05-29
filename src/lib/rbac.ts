@@ -1,15 +1,11 @@
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { ROLE_HOME } from "@/lib/role-home";
 
-export const ROLE_HOME: Record<Role, string> = {
-  SUPER_ADMIN: "/admin",
-  ADMIN: "/admin",
-  TEACHER: "/teacher",
-  STUDENT: "/student",
-  PARENT: "/parent",
-  MARKETER: "/marketer",
-};
+// Re-exported for backward compatibility; canonical definition lives in
+// `@/lib/role-home` (server-free) so client components can use it too.
+export { ROLE_HOME };
 
 export async function requireSession() {
   const session = await auth();

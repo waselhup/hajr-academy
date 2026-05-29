@@ -1,4 +1,4 @@
-import { PrismaClient, Role, EnglishLevel, Gender, ProgramCode, ProgramType, PackageType, ClassStatus, DayOfWeek, SessionStatus, AttendanceStatus, PaymentStatus, PaymentMethod } from "@prisma/client";
+import { PrismaClient, Role, EnglishLevel, Gender, ProgramType, PackageType, ClassStatus, DayOfWeek, SessionStatus, AttendanceStatus, PaymentStatus, PaymentMethod } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -8,11 +8,11 @@ async function main() {
 
   // ─── Programs ───
   const programs = [
-    { code: ProgramCode.STEP_PREP, nameEn: "STEP Preparation", nameAr: "الإعداد لاختبار ستيب", descriptionEn: "Intensive prep for the Saudi STEP English exam.", descriptionAr: "تحضير مكثف لاختبار ستيب للغة الإنجليزية.", type: ProgramType.GROUP, defaultPriceSar: "400.00", durationHours: 16 },
-    { code: ProgramCode.PRIVATE, nameEn: "Private Lessons", nameAr: "دروس خصوصية", descriptionEn: "One-on-one personalized tutoring.", descriptionAr: "دروس فردية مخصصة لاحتياجاتك.", type: ProgramType.PRIVATE, defaultPriceSar: "800.00", durationHours: 16 },
-    { code: ProgramCode.UNI_PREP, nameEn: "University Preparation", nameAr: "الإعداد للجامعة", descriptionEn: "Academic English for university entrance and study.", descriptionAr: "اللغة الأكاديمية للقبول والدراسة الجامعية.", type: ProgramType.GROUP, defaultPriceSar: "400.00", durationHours: 16 },
-    { code: ProgramCode.SCHOOL, nameEn: "School Support", nameAr: "دعم المدارس", descriptionEn: "Curriculum-aligned support for partner schools.", descriptionAr: "دعم متوافق مع منهج المدارس الشريكة.", type: ProgramType.B2B, defaultPriceSar: "0.00", durationHours: null },
-    { code: ProgramCode.ENGLISH_LAB, nameEn: "English Lab", nameAr: "مختبر اللغة الإنجليزية", descriptionEn: "Self-paced practice for Speaking, Listening, Writing, Reading.", descriptionAr: "تدريب ذاتي على المحادثة والاستماع والكتابة والقراءة.", type: ProgramType.SELF_STUDY, defaultPriceSar: "0.00", durationHours: null },
+    { code: "STEP_PREP", nameEn: "STEP Preparation", nameAr: "الإعداد لاختبار ستيب", descriptionEn: "Intensive prep for the Saudi STEP English exam.", descriptionAr: "تحضير مكثف لاختبار ستيب للغة الإنجليزية.", type: ProgramType.GROUP, defaultPriceSar: "400.00", durationHours: 16 },
+    { code: "PRIVATE", nameEn: "Private Lessons", nameAr: "دروس خصوصية", descriptionEn: "One-on-one personalized tutoring.", descriptionAr: "دروس فردية مخصصة لاحتياجاتك.", type: ProgramType.PRIVATE, defaultPriceSar: "800.00", durationHours: 16 },
+    { code: "UNI_PREP", nameEn: "University Preparation", nameAr: "الإعداد للجامعة", descriptionEn: "Academic English for university entrance and study.", descriptionAr: "اللغة الأكاديمية للقبول والدراسة الجامعية.", type: ProgramType.GROUP, defaultPriceSar: "400.00", durationHours: 16 },
+    { code: "SCHOOL", nameEn: "School Support", nameAr: "دعم المدارس", descriptionEn: "Curriculum-aligned support for partner schools.", descriptionAr: "دعم متوافق مع منهج المدارس الشريكة.", type: ProgramType.B2B, defaultPriceSar: "0.00", durationHours: null },
+    { code: "ENGLISH_LAB", nameEn: "English Lab", nameAr: "مختبر اللغة الإنجليزية", descriptionEn: "Self-paced practice for Speaking, Listening, Writing, Reading.", descriptionAr: "تدريب ذاتي على المحادثة والاستماع والكتابة والقراءة.", type: ProgramType.SELF_STUDY, defaultPriceSar: "0.00", durationHours: null },
   ];
 
   for (const p of programs) {
@@ -248,8 +248,8 @@ async function main() {
   console.log("✓ 6 parents seeded + linked");
 
   // ─── Classes ───
-  const stepProgram = await prisma.program.findUniqueOrThrow({ where: { code: ProgramCode.STEP_PREP } });
-  const uniProgram = await prisma.program.findUniqueOrThrow({ where: { code: ProgramCode.UNI_PREP } });
+  const stepProgram = await prisma.program.findUniqueOrThrow({ where: { code: "STEP_PREP" } });
+  const uniProgram = await prisma.program.findUniqueOrThrow({ where: { code: "UNI_PREP" } });
 
   const class1 = await prisma.class.upsert({
     where: { cohortCode: "STEP-2026-Q2-A" },

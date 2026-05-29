@@ -270,7 +270,7 @@ export default async function LandingPage() {
                   variant={pk.featured ? "cta" : "outline"}
                   className="mt-7 w-full"
                 >
-                  <Link href="/register">{t("Landing.ctaJoin")}</Link>
+                  <Link href={`/checkout?package=${pk.code}`}>{t("Landing.ctaJoin")}</Link>
                 </Button>
               </CardContent>
             </Card>

@@ -76,7 +76,7 @@ export function IssueForm({ students, locale }: Props) {
   return (
     <form onSubmit={submit} className="grid sm:grid-cols-2 gap-3">
       <div>
-        <Label>Student *</Label>
+        <Label>{isAr ? "الطالب *" : "Student *"}</Label>
         <select
           className="w-full border border-hajr-border rounded-md p-2 min-h-[44px] bg-white"
           value={form.studentId}
@@ -92,7 +92,7 @@ export function IssueForm({ students, locale }: Props) {
         </select>
       </div>
       <div>
-        <Label>Type *</Label>
+        <Label>{isAr ? "النوع *" : "Type *"}</Label>
         <select
           className="w-full border border-hajr-border rounded-md p-2 min-h-[44px] bg-white"
           value={form.type}
@@ -108,7 +108,7 @@ export function IssueForm({ students, locale }: Props) {
         </select>
       </div>
       <div>
-        <Label>Title (AR) *</Label>
+        <Label>{isAr ? "العنوان (عربي) *" : "Title (AR) *"}</Label>
         <Input
           value={form.titleAr}
           onChange={(e) => setForm({ ...form, titleAr: e.target.value })}
@@ -116,7 +116,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Title (EN) *</Label>
+        <Label>{isAr ? "العنوان (إنجليزي) *" : "Title (EN) *"}</Label>
         <Input
           value={form.titleEn}
           onChange={(e) => setForm({ ...form, titleEn: e.target.value })}
@@ -124,7 +124,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Description (AR)</Label>
+        <Label>{isAr ? "الوصف (عربي)" : "Description (AR)"}</Label>
         <Textarea
           rows={2}
           value={form.descriptionAr}
@@ -132,7 +132,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Description (EN)</Label>
+        <Label>{isAr ? "الوصف (إنجليزي)" : "Description (EN)"}</Label>
         <Textarea
           rows={2}
           value={form.descriptionEn}
@@ -140,7 +140,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>CEFR Level</Label>
+        <Label>{isAr ? "المستوى (CEFR)" : "CEFR Level"}</Label>
         <Input
           placeholder="A1 / A2 / B1 / B2 / C1 / C2"
           value={form.cefrLevel}
@@ -148,7 +148,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>Score (0-100)</Label>
+        <Label>{isAr ? "الدرجة (٠-١٠٠)" : "Score (0-100)"}</Label>
         <Input
           type="number"
           min={0}
@@ -158,7 +158,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div className="sm:col-span-2">
-        <Label>Expiry date (optional)</Label>
+        <Label>{isAr ? "تاريخ الانتهاء (اختياري)" : "Expiry date (optional)"}</Label>
         <Input
           type="date"
           value={form.expiryDate}

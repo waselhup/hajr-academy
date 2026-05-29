@@ -25,6 +25,61 @@ async function ip() {
   return h.get("x-forwarded-for")?.split(",")[0] ?? null;
 }
 
+const createSchema = z.object({
+  code: z
+    .string()
+    .min(2)
+    .max(40)
+    .transform((s) => s.trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_")),
+  nameEn: z.string().min(2),
+  nameAr: z.string().min(2),
+  descriptionEn: z.string().min(2),
+  descriptionAr: z.string().min(2),
+  type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
+  defaultPriceSar: z.coerce.number().nonnegative(),
+  durationHours: z.coerce.number().int().positive().nullable().optional(),
+});
+
+export async function createProgramAction(
+  input: z.infer<typeof createSchema>
+): Promise<Result<{ id: string }>> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+  const parsed = createSchema.safeParse(input);
+  if (!parsed.success)
+    return { ok: false, error: "VALIDATION: " + parsed.error.issues.map((i) => i.message).join(", ") };
+
+  const exists = await prisma.program.findUnique({ where: { code: parsed.data.code } });
+  if (exists) return { ok: false, error: "CODE_EXISTS" };
+
+  try {
+    const program = await prisma.program.create({
+      data: {
+        code: parsed.data.code,
+        nameEn: parsed.data.nameEn,
+        nameAr: parsed.data.nameAr,
+        descriptionEn: parsed.data.descriptionEn,
+        descriptionAr: parsed.data.descriptionAr,
+        type: parsed.data.type,
+        defaultPriceSar: parsed.data.defaultPriceSar,
+        durationHours: parsed.data.durationHours ?? null,
+        active: true,
+      },
+    });
+    await logAudit({
+      userId: session.user.id,
+      action: "PROGRAM_CREATED",
+      entity: "Program",
+      entityId: program.id,
+      metadata: { code: program.code, type: parsed.data.type },
+      ipAddress: await ip(),
+    });
+    revalidatePath("/admin/programs");
+    return { ok: true, data: { id: program.id } };
+  } catch (e: any) {
+    return { ok: false, error: e?.code === "P2002" ? "CODE_EXISTS" : e?.message ?? "DB_ERROR" };
+  }
+}
+
 export async function updateProgramAction(input: z.infer<typeof updateSchema>): Promise<Result> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const parsed = updateSchema.safeParse(input);

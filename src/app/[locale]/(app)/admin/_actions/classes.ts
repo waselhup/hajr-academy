@@ -8,7 +8,7 @@ import { requireRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
 import { isGenderAllowed, nextInvoiceNumber, calcInvoiceTotals } from "@/lib/invoice";
 import { generateCohortCode, nextCohortLetter } from "@/lib/cohort";
-import type { ProgramCode, DayOfWeek } from "@prisma/client";
+import type { DayOfWeek } from "@prisma/client";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -54,7 +54,7 @@ export async function createClassAction(input: z.infer<typeof createSchema>): Pr
     const letters = existing.map((c) => c.cohortCode.slice(-1));
     const letter = nextCohortLetter(letters);
     cohortCode = generateCohortCode({
-      programCode: program.code as ProgramCode,
+      programCode: program.code,
       year: new Date(parsed.data.startDate).getFullYear(),
       letter,
     });
