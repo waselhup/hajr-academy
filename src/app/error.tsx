@@ -21,12 +21,6 @@ export default function GlobalError({
       <p className="mt-2 max-w-md text-sm text-muted-foreground">
         An unexpected error occurred.
       </p>
-      {(error?.message || error?.digest) && (
-        <pre className="mt-3 max-w-xl overflow-auto whitespace-pre-wrap rounded-md bg-white/70 p-3 text-left text-xs text-red-700">
-          {error?.message}
-          {error?.digest ? `\n\ndigest: ${error.digest}` : ""}
-        </pre>
-      )}
       <Button onClick={reset} className="mt-6">
         Retry / إعادة المحاولة
       </Button>
