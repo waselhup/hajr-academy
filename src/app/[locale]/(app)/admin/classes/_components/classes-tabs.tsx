@@ -96,7 +96,30 @@ function AttendanceTab({
   locale: string;
 }) {
   const ar = locale === "ar";
-  const fmtN = (n: number) => (ar ? n.toLocaleString("ar-SA") : String(n));
+  const fmtN = (n: number) => {
+    try {
+      return ar ? Number(n).toLocaleString("ar-SA") : String(n);
+    } catch {
+      return String(n);
+    }
+  };
+  const fmtDate = (iso: string) => {
+    try {
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return iso;
+      return d.toLocaleString(ar ? "ar-SA" : "en-GB", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: "Asia/Riyadh",
+      });
+    } catch {
+      try {
+        return new Date(iso).toISOString().slice(0, 16).replace("T", " ");
+      } catch {
+        return iso;
+      }
+    }
+  };
 
   if (rows.length === 0) {
     return (
@@ -133,11 +156,7 @@ function AttendanceTab({
                     )}
                   </div>
                   <p className="mt-1 text-xs text-muted-foreground num">
-                    {new Date(r.scheduledDate).toLocaleString(ar ? "ar-SA" : "en-GB", {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                      timeZone: "Asia/Riyadh",
-                    })}
+                    {fmtDate(r.scheduledDate)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
