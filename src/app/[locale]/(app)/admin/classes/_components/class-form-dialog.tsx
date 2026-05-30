@@ -130,10 +130,13 @@ export function ClassFormDialog({
           <Field label={t("Classes.maxStudents")}><Input type="number" {...register("maxStudents")} /></Field>
           <Field label={t("Classes.pricePerMonth")}><Input type="number" step="50" {...register("pricePerMonth")} /></Field>
           <Field label={t("Classes.genderRestriction")}>
-            <Select value={watch("genderRestriction") ?? ""} onValueChange={(v) => setValue("genderRestriction", v as any)}>
+            <Select
+              value={watch("genderRestriction") ? watch("genderRestriction") : "ALL"}
+              onValueChange={(v) => setValue("genderRestriction", (v === "ALL" ? "" : v) as any)}
+            >
               <SelectTrigger><SelectValue placeholder={t("Common.all")} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="">{t("Common.all")}</SelectItem>
+                <SelectItem value="ALL">{t("Common.all")}</SelectItem>
                 <SelectItem value="MALE">{t("Common.male")}</SelectItem>
                 <SelectItem value="FEMALE">{t("Common.female")}</SelectItem>
               </SelectContent>
