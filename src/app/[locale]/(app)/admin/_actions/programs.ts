@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
 import { logAudit } from "@/lib/audit";
+import { openProgramForApplications } from "@/lib/openings/service";
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -73,7 +74,16 @@ export async function createProgramAction(
       metadata: { code: program.code, type: parsed.data.type },
       ipAddress: await ip(),
     });
+    // Additive: open the new program to teach (notifies active teachers). The
+    // service already swallows its own errors; this try/catch is defense-in-depth
+    // so it can NEVER throw out of createProgramAction.
+    try {
+      await openProgramForApplications({ programId: program.id, openedByUserId: session.user.id });
+    } catch (e) {
+      console.error("[createProgramAction] openProgramForApplications failed (non-fatal):", e);
+    }
     revalidatePath("/admin/programs");
+    revalidatePath("/admin/openings");
     return { ok: true, data: { id: program.id } };
   } catch (e: any) {
     return { ok: false, error: e?.code === "P2002" ? "CODE_EXISTS" : e?.message ?? "DB_ERROR" };

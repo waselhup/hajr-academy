@@ -109,6 +109,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     icon: GraduationCap,
     items: [
       { key: "Nav.programs", href: "/admin/programs", icon: BookOpen },
+      { key: "Nav.openings", href: "/admin/openings", icon: Megaphone },
       { key: "Nav.classes", href: "/admin/classes", icon: BookText },
       { key: "Nav.schedule", href: "/admin/schedule", icon: Calendar },
       { key: "Nav.attendance", href: "/admin/attendance", icon: ClipboardList },
@@ -223,6 +224,7 @@ export const TEACHER_NAV_GROUPS: NavGroup[] = [
     key: "Nav.groupTeaching",
     icon: GraduationCap,
     items: [
+      { key: "Nav.openings", href: "/teacher/openings", icon: Megaphone },
       { key: "Nav.myClasses", href: "/teacher/classes", icon: BookText },
       { key: "Nav.myStudents", href: "/teacher/students", icon: Users },
       { key: "Nav.assignments", href: "/teacher/assignments", icon: BookCheck },

@@ -32,8 +32,8 @@ model User {
   referredByCode String?
   referredAt     DateTime?
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   teacherProfile          TeacherProfile?
   studentProfile          StudentProfile?
@@ -75,16 +75,18 @@ model TeacherProfile {
   publicSlug             String?  @unique
   responseTimeMinutesAvg Int?
 
-  classes         Class[]
-  privateLessons  PrivateLesson[]
-  blackboardRooms BlackboardRoom[]
-  salaryPayments  SalaryPayment[]
-  earnings        TeacherEarning[]
-  calendarEvents  CalendarEvent[]
-  readiness       TeacherReadiness?
-  ratings         TeacherRating[]
-  meetingAttendees TeacherMeetingAttendee[]
-  speakingClubEvents SpeakingClubEvent[]
+  classes             Class[]
+  privateLessons      PrivateLesson[]
+  blackboardRooms     BlackboardRoom[]
+  salaryPayments      SalaryPayment[]
+  earnings            TeacherEarning[]
+  calendarEvents      CalendarEvent[]
+  readiness           TeacherReadiness?
+  ratings             TeacherRating[]
+  meetingAttendees    TeacherMeetingAttendee[]
+  speakingClubEvents  SpeakingClubEvent[]
+  programApplications TeacherApplication[]
+  filledOpenings      ProgramOpening[]
 }
 
 model StudentProfile {
@@ -164,6 +166,7 @@ model Program {
 
   classes       Class[]
   subscriptions Subscription[]
+  openings      ProgramOpening[]
 }
 
 model Class {
@@ -190,10 +193,59 @@ model Class {
   status               ClassStatus    @default(ACTIVE)
   createdAt            DateTime       @default(now())
 
-  enrollments Enrollment[]
-  sessions    ClassSession[]
-  assignments Assignment[]
+  enrollments    Enrollment[]
+  sessions       ClassSession[]
+  assignments    Assignment[]
   calendarEvents CalendarEvent[]
+}
+
+// ─────────────────── PROGRAM OPENINGS (apply-to-teach) ───────────────────
+// Upstream of class-create + teacher-assignment. When an admin creates a
+// Program, a ProgramOpening(OPEN) is created and all active teachers are
+// notified to apply. Its own row (not a column on Program) so a program can
+// be re-opened for a new term.
+model ProgramOpening {
+  id              String          @id @default(uuid())
+  programId       String
+  program         Program         @relation(fields: [programId], references: [id], onDelete: Cascade)
+  status          OpeningStatus   @default(OPEN)
+  openedBy        String?
+  openedAt        DateTime        @default(now())
+  filledTeacherId String?
+  filledTeacher   TeacherProfile? @relation(fields: [filledTeacherId], references: [id], onDelete: SetNull)
+  note            String?
+  closedAt        DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  applications TeacherApplication[]
+
+  @@index([programId, status])
+  @@index([status, openedAt])
+}
+
+// A teacher applies once per opening: short creative survey + optional
+// 1-minute voice intro. PDPL: only the audio is stored, no extra PII.
+model TeacherApplication {
+  id            String            @id @default(uuid())
+  openingId     String
+  opening       ProgramOpening    @relation(fields: [openingId], references: [id], onDelete: Cascade)
+  teacherId     String
+  teacher       TeacherProfile    @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus @default(SUBMITTED)
+  whyQualified  String            @db.Text
+  answersJson   Json?
+  voiceIntroUrl String?
+  submittedAt   DateTime          @default(now())
+  reviewedBy    String?
+  reviewedAt    DateTime?
+  decisionNote  String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@unique([openingId, teacherId])
+  @@index([teacherId, status])
+  @@index([openingId, status])
 }
 
 model PrivateLesson {
@@ -240,7 +292,7 @@ model ClassSession {
   createdAt        DateTime      @default(now())
 
   attendances    Attendance[]
-  blackboardRoom BlackboardRoom? @relation(fields: [blackboardRoomId], references: [id])
+  blackboardRoom BlackboardRoom?  @relation(fields: [blackboardRoomId], references: [id])
   earnings       TeacherEarning[]
   lessonSummary  LessonSummary?
 }
@@ -522,13 +574,13 @@ model Message {
   attachmentSize Int? // bytes
 
   // ── Admin moderation ──
-  flagged       Boolean   @default(false)
-  flagReason    String?
-  flaggedById   String?
-  flaggedAt     DateTime?
+  flagged     Boolean   @default(false)
+  flagReason  String?
+  flaggedById String?
+  flaggedAt   DateTime?
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([threadId])
   @@index([threadId, createdAt])
@@ -669,7 +721,7 @@ model Invoice {
   notes   String?
   notesAr String?
 
-  payments Payment[]
+  payments   Payment[]
   commission Commission?
 
   createdAt DateTime @default(now())
@@ -833,26 +885,26 @@ model ParentInvite {
 
 /// SchoolContract — a B2B contract between Hajr and a partner school.
 model SchoolContract {
-  id              String         @id @default(uuid())
-  schoolId        String
-  school          PartnerSchool  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  programId       String?
+  id        String        @id @default(uuid())
+  schoolId  String
+  school    PartnerSchool @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  programId String?
 
-  startDate       DateTime
-  endDate         DateTime
+  startDate DateTime
+  endDate   DateTime
 
   totalStudents   Int
-  pricePerStudent Decimal        @db.Decimal(10, 2)
-  totalAmount     Decimal        @db.Decimal(10, 2)
-  vatAmount       Decimal        @db.Decimal(10, 2)
+  pricePerStudent Decimal @db.Decimal(10, 2)
+  totalAmount     Decimal @db.Decimal(10, 2)
+  vatAmount       Decimal @db.Decimal(10, 2)
 
-  status          ContractStatus @default(DRAFT)
-  signedAt        DateTime?
+  status   ContractStatus @default(DRAFT)
+  signedAt DateTime?
 
-  notes           String?        @db.Text
+  notes String? @db.Text
 
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([schoolId, status])
 }
@@ -1061,6 +1113,20 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum OpeningStatus {
+  OPEN
+  CLOSED
+  FILLED
+}
+
+enum ApplicationStatus {
+  SUBMITTED
+  SHORTLISTED
+  SELECTED
+  REJECTED
+  WITHDRAWN
+}
+
 enum ClassStatus {
   DRAFT
   ACTIVE
@@ -1241,6 +1307,8 @@ enum NotificationType {
   PAYMENT_REQUEST_APPROVED
   PAYMENT_REQUEST_PAID
   PAYMENT_REQUEST_REJECTED
+  PROGRAM_OPENING_NEW
+  TEACHER_SELECTED
 }
 
 enum Channel {
@@ -1341,15 +1409,15 @@ enum CalendarEventType {
 }
 
 model CalendarEvent {
-  id            String   @id @default(uuid())
+  id            String            @id @default(uuid())
   type          CalendarEventType
   title         String
   titleAr       String
-  description   String?  @db.Text
-  descriptionAr String?  @db.Text
+  description   String?           @db.Text
+  descriptionAr String?           @db.Text
   startAt       DateTime
   endAt         DateTime
-  allDay        Boolean  @default(false)
+  allDay        Boolean           @default(false)
 
   userId    String?
   user      User?           @relation("UserCalendarEvents", fields: [userId], references: [id], onDelete: Cascade)
@@ -1410,8 +1478,8 @@ model MarketerProfile {
   user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   referralCode   String         @unique
   commissionRate Decimal        @default(0.10) @db.Decimal(5, 4)
-  totalEarned    Decimal        @default(0)    @db.Decimal(12, 2)
-  totalPaid      Decimal        @default(0)    @db.Decimal(12, 2)
+  totalEarned    Decimal        @default(0) @db.Decimal(12, 2)
+  totalPaid      Decimal        @default(0) @db.Decimal(12, 2)
   status         MarketerStatus @default(PENDING)
   bankIban       String?
   bankName       String?
@@ -1497,23 +1565,23 @@ model PlacementSection {
 }
 
 model PlacementAttempt {
-  id           String          @id @default(uuid())
+  id           String           @id @default(uuid())
   testId       String
-  test         PlacementTest   @relation(fields: [testId], references: [id])
+  test         PlacementTest    @relation(fields: [testId], references: [id])
   studentId    String?
-  student      StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  student      StudentProfile?  @relation(fields: [studentId], references: [id], onDelete: SetNull)
   guestEmail   String?
   guestName    String?
   guestPhone   String?
   answers      Json
   score        Int?
   maxScore     Int?
-  percent      Decimal?        @db.Decimal(5, 2)
+  percent      Decimal?         @db.Decimal(5, 2)
   cefrLevel    CefrLevel?
-  status       AttemptStatus   @default(IN_PROGRESS)
+  status       AttemptStatus    @default(IN_PROGRESS)
   sessionId    String?
   sourceUtm    String?
-  startedAt    DateTime        @default(now())
+  startedAt    DateTime         @default(now())
   submittedAt  DateTime?
   timeSpentSec Int?
   result       PlacementResult?
@@ -1665,29 +1733,29 @@ model TeacherMeetingAttendee {
 }
 
 model TeacherRating {
-  id                    String              @id @default(uuid())
-  teacherId             String
-  teacher               TeacherProfile      @relation(fields: [teacherId], references: [id], onDelete: Cascade)
-  raterId               String
-  rater                 User                @relation(fields: [raterId], references: [id], onDelete: Cascade)
-  raterRole             Role
-  sessionId             String?
-  rating                Int
-  comment               String?             @db.Text
-  isApproved            Boolean             @default(true)
-  createdAt             DateTime            @default(now())
+  id         String         @id @default(uuid())
+  teacherId  String
+  teacher    TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  raterId    String
+  rater      User           @relation(fields: [raterId], references: [id], onDelete: Cascade)
+  raterRole  Role
+  sessionId  String?
+  rating     Int
+  comment    String?        @db.Text
+  isApproved Boolean        @default(true)
+  createdAt  DateTime       @default(now())
 
   // Sprint 7B — rating system extensions
-  kind                  TeacherRatingKind   @default(POST_SESSION)
-  studentNoteForParent  String?             @db.Text
-  improved              String?
-  month                 Int?
-  year                  Int?
+  kind                 TeacherRatingKind @default(POST_SESSION)
+  studentNoteForParent String?           @db.Text
+  improved             String?
+  month                Int?
+  year                 Int?
 
-  @@index([teacherId, createdAt])
-  @@index([kind, createdAt])
   @@unique([teacherId, raterId, sessionId])
   @@unique([teacherId, raterId, kind, year, month], name: "teacherRating_monthly_uniq")
+  @@index([teacherId, createdAt])
+  @@index([kind, createdAt])
 }
 
 enum TeacherRatingKind {
@@ -1753,25 +1821,25 @@ model ParentReport {
 }
 
 model SpeakingClubEvent {
-  id              String          @id @default(uuid())
+  id              String             @id @default(uuid())
   titleAr         String
   titleEn         String
-  descriptionAr   String?         @db.Text
-  descriptionEn   String?         @db.Text
+  descriptionAr   String?            @db.Text
+  descriptionEn   String?            @db.Text
   scheduledAt     DateTime
-  durationMin     Int             @default(60)
-  maxAttendees    Int             @default(30)
+  durationMin     Int                @default(60)
+  maxAttendees    Int                @default(30)
   minLevel        String?
   hostTeacherId   String?
-  hostTeacher     TeacherProfile? @relation(fields: [hostTeacherId], references: [id])
+  hostTeacher     TeacherProfile?    @relation(fields: [hostTeacherId], references: [id])
   zoomMeetingId   String?
   zoomJoinUrl     String?
   recordingUrl    String?
-  status          EventStatus     @default(UPCOMING)
-  calendarEventId String?         @unique
+  status          EventStatus        @default(UPCOMING)
+  calendarEventId String?            @unique
   createdById     String
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
   rsvps           SpeakingClubRSVP[]
 
   @@index([scheduledAt, status])
@@ -1817,25 +1885,25 @@ model Certificate {
 }
 
 model PaymentRequest {
-  id              String               @id @default(uuid())
-  requesterId     String
-  requester       User                 @relation("PaymentRequestRequester", fields: [requesterId], references: [id])
-  requesterRole   Role
-  amount          Decimal              @db.Decimal(10, 2)
-  periodStart     DateTime
-  periodEnd       DateTime
-  description     String?              @db.Text
-  status          PaymentRequestStatus @default(PENDING)
-  approvedById    String?
-  approvedAt      DateTime?
-  paidById        String?
-  paidAt          DateTime?
-  paidMethod      String?
-  paidReference   String?
-  rejectedReason  String?
-  notes           String?              @db.Text
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id             String               @id @default(uuid())
+  requesterId    String
+  requester      User                 @relation("PaymentRequestRequester", fields: [requesterId], references: [id])
+  requesterRole  Role
+  amount         Decimal              @db.Decimal(10, 2)
+  periodStart    DateTime
+  periodEnd      DateTime
+  description    String?              @db.Text
+  status         PaymentRequestStatus @default(PENDING)
+  approvedById   String?
+  approvedAt     DateTime?
+  paidById       String?
+  paidAt         DateTime?
+  paidMethod     String?
+  paidReference  String?
+  rejectedReason String?
+  notes          String?              @db.Text
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
 
   @@index([requesterId, status])
   @@index([status, createdAt])
@@ -1914,25 +1982,25 @@ enum LibraryProgressStatus {
 }
 
 model LibraryItem {
-  id               String                @id @default(uuid())
-  title            String
-  titleAr          String
-  description      String?               @db.Text
-  descriptionAr    String?               @db.Text
-  type             LibraryItemType
-  skillLevel       LibrarySkillLevel     @default(ALL)
-  targetAgeTier    LibraryAgeTier        @default(ALL)
-  contentUrl       String?
-  contentHtml      String?               @db.Text
-  durationMinutes  Int                   @default(5)
-  thumbnailUrl     String?
-  authorId         String?
-  isPublished      Boolean               @default(false)
-  publishedAt      DateTime?
-  viewCount        Int                   @default(0)
-  exerciseData     Json?
-  createdAt        DateTime              @default(now())
-  updatedAt        DateTime              @updatedAt
+  id              String            @id @default(uuid())
+  title           String
+  titleAr         String
+  description     String?           @db.Text
+  descriptionAr   String?           @db.Text
+  type            LibraryItemType
+  skillLevel      LibrarySkillLevel @default(ALL)
+  targetAgeTier   LibraryAgeTier    @default(ALL)
+  contentUrl      String?
+  contentHtml     String?           @db.Text
+  durationMinutes Int               @default(5)
+  thumbnailUrl    String?
+  authorId        String?
+  isPublished     Boolean           @default(false)
+  publishedAt     DateTime?
+  viewCount       Int               @default(0)
+  exerciseData    Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   tags             LibraryItemTag[]
   progress         LibraryProgress[]
@@ -1986,19 +2054,19 @@ model LibraryExerciseAttempt {
 // ─────────────────────── SPRINT 7A — TECH CHECK ───────────────────────
 
 model TechCheck {
-  id                 String   @id @default(uuid())
-  teacherId          String
-  sessionId          String?
-  downloadMbps       Decimal  @db.Decimal(6, 2)
-  uploadMbps         Decimal  @db.Decimal(6, 2)
-  latencyMs          Int
-  audioPeakDb        Decimal  @db.Decimal(5, 2)
-  cameraOk           Boolean
-  micOk              Boolean
-  score              Int
-  passed             Boolean
-  failureReasons     String[]
-  createdAt          DateTime @default(now())
+  id             String   @id @default(uuid())
+  teacherId      String
+  sessionId      String?
+  downloadMbps   Decimal  @db.Decimal(6, 2)
+  uploadMbps     Decimal  @db.Decimal(6, 2)
+  latencyMs      Int
+  audioPeakDb    Decimal  @db.Decimal(5, 2)
+  cameraOk       Boolean
+  micOk          Boolean
+  score          Int
+  passed         Boolean
+  failureReasons String[]
+  createdAt      DateTime @default(now())
 
   @@index([teacherId, createdAt])
   @@index([passed, createdAt])
@@ -2007,16 +2075,16 @@ model TechCheck {
 // ─────────────────────── SPRINT 7A — ACTIVITY ANALYTICS ───────────────────────
 
 model UserSession {
-  id             String     @id @default(uuid())
-  userId         String
-  role           Role
-  startedAt      DateTime   @default(now())
-  endedAt        DateTime?
-  ipHash         String?
-  userAgentHash  String?
-  durationSec    Int        @default(0)
+  id            String    @id @default(uuid())
+  userId        String
+  role          Role
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  ipHash        String?
+  userAgentHash String?
+  durationSec   Int       @default(0)
 
-  pageVisits     PageVisit[]
+  pageVisits PageVisit[]
 
   @@index([userId, startedAt])
   @@index([startedAt])
@@ -2024,14 +2092,14 @@ model UserSession {
 }
 
 model PageVisit {
-  id           String       @id @default(uuid())
-  userId       String
-  sessionId    String?
-  session      UserSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
-  route        String
-  enteredAt    DateTime     @default(now())
-  leftAt       DateTime?
-  durationSec  Int          @default(0)
+  id          String       @id @default(uuid())
+  userId      String
+  sessionId   String?
+  session     UserSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+  route       String
+  enteredAt   DateTime     @default(now())
+  leftAt      DateTime?
+  durationSec Int          @default(0)
 
   @@index([userId, enteredAt])
   @@index([route, enteredAt])
@@ -2048,50 +2116,50 @@ enum AgeTier {
 }
 
 model StudentGamification {
-  id              String   @id @default(uuid())
-  studentId       String   @unique
-  xp              Int      @default(0)
-  level           Int      @default(1)
-  streakDays      Int      @default(0)
-  lastActiveDate  DateTime @default(now())
-  ageTier         AgeTier  @default(MIDDLE)
-  avatarFrame     String   @default("none")
-  title           String   @default("")
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(uuid())
+  studentId      String   @unique
+  xp             Int      @default(0)
+  level          Int      @default(1)
+  streakDays     Int      @default(0)
+  lastActiveDate DateTime @default(now())
+  ageTier        AgeTier  @default(MIDDLE)
+  avatarFrame    String   @default("none")
+  title          String   @default("")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  achievements    StudentAchievement[]
+  achievements StudentAchievement[]
 
   @@index([xp])
   @@index([level])
 }
 
 model Achievement {
-  id            String  @id @default(uuid())
-  key           String  @unique
+  id            String   @id @default(uuid())
+  key           String   @unique
   nameAr        String
   nameEn        String
-  descriptionAr String  @db.Text
-  descriptionEn String  @db.Text
+  descriptionAr String   @db.Text
+  descriptionEn String   @db.Text
   iconKey       String
-  xpReward      Int     @default(10)
+  xpReward      Int      @default(10)
   ageTier       AgeTier?
   category      String
-  isActive      Boolean @default(true)
+  isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
 
-  earned        StudentAchievement[]
+  earned StudentAchievement[]
 }
 
 model StudentAchievement {
-  id             String              @id @default(uuid())
-  studentId      String
-  gamification   StudentGamification @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
-  achievementId  String
-  achievement    Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
-  earnedAt       DateTime            @default(now())
-  isClaimed      Boolean             @default(false)
-  claimedAt      DateTime?
+  id            String              @id @default(uuid())
+  studentId     String
+  gamification  StudentGamification @relation(fields: [studentId], references: [studentId], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+  earnedAt      DateTime            @default(now())
+  isClaimed     Boolean             @default(false)
+  claimedAt     DateTime?
 
   @@unique([studentId, achievementId])
   @@index([studentId, earnedAt])

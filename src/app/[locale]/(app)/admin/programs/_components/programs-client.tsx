@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School, Plus } from "lucide-react";
+import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School, Plus, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -106,9 +106,14 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
                   <Badge variant="info">{p.type}</Badge>
                   <span className="text-xs text-muted-foreground"><span className="num">{p.classesCount}</span> {t("ProgramsPage.classesCount")}</span>
                 </div>
-                <Button variant="outline" size="sm" className="w-full" onClick={() => setEditing(p)}>
-                  <Pencil className="me-2 h-4 w-4" />{t("ProgramsPage.edit")}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => setEditing(p)}>
+                    <Pencil className="me-2 h-4 w-4" />{t("ProgramsPage.edit")}
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => router.push(`/${locale}/admin/openings`)}>
+                    <Users className="me-2 h-4 w-4" />{t("Openings.viewApplicants")}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           );
