@@ -1,0 +1,320 @@
+/**
+ * One-shot i18n inserter for the Applicant Portal. Adds the new keys to BOTH
+ * ar.json and en.json with identical structure (so leaf-count parity holds),
+ * preserving existing key order. Idempotent: re-running overwrites the same
+ * keys with the same values. Run: npx tsx scripts/add-applicant-i18n.ts
+ */
+import { readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+
+const EN = {
+  Roles: { APPLICANT: "Applicant" },
+  Nav: {
+    applicants: "Applicants",
+    applicantOverview: "Overview",
+  },
+  ApplicantAuth: {
+    title: "Join Hajr Academy as a teacher",
+    subtitle: "Create your applicant account to start your journey with us.",
+    submit: "Create applicant account",
+    accountCreated: "Welcome! Your applicant account is ready.",
+    haveAccount: "Already have an account?",
+    loginNow: "Sign in",
+    gender: "Gender",
+    genderUnspecified: "Prefer not to say",
+    genderMale: "Male",
+    genderFemale: "Female",
+    programInterest: "Program you're interested in (optional)",
+    programNone: "Not sure yet",
+  },
+  Applicant: {
+    // Portal — shell nav
+    navOverview: "Overview",
+    navOpenings: "Openings",
+    navMessages: "Messages",
+    navMeetings: "Meetings",
+    navTest: "Test",
+    navDemo: "Demo lesson",
+    // Overview
+    welcomeHeading: "Welcome, {name}",
+    welcomeSub: "This is your private space. You'll find every step of your journey here.",
+    journeyTitle: "Your journey",
+    feedTitle: "Announcements & messages",
+    feedEmpty: "Nothing here yet — we'll keep you posted on every step.",
+    feedError: "We couldn't load your updates right now. Please try again shortly.",
+    messageFrom: "Message from",
+    // Stage strip (long labels)
+    stageReceived: "Application received",
+    stageInterview: "Interview",
+    stageTest: "Test",
+    stageDemo: "Demo lesson",
+    stageDecision: "Decision",
+    // Openings
+    openingsTitle: "Program openings",
+    openingsSubtitle: "Programs you can express interest in teaching.",
+    openingsEmpty: "There are no openings available to you right now.",
+    openingsError: "We couldn't load the openings. Please try again shortly.",
+    expressInterest: "Express interest",
+    interestRecorded: "Interest recorded",
+    interestSent: "Your interest has been sent to our team.",
+    interestError: "We couldn't record your interest. Please try again.",
+    // Messages
+    messagesTitle: "Messages",
+    messagesSubtitle: "Chat directly with the Hajr Academy team.",
+    // Meetings
+    meetingsTitle: "Your meetings",
+    meetingsSubtitle: "Your scheduled interview and meetings.",
+    meetingsEmpty: "No meetings scheduled yet. We'll let you know when one is set.",
+    meetingsError: "We couldn't load your meetings. Please try again shortly.",
+    meetingUpcoming: "Upcoming",
+    meetingPast: "Past",
+    meetingJoin: "Join meeting",
+    // Test
+    testTitle: "Your assessment",
+    testSubtitle: "The test step of your application.",
+    testEmpty: "No test has been assigned yet.",
+    testError: "We couldn't load your test. Please try again shortly.",
+    testAssigned: "Assigned",
+    testStart: "Start test",
+    // Demo
+    demoTitle: "Demo lesson",
+    demoSubtitle: "Share a short recorded lesson with us.",
+    demoIntro: "Record a short demo lesson (5–10 minutes) so we can see your teaching style. You can upload a file or share a link.",
+    demoUploadHeading: "Upload a recording",
+    demoUploadHint: "Video files up to {max} MB (webm, mp4, mov, ogg).",
+    demoUploadBtn: "Upload",
+    demoUploaded: "Uploaded",
+    demoUploadOk: "Your demo lesson was uploaded. Thank you!",
+    demoUploadError: "Upload failed. Please check the file and try again.",
+    demoNoFile: "Please choose a file first.",
+    demoTooLarge: "That file is too large.",
+    demoLinkHeading: "Or share a link",
+    demoLinkHint: "Paste a link to your recording (YouTube, Drive, etc.).",
+    demoLinkBtn: "Submit link",
+    demoLinkOk: "Your demo link was sent. Thank you!",
+    demoLinkError: "That doesn't look like a valid link. Please try again.",
+    // Admin — list
+    adminTitle: "Teacher applicants",
+    adminSubtitle: "Everyone who applied to teach — their stage, program, and access at a glance.",
+    adminEmpty: "No applicants yet.",
+    adminLoadError: "We couldn't load the applicants. Please try again shortly.",
+    colName: "Name",
+    colProgram: "Program",
+    colStage: "Stage",
+    colFeatures: "Access",
+    colActivity: "Last activity",
+    filterAll: "All",
+    filterMale: "Male",
+    filterFemale: "Female",
+    closedTag: "Closed",
+    // Stage badges (short)
+    stageNew: "New",
+    stageMessaging: "In touch",
+    stageInterviewShort: "Interview",
+    stageTestShort: "Test",
+    stageDemoShort: "Demo",
+    stageDecisionShort: "Decision",
+    // Admin — detail
+    adminNotFound: "Applicant not found.",
+    adminThreadTitle: "Conversation",
+    adminThreadEmpty: "No messages yet.",
+    // Admin — controls
+    adminStageTitle: "Stage",
+    adminStageHint: "Setting a stage unlocks its default features (you can still toggle each one below).",
+    adminStageUpdated: "Stage updated.",
+    adminFeaturesTitle: "Feature access",
+    adminFeaturesHint: "Toggle any feature on or off for this applicant. Overview is always on.",
+    adminFeatureOn: "Feature enabled.",
+    adminFeatureOff: "Feature disabled.",
+    adminActionsTitle: "Message & decision",
+    adminActionsHint: "Convert turns this applicant into a teacher. Close politely ends the journey (the account becomes read-only — never deleted).",
+    adminMessagePlaceholder: "Write a message to this applicant…",
+    adminSendMessage: "Send message",
+    adminMessageSent: "Message sent.",
+    adminConvert: "Convert to teacher",
+    adminConvertConfirm: "Convert this applicant into a teacher account?",
+    adminConvertOk: "Converted to teacher.",
+    adminClose: "Close politely",
+    adminCloseConfirm: "Close this applicant out? They'll keep read-only access and receive a polite closing note.",
+    adminCloseOk: "Applicant closed.",
+    adminActionError: "Something went wrong. Please try again.",
+    // Stage chips (admin control buttons)
+    stageChipNEW: "New",
+    stageChipMESSAGING: "In touch",
+    stageChipINTERVIEW: "Interview",
+    stageChipTESTING: "Test",
+    stageChipDEMO: "Demo",
+    stageChipDECISION: "Decision",
+    // Feature labels (admin toggles)
+    featureOVERVIEW: "Overview",
+    featureOPENINGS: "Openings",
+    featureMESSAGING: "Messaging",
+    featureMEETINGS: "Meetings",
+    featureTEST: "Test",
+    featureDEMO_RECORDING: "Demo lesson",
+  },
+} as const;
+
+const AR = {
+  Roles: { APPLICANT: "متقدّم" },
+  Nav: {
+    applicants: "المتقدّمون",
+    applicantOverview: "نظرة عامة",
+  },
+  ApplicantAuth: {
+    title: "انضم إلى أكاديمية هَجر معلّماً",
+    subtitle: "أنشئ حساب المتقدّم لتبدأ رحلتك معنا.",
+    submit: "إنشاء حساب متقدّم",
+    accountCreated: "أهلاً بك! حساب المتقدّم جاهز.",
+    haveAccount: "لديك حساب بالفعل؟",
+    loginNow: "تسجيل الدخول",
+    gender: "الجنس",
+    genderUnspecified: "أفضّل عدم الإفصاح",
+    genderMale: "ذكر",
+    genderFemale: "أنثى",
+    programInterest: "البرنامج الذي تهتم بتدريسه (اختياري)",
+    programNone: "لست متأكداً بعد",
+  },
+  Applicant: {
+    navOverview: "نظرة عامة",
+    navOpenings: "الفرص",
+    navMessages: "الرسائل",
+    navMeetings: "الاجتماعات",
+    navTest: "الاختبار",
+    navDemo: "الدرس التجريبي",
+    welcomeHeading: "أهلاً، {name}",
+    welcomeSub: "هذه مساحتك الخاصة. ستجد هنا كل خطوة من رحلتك.",
+    journeyTitle: "رحلتك",
+    feedTitle: "الإعلانات والرسائل",
+    feedEmpty: "لا شيء هنا بعد — سنطلعك على كل خطوة.",
+    feedError: "تعذّر تحميل التحديثات الآن. حاول مرة أخرى بعد قليل.",
+    messageFrom: "رسالة من",
+    stageReceived: "تم استلام الطلب",
+    stageInterview: "المقابلة",
+    stageTest: "الاختبار",
+    stageDemo: "الدرس التجريبي",
+    stageDecision: "القرار",
+    openingsTitle: "فرص البرامج",
+    openingsSubtitle: "البرامج التي يمكنك إبداء اهتمامك بتدريسها.",
+    openingsEmpty: "لا توجد فرص متاحة لك حالياً.",
+    openingsError: "تعذّر تحميل الفرص. حاول مرة أخرى بعد قليل.",
+    expressInterest: "إبداء الاهتمام",
+    interestRecorded: "تم تسجيل اهتمامك",
+    interestSent: "تم إرسال اهتمامك إلى فريقنا.",
+    interestError: "تعذّر تسجيل اهتمامك. حاول مرة أخرى.",
+    messagesTitle: "الرسائل",
+    messagesSubtitle: "تواصل مباشرة مع فريق أكاديمية هَجر.",
+    meetingsTitle: "اجتماعاتك",
+    meetingsSubtitle: "مقابلتك واجتماعاتك المجدولة.",
+    meetingsEmpty: "لا توجد اجتماعات مجدولة بعد. سنخبرك عند تحديد موعد.",
+    meetingsError: "تعذّر تحميل اجتماعاتك. حاول مرة أخرى بعد قليل.",
+    meetingUpcoming: "قادم",
+    meetingPast: "منتهٍ",
+    meetingJoin: "انضم للاجتماع",
+    testTitle: "تقييمك",
+    testSubtitle: "خطوة الاختبار في طلبك.",
+    testEmpty: "لم يُسند إليك اختبار بعد.",
+    testError: "تعذّر تحميل اختبارك. حاول مرة أخرى بعد قليل.",
+    testAssigned: "مُسند",
+    testStart: "ابدأ الاختبار",
+    demoTitle: "الدرس التجريبي",
+    demoSubtitle: "شاركنا درساً تجريبياً قصيراً.",
+    demoIntro: "سجّل درساً تجريبياً قصيراً (٥–١٠ دقائق) لنرى أسلوبك في التدريس. يمكنك رفع ملف أو مشاركة رابط.",
+    demoUploadHeading: "ارفع تسجيلاً",
+    demoUploadHint: "ملفات فيديو حتى {max} ميجابايت (webm، mp4، mov، ogg).",
+    demoUploadBtn: "رفع",
+    demoUploaded: "تم الرفع",
+    demoUploadOk: "تم رفع درسك التجريبي. شكراً لك!",
+    demoUploadError: "فشل الرفع. تحقق من الملف وحاول مرة أخرى.",
+    demoNoFile: "الرجاء اختيار ملف أولاً.",
+    demoTooLarge: "هذا الملف كبير جداً.",
+    demoLinkHeading: "أو شارك رابطاً",
+    demoLinkHint: "الصق رابط تسجيلك (يوتيوب، درايف، إلخ).",
+    demoLinkBtn: "إرسال الرابط",
+    demoLinkOk: "تم إرسال رابط درسك. شكراً لك!",
+    demoLinkError: "لا يبدو هذا رابطاً صحيحاً. حاول مرة أخرى.",
+    adminTitle: "المتقدّمون للتدريس",
+    adminSubtitle: "كل من تقدّم للتدريس — مرحلته وبرنامجه وصلاحياته في لمحة.",
+    adminEmpty: "لا يوجد متقدّمون بعد.",
+    adminLoadError: "تعذّر تحميل المتقدّمين. حاول مرة أخرى بعد قليل.",
+    colName: "الاسم",
+    colProgram: "البرنامج",
+    colStage: "المرحلة",
+    colFeatures: "الصلاحيات",
+    colActivity: "آخر نشاط",
+    filterAll: "الكل",
+    filterMale: "ذكر",
+    filterFemale: "أنثى",
+    closedTag: "مغلق",
+    stageNew: "جديد",
+    stageMessaging: "على تواصل",
+    stageInterviewShort: "مقابلة",
+    stageTestShort: "اختبار",
+    stageDemoShort: "تجريبي",
+    stageDecisionShort: "قرار",
+    adminNotFound: "المتقدّم غير موجود.",
+    adminThreadTitle: "المحادثة",
+    adminThreadEmpty: "لا توجد رسائل بعد.",
+    adminStageTitle: "المرحلة",
+    adminStageHint: "تحديد المرحلة يفتح صلاحياتها الافتراضية (يمكنك تعديل كل صلاحية أدناه).",
+    adminStageUpdated: "تم تحديث المرحلة.",
+    adminFeaturesTitle: "صلاحيات الميزات",
+    adminFeaturesHint: "فعّل أو عطّل أي ميزة لهذا المتقدّم. النظرة العامة مفعّلة دائماً.",
+    adminFeatureOn: "تم تفعيل الميزة.",
+    adminFeatureOff: "تم تعطيل الميزة.",
+    adminActionsTitle: "رسالة وقرار",
+    adminActionsHint: "التحويل يجعل هذا المتقدّم معلّماً. الإغلاق المهذّب ينهي الرحلة (يصبح الحساب للقراءة فقط — لا يُحذف أبداً).",
+    adminMessagePlaceholder: "اكتب رسالة لهذا المتقدّم…",
+    adminSendMessage: "إرسال الرسالة",
+    adminMessageSent: "تم إرسال الرسالة.",
+    adminConvert: "تحويل إلى معلّم",
+    adminConvertConfirm: "هل تريد تحويل هذا المتقدّم إلى حساب معلّم؟",
+    adminConvertOk: "تم التحويل إلى معلّم.",
+    adminClose: "إغلاق مهذّب",
+    adminCloseConfirm: "هل تريد إغلاق هذا المتقدّم؟ سيبقى له وصول للقراءة فقط وسيتلقى رسالة ختامية مهذّبة.",
+    adminCloseOk: "تم إغلاق المتقدّم.",
+    adminActionError: "حدث خطأ ما. حاول مرة أخرى.",
+    stageChipNEW: "جديد",
+    stageChipMESSAGING: "على تواصل",
+    stageChipINTERVIEW: "مقابلة",
+    stageChipTESTING: "اختبار",
+    stageChipDEMO: "تجريبي",
+    stageChipDECISION: "قرار",
+    featureOVERVIEW: "نظرة عامة",
+    featureOPENINGS: "الفرص",
+    featureMESSAGING: "المراسلة",
+    featureMEETINGS: "الاجتماعات",
+    featureTEST: "الاختبار",
+    featureDEMO_RECORDING: "الدرس التجريبي",
+  },
+} as const;
+
+function deepMerge(target: any, patch: any): any {
+  for (const k of Object.keys(patch)) {
+    if (patch[k] && typeof patch[k] === "object" && !Array.isArray(patch[k])) {
+      if (!target[k] || typeof target[k] !== "object") target[k] = {};
+      deepMerge(target[k], patch[k]);
+    } else {
+      target[k] = patch[k];
+    }
+  }
+  return target;
+}
+
+function countLeaves(o: any): number {
+  let n = 0;
+  for (const k in o) {
+    if (o[k] && typeof o[k] === "object") n += countLeaves(o[k]);
+    else n++;
+  }
+  return n;
+}
+
+const dir = join(__dirname, "..", "src", "messages");
+for (const [file, patch] of [["en.json", EN], ["ar.json", AR]] as const) {
+  const p = join(dir, file);
+  const json = JSON.parse(readFileSync(p, "utf8"));
+  deepMerge(json, patch);
+  writeFileSync(p, JSON.stringify(json, null, 2) + "\n", "utf8");
+  console.log(`${file}: ${countLeaves(json)} leaf keys`);
+}

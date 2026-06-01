@@ -39,6 +39,7 @@ model User {
   studentProfile          StudentProfile?
   parentProfile           ParentProfile?
   marketerProfile         MarketerProfile?
+  applicantProfile        ApplicantProfile?
   messagesSent            Message[]               @relation("MessagesSent")
   messagesReceived        Message[]               @relation("MessagesReceived")
   notifications           Notification[]
@@ -167,6 +168,7 @@ model Program {
   classes       Class[]
   subscriptions Subscription[]
   openings      ProgramOpening[]
+  applicants    ApplicantProfile[]
 }
 
 model Class {
@@ -246,6 +248,53 @@ model TeacherApplication {
   @@unique([openingId, teacherId])
   @@index([teacherId, status])
   @@index([openingId, status])
+}
+
+// ─────────────────── APPLICANT PORTAL (new-teacher applicants) ───────────────────
+// An isolated, admin-gated account type for PROSPECTIVE teachers. Fully additive
+// and separate from TeacherProfile — an applicant is NOT a teacher and never
+// touches the teacher tables until an admin runs "Convert to Teacher". Reuses
+// User for auth/email. The applicant's interest in a program is captured as
+// `appliedProgramId` (the openings page sets this) so the existing
+// TeacherApplication flow stays 100% untouched.
+model ApplicantProfile {
+  id              String          @id @default(uuid())
+  userId          String          @unique
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName        String
+  phone           String?
+  appliedProgramId String?
+  appliedProgram  Program?        @relation(fields: [appliedProgramId], references: [id], onDelete: SetNull)
+  stage           ApplicantStage  @default(NEW)
+  gender          Gender?
+  // Rejected/closed applicants become read-only (no destructive delete).
+  isReadOnly      Boolean         @default(false)
+  lastActivityAt  DateTime        @default(now())
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  featureAccess   ApplicantFeatureAccess[]
+
+  @@index([stage, createdAt])
+}
+
+// Per-feature gating ABOVE the stage default. Each stage unlocks a default
+// bundle; the admin may toggle ANY single feature on/off for max flexibility
+// (admin override beats stage defaults). OVERVIEW + OPENINGS + MESSAGING are
+// seeded enabled on signup; everything else off until an admin opens it.
+model ApplicantFeatureAccess {
+  id          String           @id @default(uuid())
+  applicantId String
+  applicant   ApplicantProfile @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  feature     ApplicantFeature
+  enabled     Boolean          @default(false)
+  enabledBy   String?
+  enabledAt   DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([applicantId, feature])
+  @@index([applicantId, enabled])
 }
 
 model PrivateLesson {
@@ -1047,6 +1096,7 @@ enum Role {
   STUDENT
   PARENT
   MARKETER
+  APPLICANT
 }
 
 enum Lang {
@@ -1125,6 +1175,28 @@ enum ApplicationStatus {
   SELECTED
   REJECTED
   WITHDRAWN
+}
+
+// Applicant journey. Each stage unlocks a default feature bundle in the portal
+// (see lib/applicants/service.ts). DECISION is the terminal stage (accept→convert
+// to teacher, or polite close → read-only account).
+enum ApplicantStage {
+  NEW
+  MESSAGING
+  INTERVIEW
+  TESTING
+  DEMO
+  DECISION
+}
+
+// Per-feature toggles for the applicant portal nav + page guards.
+enum ApplicantFeature {
+  OVERVIEW
+  OPENINGS
+  MESSAGING
+  MEETINGS
+  TEST
+  DEMO_RECORDING
 }
 
 enum ClassStatus {

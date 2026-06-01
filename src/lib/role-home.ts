@@ -13,4 +13,5 @@ export const ROLE_HOME: Record<Role, string> = {
   STUDENT: "/student",
   PARENT: "/parent",
   MARKETER: "/marketer",
+  APPLICANT: "/applicant",
 };

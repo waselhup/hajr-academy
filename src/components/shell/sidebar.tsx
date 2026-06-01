@@ -98,6 +98,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.students", href: "/admin/students", icon: Users },
       { key: "Nav.studentsTransfer", href: "/admin/students/transfer", icon: ArrowLeftRight },
       { key: "Nav.teachers", href: "/admin/teachers", icon: GraduationCap },
+      { key: "Nav.applicants", href: "/admin/applicants", icon: UserPlus },
       { key: "Nav.teacherActivity", href: "/admin/teacher-activity", icon: ActivitySquare },
       { key: "Nav.teacherMeetings", href: "/admin/teacher-meetings", icon: CalendarCheck },
       { key: "Nav.parents", href: "/admin/parents", icon: UserIcon },
@@ -385,6 +386,13 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.marketerProfile", href: "/marketer/profile", icon: UserIcon },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.calendar", href: "/calendar", icon: Calendar },
+  ],
+  // APPLICANT uses a dedicated minimal shell (see (applicant) route group) and
+  // never renders through this Sidebar. This entry exists only to satisfy the
+  // Record<Role, NavItem[]> totality for legacy isNavActive() callers; per-item
+  // nav for applicants is gated by ApplicantFeatureAccess in their own shell.
+  APPLICANT: [
+    { key: "Nav.applicantOverview", href: "/applicant", icon: LayoutDashboard },
   ],
 };
 

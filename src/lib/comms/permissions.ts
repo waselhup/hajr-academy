@@ -109,6 +109,11 @@ export async function getAllowedRecipients(
     }
   } else if (role === "MARKETER") {
     // Marketer can reach admins only — admins were already added above.
+  } else if (role === "APPLICANT") {
+    // HARD SCOPE: a new-teacher applicant may ONLY ever reach admins. No peer,
+    // teacher, or student access — the admins added above are the complete set.
+    // Enforced here so every messaging entry point (send, recipients, start)
+    // inherits it; never trusted from the client.
   } else if (role === "PARENT") {
     // Parent → teachers of their children's classes.
     const parent = await prisma.parentProfile.findUnique({

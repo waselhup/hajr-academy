@@ -72,6 +72,12 @@ const TABS_BY_ROLE: Record<Role, Tab[]> = {
     { key: "Nav.bottomNavMessages",    href: "/messages",                 icon: MessageSquare, badge: "messages" },
     { key: "Nav.bottomNavProfile",     href: "/marketer/profile",         icon: UserIcon },
   ],
+  // APPLICANT uses its own dedicated mobile nav inside the (applicant) shell and
+  // never renders this component. Present only for Record<Role,…> totality.
+  APPLICANT: [
+    { key: "Nav.bottomNavHome",     href: "/applicant",          icon: Home },
+    { key: "Nav.bottomNavMessages", href: "/applicant/messages", icon: MessageSquare, badge: "messages" },
+  ],
 };
 
 export function MobileBottomNav({ role }: { role: Role }) {
