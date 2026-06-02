@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TeacherBlackboardList } from "../blackboard/blackboard-list";
 import { TeacherLabClient } from "../lab/teacher-lab-client";
+import { CreateAssignmentDialog } from "./create-assignment-dialog";
+import { Paperclip, ChevronRight } from "lucide-react";
 
 type Assignment = {
   id: string;
@@ -16,6 +18,7 @@ type Assignment = {
   cohortCode: string;
   dueDate: string | null;
   submissionCount: number;
+  attachmentCount: number;
   createdAt: string;
 };
 
@@ -44,6 +47,7 @@ type Exercise = {
 export function TeacherAssignmentsClient({
   locale,
   assignments,
+  teacherClasses,
   blackboardActive,
   blackboardArchived,
   myExercises,
@@ -51,12 +55,14 @@ export function TeacherAssignmentsClient({
 }: {
   locale: string;
   assignments: Assignment[];
+  teacherClasses: { id: string; label: string }[];
   blackboardActive: Room[];
   blackboardArchived: Room[];
   myExercises: Exercise[];
   libraryExercises: Exercise[];
 }) {
   const t = useTranslations();
+  const ar = locale === "ar";
 
   return (
     <Tabs defaultValue="assignments" className="w-full">
@@ -67,37 +73,55 @@ export function TeacherAssignmentsClient({
       </TabsList>
 
       <TabsContent value="assignments" className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-muted-foreground">{t("Assignments.teacherListHint")}</p>
+          <CreateAssignmentDialog locale={locale} classes={teacherClasses} />
+        </div>
         {assignments.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-sm text-muted-foreground">
-              {locale === "ar" ? "لا توجد واجبات بعد." : "No assignments yet."}
+              {teacherClasses.length === 0
+                ? t("Assignments.noClassesYet")
+                : ar
+                ? "لا توجد واجبات بعد."
+                : "No assignments yet."}
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-2">
             {assignments.map((a) => (
-              <Card key={a.id}>
-                <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-                  <div className="min-w-0">
-                    <p className="font-medium">{locale === "ar" ? a.titleAr ?? a.title : a.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {a.className} · <span className="num">{a.cohortCode}</span>
-                      {a.dueDate && (
-                        <>
-                          {" · "}
-                          <span className="num">
-                            {new Date(a.dueDate).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
-                          </span>
-                        </>
+              <Link key={a.id} href={`/${locale}/teacher/assignments/${a.id}`} className="block">
+                <Card className="transition-colors hover:bg-muted/40">
+                  <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+                    <div className="min-w-0">
+                      <p className="font-medium">{ar ? a.titleAr ?? a.title : a.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {a.className} · <span className="num">{a.cohortCode}</span>
+                        {a.dueDate && (
+                          <>
+                            {" · "}
+                            <span className="num">
+                              {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-US")}
+                            </span>
+                          </>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {a.attachmentCount > 0 && (
+                        <Badge variant="outline" className="num gap-1">
+                          <Paperclip className="h-3 w-3" />
+                          {a.attachmentCount}
+                        </Badge>
                       )}
-                    </p>
-                  </div>
-                  <Badge variant="default" className="num">
-                    {a.submissionCount}{" "}
-                    {locale === "ar" ? "تسليم" : "submissions"}
-                  </Badge>
-                </CardContent>
-              </Card>
+                      <Badge variant="default" className="num">
+                        {a.submissionCount} {ar ? "تسليم" : "submissions"}
+                      </Badge>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground rtl:rotate-180" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}

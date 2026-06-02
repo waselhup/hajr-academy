@@ -8,17 +8,33 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Clock, FileText, BookCheck, FlaskConical, Play, Sparkles, Trophy } from "lucide-react";
+import { Clock, FileText, BookCheck, FlaskConical, Play, Sparkles, Trophy, Paperclip, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { SubmitDialog } from "./submit-dialog";
+
+export type StudentAttachmentVM = {
+  id: string;
+  kind: "VIDEO" | "AUDIO" | "TEXT" | "FILE";
+  fileName: string;
+  mimeType: string;
+  sizeBytes: number;
+  durationSec: number | null;
+};
 
 export type AssignmentRow = {
   id: string;
   title: string;
+  description: string | null;
   className: string;
   cohortCode: string;
   dueDate: string | null;
+  allowedResponseTypes: string[];
+  materialAttachments: StudentAttachmentVM[];
   submitted: boolean;
   grade: number | null;
+  feedback: string | null;
+  submissionContent: string | null;
+  submissionAttachments: StudentAttachmentVM[];
   overdue: boolean;
 };
 
@@ -137,43 +153,91 @@ function AssignmentCard({
   t: ReturnType<typeof useTranslations>;
 }) {
   const ar = locale === "ar";
+  const [open, setOpen] = useState(false);
+  const hasMaterial = a.materialAttachments.length > 0;
+
   return (
-    <Card>
-      <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <BookCheck className="h-4 w-4 shrink-0 text-brand-navy" />
-            <p className="truncate font-medium">{a.title}</p>
+    <>
+      <Card className="cursor-pointer transition-colors hover:bg-muted/40" onClick={() => setOpen(true)}>
+        <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <BookCheck className="h-4 w-4 shrink-0 text-brand-navy" />
+              <p className="truncate font-medium">{a.title}</p>
+              {hasMaterial && (
+                <Badge variant="outline" className="num gap-1 text-[10px]">
+                  <Paperclip className="h-3 w-3" />
+                  {a.materialAttachments.length}
+                </Badge>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {a.className} · <span className="num">{a.cohortCode}</span>
+              {a.dueDate && (
+                <>
+                  {" · "}
+                  <span className={cn("num", a.overdue && "text-red-600 font-medium")}>
+                    {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-GB")}
+                  </span>
+                </>
+              )}
+            </p>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {a.className} · <span className="num">{a.cohortCode}</span>
-            {a.dueDate && (
-              <>
-                {" · "}
-                <span className={cn("num", a.overdue && "text-red-600 font-medium")}>
-                  {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-GB")}
-                </span>
-              </>
-            )}
-          </p>
-        </div>
-        <div className="shrink-0">
-          {a.submitted ? (
-            a.grade !== null ? (
-              <Badge variant="success" className="num">
-                {a.grade}/100
-              </Badge>
+          <div className="flex shrink-0 items-center gap-2">
+            {a.submitted ? (
+              a.grade !== null ? (
+                <Badge variant="success" className="num">
+                  {a.grade}/100
+                </Badge>
+              ) : (
+                <Badge variant="info">{ar ? "تم التسليم" : "Submitted"}</Badge>
+              )
+            ) : a.overdue ? (
+              <Badge variant="danger">{ar ? "متأخر" : "Overdue"}</Badge>
             ) : (
-              <Badge variant="info">{ar ? "تم التسليم" : "Submitted"}</Badge>
-            )
-          ) : a.overdue ? (
-            <Badge variant="danger">{ar ? "متأخر" : "Overdue"}</Badge>
-          ) : (
-            <Badge variant="warning">{ar ? "بانتظار التسليم" : "Pending"}</Badge>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              <Badge variant="warning">{ar ? "بانتظار التسليم" : "Pending"}</Badge>
+            )}
+            <Button
+              size="sm"
+              variant={a.submitted ? "outline" : "cta"}
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpen(true);
+              }}
+            >
+              {a.grade !== null ? (
+                t("viewResult")
+              ) : a.submitted ? (
+                t("resubmit")
+              ) : (
+                <>
+                  <Upload className="me-1.5 h-3.5 w-3.5" />
+                  {t("submitWork")}
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+      <SubmitDialog
+        locale={locale}
+        assignment={{
+          id: a.id,
+          title: a.title,
+          description: a.description,
+          dueDate: a.dueDate,
+          allowedResponseTypes: a.allowedResponseTypes,
+          materialAttachments: a.materialAttachments,
+          submitted: a.submitted,
+          grade: a.grade,
+          feedback: a.feedback,
+          submissionContent: a.submissionContent,
+          submissionAttachments: a.submissionAttachments,
+        }}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
   );
 }
 

@@ -19,18 +19,19 @@ export default async function TeacherAssignmentsPage({
   });
 
   let assignments: any[] = [];
+  let teacherClasses: { id: string; label: string }[] = [];
   let blackboardActive: any[] = [];
   let blackboardArchived: any[] = [];
   let myExercises: any[] = [];
   let libraryExercises: any[] = [];
 
   if (teacher) {
-    const [assignmentsRaw, rooms, mine, library] = await Promise.all([
+    const [assignmentsRaw, rooms, mine, library, classes] = await Promise.all([
       prisma.assignment.findMany({
         where: { class: { teacherId: teacher.id } },
         include: {
           class: { select: { name: true, nameAr: true, cohortCode: true } },
-          _count: { select: { submissions: true } },
+          _count: { select: { submissions: true, attachmentList: true } },
         },
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -53,6 +54,11 @@ export default async function TeacherAssignmentsPage({
         take: 50,
         include: { _count: { select: { attempts: true } } },
       }),
+      prisma.class.findMany({
+        where: { teacherId: teacher.id, status: "ACTIVE" },
+        select: { id: true, name: true, nameAr: true, cohortCode: true },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
     assignments = assignmentsRaw.map((a) => ({
@@ -63,7 +69,13 @@ export default async function TeacherAssignmentsPage({
       cohortCode: a.class.cohortCode,
       dueDate: a.dueDate?.toISOString() ?? null,
       submissionCount: a._count.submissions,
+      attachmentCount: a._count.attachmentList,
       createdAt: a.createdAt.toISOString(),
+    }));
+
+    teacherClasses = classes.map((c) => ({
+      id: c.id,
+      label: `${locale === "ar" ? c.nameAr ?? c.name : c.name} · ${c.cohortCode}`,
     }));
 
     blackboardActive = rooms
@@ -112,6 +124,7 @@ export default async function TeacherAssignmentsPage({
       <TeacherAssignmentsClient
         locale={locale}
         assignments={assignments}
+        teacherClasses={teacherClasses}
         blackboardActive={blackboardActive}
         blackboardArchived={blackboardArchived}
         myExercises={myExercises}

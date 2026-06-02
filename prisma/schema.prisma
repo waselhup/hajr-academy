@@ -437,6 +437,17 @@ model BlackboardPermission {
 }
 
 // ─────────────────────── ASSIGNMENTS ───────────────────────
+// Kind of a rich attachment, shared by teacher material and student
+// submissions. Also used for `Assignment.allowedResponseTypes` to gate
+// which response kinds a student may submit (TEXT is always allowed in code
+// as a fallback even when the list is empty).
+enum AttachmentKind {
+  VIDEO
+  AUDIO
+  TEXT
+  FILE
+}
+
 model Assignment {
   id          String    @id @default(uuid())
   classId     String
@@ -446,9 +457,12 @@ model Assignment {
   description String?
   dueDate     DateTime?
   attachments String[]
+  // Response kinds the student is allowed to submit. Empty = text-only.
+  allowedResponseTypes AttachmentKind[] @default([])
   createdAt   DateTime  @default(now())
 
-  submissions Submission[]
+  submissions    Submission[]
+  attachmentList AssignmentAttachment[]
 }
 
 model Submission {
@@ -463,6 +477,43 @@ model Submission {
   feedback     String?
   submittedAt  DateTime       @default(now())
   gradedAt     DateTime?
+
+  attachmentList SubmissionAttachment[]
+}
+
+// Generic rich attachment on the teacher's assignment material.
+// Stored in the private `assignment-media` bucket; `url` holds the storage
+// path (signed on demand by the access-controlled fetch endpoint).
+model AssignmentAttachment {
+  id           String         @id @default(uuid())
+  assignmentId String
+  assignment   Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  kind         AttachmentKind
+  url          String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  durationSec  Int?
+  createdAt    DateTime       @default(now())
+
+  @@index([assignmentId])
+}
+
+// Generic rich attachment on a student's submission. Same shape as the
+// teacher side; one submission → many attachments.
+model SubmissionAttachment {
+  id           String         @id @default(uuid())
+  submissionId String
+  submission   Submission     @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  kind         AttachmentKind
+  url          String
+  fileName     String
+  mimeType     String
+  sizeBytes    Int
+  durationSec  Int?
+  createdAt    DateTime       @default(now())
+
+  @@index([submissionId])
 }
 
 // ─────────────────────── ENGLISH LAB ───────────────────────

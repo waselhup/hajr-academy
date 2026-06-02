@@ -35,9 +35,10 @@ export default async function StudentAssignmentsPage({
         where: { classId: { in: scope.classIds } },
         include: {
           class: { select: { name: true, nameAr: true, cohortCode: true } },
+          attachmentList: { orderBy: { createdAt: "asc" } },
           submissions: {
             where: { studentId: scope.studentId },
-            select: { id: true, grade: true, submittedAt: true },
+            include: { attachmentList: { orderBy: { createdAt: "asc" } } },
           },
         },
         orderBy: { createdAt: "desc" },
@@ -90,14 +91,28 @@ export default async function StudentAssignmentsPage({
     assignments = aRaw.map((a) => {
       const sub = a.submissions[0] ?? null;
       const overdue = a.dueDate ? a.dueDate < now && !sub : false;
+      const mapAtt = (x: any) => ({
+        id: x.id,
+        kind: x.kind,
+        fileName: x.fileName,
+        mimeType: x.mimeType,
+        sizeBytes: x.sizeBytes,
+        durationSec: x.durationSec,
+      });
       return {
         id: a.id,
         title: locale === "ar" ? a.titleAr ?? a.title : a.title,
+        description: a.description,
         className: locale === "ar" ? a.class.nameAr ?? a.class.name : a.class.name,
         cohortCode: a.class.cohortCode,
         dueDate: a.dueDate?.toISOString() ?? null,
+        allowedResponseTypes: a.allowedResponseTypes as string[],
+        materialAttachments: a.attachmentList.map(mapAtt),
         submitted: !!sub,
         grade: sub?.grade ?? null,
+        feedback: sub?.feedback ?? null,
+        submissionContent: sub?.content ?? null,
+        submissionAttachments: sub ? sub.attachmentList.map(mapAtt) : [],
         overdue,
       };
     });
