@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { programName } from "@/lib/openings/service";
+import { canSeeOpening, explicitTeacherMemberships } from "@/lib/openings/audience";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
@@ -82,10 +83,39 @@ export default async function TeacherOpeningsPage({
       where: { userId: session.user.id },
       select: { id: true },
     });
-    [openings, myApps] = await Promise.all([
+    const [allOpenings, apps] = await Promise.all([
       loadOpenings(),
       teacherProfile ? loadMyApps(teacherProfile.id) : Promise.resolve([]),
     ]);
+    myApps = apps;
+
+    // AUDIENCE FILTER (single shared guard): only show openings whose audience
+    // includes this teacher. SELECTED_TEACHERS membership is resolved in bulk
+    // (one query) to avoid N round-trips. Out-of-audience openings are never
+    // listed — and the apply route rejects forced POSTs server-side too.
+    if (teacherProfile) {
+      const memberSet = await explicitTeacherMemberships(
+        teacherProfile.id,
+        allOpenings.map((o) => o.id)
+      );
+      const viewer = { role: "TEACHER" as const, teacherId: teacherProfile.id };
+      const visible: typeof allOpenings = [];
+      for (const o of allOpenings) {
+        const ok = await canSeeOpening(
+          viewer,
+          {
+            id: o.id,
+            status: o.status,
+            audienceType: o.audienceType,
+            applicantsPhaseOpen: o.applicantsPhaseOpen,
+            program: { active: o.program.active },
+          },
+          { isExplicitMember: memberSet.has(o.id) }
+        );
+        if (ok) visible.push(o);
+      }
+      openings = visible;
+    }
   } catch (e) {
     console.error("[teacher/openings] DB query failed:", e);
     loadError = true;

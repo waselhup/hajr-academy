@@ -147,6 +147,7 @@ const createFormSchema = z.object({
   type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
   defaultPriceSar: z.coerce.number().nonnegative(),
   durationHours: z.union([z.coerce.number().int().positive(), z.literal(""), z.null()]).optional(),
+  audienceType: z.enum(["ALL_INTERNAL", "INTERNAL_THEN_APPLICANTS", "APPLICANTS_ONLY", "EVERYONE"]),
 });
 type CreateFormData = z.infer<typeof createFormSchema>;
 
@@ -156,7 +157,7 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
   const [isPending, startTransition] = useTransition();
   const { register, handleSubmit, formState: { errors } } = useForm<CreateFormData>({
     resolver: zodResolver(createFormSchema),
-    defaultValues: { type: "GROUP", defaultPriceSar: 0, durationHours: "" } as any,
+    defaultValues: { type: "GROUP", defaultPriceSar: 0, durationHours: "", audienceType: "ALL_INTERNAL" } as any,
   });
 
   const onSubmit = (data: CreateFormData) => {
@@ -170,6 +171,7 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
         type: data.type,
         defaultPriceSar: data.defaultPriceSar,
         durationHours: typeof data.durationHours === "number" ? data.durationHours : null,
+        audienceType: data.audienceType,
       });
       if (!res.ok) {
         toast.error(res.error === "CODE_EXISTS" ? (isAr ? "هذا الرمز مستخدم مسبقاً" : "Code already exists") : res.error);
@@ -206,6 +208,17 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
           <div className="sm:col-span-2"><Field label="Description (AR)" error={errors.descriptionAr?.message}><Textarea rows={2} dir="rtl" {...register("descriptionAr")} /></Field></div>
           <Field label={t("ProgramsPage.defaultPrice")} error={errors.defaultPriceSar?.message}><Input type="number" step="10" {...register("defaultPriceSar")} /></Field>
           <Field label={t("ProgramsPage.durationHours")}><Input type="number" {...register("durationHours")} /></Field>
+          <div className="sm:col-span-2">
+            <Field label={t("Openings.audienceTitle")}>
+              <select className="w-full rounded-md border border-hajr-border bg-white p-2 min-h-[40px]" {...register("audienceType")}>
+                <option value="ALL_INTERNAL">{t("Openings.audienceType_ALL_INTERNAL")}</option>
+                <option value="INTERNAL_THEN_APPLICANTS">{t("Openings.audienceType_INTERNAL_THEN_APPLICANTS")}</option>
+                <option value="APPLICANTS_ONLY">{t("Openings.audienceType_APPLICANTS_ONLY")}</option>
+                <option value="EVERYONE">{t("Openings.audienceType_EVERYONE")}</option>
+              </select>
+              <p className="mt-1 text-xs text-muted-foreground">{t("Openings.audienceCreateHint")}</p>
+            </Field>
+          </div>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>{t("Common.cancel")}</Button>
             <Button type="submit" disabled={isPending}>{isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}{isAr ? "إنشاء" : "Create"}</Button>

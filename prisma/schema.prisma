@@ -60,6 +60,9 @@ model TeacherProfile {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   bio             String?
   specializations String[]
+  // Optional — used by the teacher-audience filter (targeted openings) and later
+  // by class-assignment gender matching. null = unspecified (existing teachers).
+  gender          Gender?
   salaryBase      Decimal  @default(0) @db.Decimal(10, 2)
   hourlyRate      Decimal  @default(0) @db.Decimal(10, 2)
   zoomHostEmail   String?
@@ -88,6 +91,7 @@ model TeacherProfile {
   speakingClubEvents  SpeakingClubEvent[]
   programApplications TeacherApplication[]
   filledOpenings      ProgramOpening[]
+  openingAudiences    OpeningAudienceMember[]
 }
 
 model StudentProfile {
@@ -220,10 +224,45 @@ model ProgramOpening {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
-  applications TeacherApplication[]
+  // ── Targeted audience (who may SEE/apply to this opening) ──
+  // Additive: default ALL_INTERNAL preserves the original "notify every active
+  // teacher" behaviour. The audience rule is the single source of truth for both
+  // the visibility guard and the notify() fan-out.
+  audienceType      OpeningAudienceType @default(ALL_INTERNAL)
+  // Snapshot of the SELECTED_TEACHERS pick + the filter used to build it, e.g.
+  // { teacherIds: [...], filter: { gender, specializations, minRating, ... } }.
+  audienceConfig    Json?
+  // INTERNAL_THEN_APPLICANTS: false = Phase 1 (internal only); the admin flips it
+  // true to start Phase 2 (applicants). The system NEVER auto-opens phase 2.
+  applicantsPhaseOpen Boolean           @default(false)
+  // Stamped when phase 1 is explicitly closed / phase 2 opened (audit + UI).
+  internalClosedAt    DateTime?
+
+  applications    TeacherApplication[]
+  audienceMembers OpeningAudienceMember[]
 
   @@index([programId, status])
   @@index([status, openedAt])
+}
+
+// Explicit per-opening audience membership. Used for SELECTED_TEACHERS picks and
+// as a fast "already notified?" ledger (notifiedAt) so re-targeting never sends a
+// duplicate ping. A member is either a teacher OR an applicant (never both).
+model OpeningAudienceMember {
+  id          String              @id @default(uuid())
+  openingId   String
+  opening     ProgramOpening      @relation(fields: [openingId], references: [id], onDelete: Cascade)
+  teacherId   String?
+  teacher     TeacherProfile?     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  applicantId String?
+  applicant   ApplicantProfile?   @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  source      OpeningMemberSource
+  notifiedAt  DateTime?
+  createdAt   DateTime            @default(now())
+
+  @@unique([openingId, teacherId])
+  @@unique([openingId, applicantId])
+  @@index([openingId])
 }
 
 // A teacher applies once per opening: short creative survey + optional
@@ -274,6 +313,7 @@ model ApplicantProfile {
   updatedAt       DateTime        @updatedAt
 
   featureAccess   ApplicantFeatureAccess[]
+  openingAudiences OpeningAudienceMember[]
 
   @@index([stage, createdAt])
 }
@@ -1167,6 +1207,23 @@ enum OpeningStatus {
   OPEN
   CLOSED
   FILLED
+}
+
+// WHO an opening is targeted at. Drives both the visibility guard and notify().
+enum OpeningAudienceType {
+  SELECTED_TEACHERS        // explicit teacher pick (audienceConfig.teacherIds)
+  ALL_INTERNAL             // every active internal teacher (the original behaviour)
+  APPLICANTS_ONLY          // external applicant-portal users only
+  INTERNAL_THEN_APPLICANTS // phased: internal first, applicants after an explicit flip
+  EVERYONE                 // all active internal teachers + all eligible applicants
+}
+
+// How an OpeningAudienceMember row was added (provenance for the audit trail).
+enum OpeningMemberSource {
+  SELECTED  // hand-picked by the admin
+  FILTER    // added by applying the reusable teacher filter
+  ALL       // swept in by an ALL_INTERNAL / EVERYONE audience
+  APPLICANT // an applicant made eligible (phase 2 / APPLICANTS_ONLY / EVERYONE)
 }
 
 enum ApplicationStatus {

@@ -15,8 +15,16 @@ import { createSupabaseServiceClient } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { SURVEY_QUESTIONS, VOICE_BUCKET, programName } from "@/lib/openings/service";
+import {
+  SURVEY_QUESTIONS,
+  VOICE_BUCKET,
+  programName,
+  listTeacherSpecializations,
+  type TeacherFilter,
+} from "@/lib/openings/service";
+import { resolveOpeningAudience } from "@/lib/openings/audience";
 import { ReviewClient } from "@/components/openings/review-client";
+import { AudienceManager } from "@/components/openings/audience-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -105,6 +113,43 @@ export default async function AdminOpeningReviewPage({
         ? t("statusFilled")
         : t("statusClosed");
 
+  // ── Audience surface data (Agent C) ──
+  // Resolve the CURRENT eligible audience for live counts + decode the saved
+  // SELECTED_TEACHERS snapshot so the picker round-trips the admin's last pick.
+  const [specializationOptions, resolvedAudience] = await Promise.all([
+    listTeacherSpecializations(),
+    resolveOpeningAudience({
+      id: opening.id,
+      audienceType: opening.audienceType,
+      applicantsPhaseOpen: opening.applicantsPhaseOpen,
+    }),
+  ]);
+
+  const cfg = (opening.audienceConfig ?? {}) as {
+    teacherIds?: unknown;
+    filter?: unknown;
+  };
+  const initialSelectedTeacherIds = Array.isArray(cfg.teacherIds)
+    ? cfg.teacherIds.filter((x): x is string => typeof x === "string")
+    : [];
+  const initialFilter = (cfg.filter && typeof cfg.filter === "object" ? cfg.filter : {}) as TeacherFilter;
+
+  // Live counts (transparent, no black box).
+  const appliedCount = opening.applications.filter(
+    (a) => a.status !== "WITHDRAWN"
+  ).length;
+  const selectedCount = opening.applications.filter((a) => a.status === "SELECTED").length;
+  // Gentle phase-2 hint: all internal applications decided, none selected.
+  const decidedStates = new Set(["SELECTED", "REJECTED", "WITHDRAWN"]);
+  const allDecided =
+    opening.applications.length > 0 &&
+    opening.applications.every((a) => decidedStates.has(a.status));
+  const suggestOpenApplicants =
+    opening.audienceType === "INTERNAL_THEN_APPLICANTS" &&
+    !opening.applicantsPhaseOpen &&
+    allDecided &&
+    selectedCount === 0;
+
   return (
     <div className="space-y-6" dir={isAr ? "rtl" : "ltr"}>
       <div>
@@ -127,6 +172,23 @@ export default async function AdminOpeningReviewPage({
           </span>
         </p>
       </div>
+
+      <AudienceManager
+        openingId={opening.id}
+        openingStatus={opening.status as "OPEN" | "CLOSED" | "FILLED"}
+        audienceType={opening.audienceType}
+        applicantsPhaseOpen={opening.applicantsPhaseOpen}
+        specializationOptions={specializationOptions}
+        initialSelectedTeacherIds={initialSelectedTeacherIds}
+        initialFilter={initialFilter}
+        counts={{
+          internalInvited: resolvedAudience.teacherUserIds.length,
+          applicantsReached: resolvedAudience.applicantUserIds.length,
+          applied: appliedCount,
+          selected: selectedCount,
+        }}
+        suggestOpenApplicants={suggestOpenApplicants}
+      />
 
       <ReviewClient
         openingId={opening.id}

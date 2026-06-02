@@ -39,6 +39,12 @@ const createSchema = z.object({
   type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
   defaultPriceSar: z.coerce.number().nonnegative(),
   durationHours: z.coerce.number().int().positive().nullable().optional(),
+  // Audience for the opening auto-created with the program. Defaults to
+  // ALL_INTERNAL (the original behaviour). SELECTED_TEACHERS is configured later
+  // on the opening detail page, so it is intentionally NOT offered at create time.
+  audienceType: z
+    .enum(["ALL_INTERNAL", "INTERNAL_THEN_APPLICANTS", "APPLICANTS_ONLY", "EVERYONE"])
+    .optional(),
 });
 
 export async function createProgramAction(
@@ -78,7 +84,11 @@ export async function createProgramAction(
     // service already swallows its own errors; this try/catch is defense-in-depth
     // so it can NEVER throw out of createProgramAction.
     try {
-      await openProgramForApplications({ programId: program.id, openedByUserId: session.user.id });
+      await openProgramForApplications({
+        programId: program.id,
+        openedByUserId: session.user.id,
+        audienceType: parsed.data.audienceType, // defaults to ALL_INTERNAL in the service
+      });
     } catch (e) {
       console.error("[createProgramAction] openProgramForApplications failed (non-fatal):", e);
     }

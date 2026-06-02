@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getTranslations, getLocale } from "next-intl/server";
 import { Sparkles } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { canSeeOpening, explicitTeacherMemberships } from "@/lib/openings/audience";
 
 /**
  * Surfaces a Rose-Mauve banner on the teacher dashboard when there is at least
@@ -20,16 +21,48 @@ export async function OpeningsBanner({ userId }: { userId: string }) {
     });
     if (!tp) return null;
 
-    // OPEN openings this teacher has no application row for at all.
-    const open = await prisma.programOpening.findMany({
+    // OPEN openings this teacher has no application row for at all — then keep
+    // only those whose AUDIENCE includes this teacher (same shared guard as the
+    // listing). Prevents nudging a teacher toward openings they can't see.
+    const candidates = await prisma.programOpening.findMany({
       where: {
         status: "OPEN",
         applications: { none: { teacherId: tp.id } },
       },
-      select: { id: true },
-      take: 1,
+      select: {
+        id: true,
+        status: true,
+        audienceType: true,
+        applicantsPhaseOpen: true,
+        program: { select: { active: true } },
+      },
     });
-    if (open.length === 0) return null;
+    if (candidates.length === 0) return null;
+
+    const memberSet = await explicitTeacherMemberships(
+      tp.id,
+      candidates.map((o) => o.id)
+    );
+    const viewer = { role: "TEACHER" as const, teacherId: tp.id };
+    let hasVisible = false;
+    for (const o of candidates) {
+      const ok = await canSeeOpening(
+        viewer,
+        {
+          id: o.id,
+          status: o.status,
+          audienceType: o.audienceType,
+          applicantsPhaseOpen: o.applicantsPhaseOpen,
+          program: { active: o.program.active },
+        },
+        { isExplicitMember: memberSet.has(o.id) }
+      );
+      if (ok) {
+        hasVisible = true;
+        break;
+      }
+    }
+    if (!hasVisible) return null;
 
     const locale = await getLocale();
     const t = await getTranslations();

@@ -2,7 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { Megaphone, Inbox, CheckCircle2 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { requireApplicantFeature } from "@/lib/applicants/guard";
-import { canApplicantSeeOpening } from "@/lib/applicants/service";
+import { canSeeOpening } from "@/lib/openings/audience";
 import { programName } from "@/lib/openings/service";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -29,12 +29,21 @@ export default async function ApplicantOpeningsPage({
       include: { program: true },
       orderBy: { openedAt: "desc" },
     });
-    // SINGLE visibility guard — canApplicantSeeOpening (extended by later prompt).
+    // SINGLE shared visibility guard — canSeeOpening (applicant branch). An
+    // applicant only ever sees an opening whose audience reaches applicants NOW
+    // (phase 2 / APPLICANTS_ONLY / EVERYONE); phase-1 internal openings are
+    // invisible here, enforced on the server.
     const allowed = [];
     for (const o of openings) {
-      const ok = await canApplicantSeeOpening(
-        { id: applicant.id, gender: applicant.gender },
-        { status: o.status, program: { active: o.program.active } }
+      const ok = await canSeeOpening(
+        { role: "APPLICANT", applicantId: applicant.id, gender: applicant.gender },
+        {
+          id: o.id,
+          status: o.status,
+          audienceType: o.audienceType,
+          applicantsPhaseOpen: o.applicantsPhaseOpen,
+          program: { active: o.program.active },
+        }
       );
       if (ok) allowed.push(o);
     }

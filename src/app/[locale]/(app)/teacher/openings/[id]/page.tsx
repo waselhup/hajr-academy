@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { programName, SURVEY_QUESTIONS, VOICE_MAX_SECONDS } from "@/lib/openings/service";
+import { canSeeOpeningDb } from "@/lib/openings/audience";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
@@ -49,6 +50,8 @@ export default async function TeacherOpeningDetailPage({
   let existingApp:
     | Awaited<ReturnType<typeof prisma.teacherApplication.findUnique>>
     | null = null;
+  // Whether this teacher is in the opening's audience (gates the apply form).
+  let canApply = false;
 
   try {
     const teacherProfile = await prisma.teacherProfile.findUnique({
@@ -70,6 +73,20 @@ export default async function TeacherOpeningDetailPage({
           },
         },
       });
+
+      // Single shared guard — resolves SELECTED_TEACHERS membership for us.
+      // `program` is included on the query; narrow it for typing.
+      const withProgram = opening as typeof opening & { program: { active: boolean } };
+      canApply = await canSeeOpeningDb(
+        { role: "TEACHER", teacherId: teacherProfile.id },
+        {
+          id: opening.id,
+          status: opening.status,
+          audienceType: opening.audienceType,
+          applicantsPhaseOpen: opening.applicantsPhaseOpen,
+          program: { active: withProgram.program.active },
+        }
+      );
     }
   } catch (e) {
     console.error("[teacher/openings/[id]] DB query failed:", e);
@@ -200,6 +217,30 @@ export default async function TeacherOpeningDetailPage({
                 <WithdrawButton applicationId={existingApp.id} />
               </div>
             )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Out-of-audience (and no prior application) → friendly "not available" state.
+  // The opening is OPEN but not targeted at this teacher; the apply POST also
+  // rejects server-side, so this is purely a graceful UI (never the only gate).
+  if (!canApply) {
+    return (
+      <div className="container mx-auto space-y-4 px-4 py-6" dir={isAr ? "rtl" : "ltr"}>
+        {backLink}
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
+            <Inbox className="h-10 w-10 text-hajr-gray-300" />
+            <div className="text-sm text-muted-foreground">
+              {t("Openings.notInAudience")}
+            </div>
+            <Button asChild variant="cta" size="sm">
+              <Link href={`/${locale}/teacher/openings`}>
+                {t("Openings.openProgram")}
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

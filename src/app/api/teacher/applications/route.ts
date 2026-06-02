@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { audit } from "@/lib/audit";
 import { sanitizeAnswers } from "@/lib/openings/service";
+import { canSeeOpeningDb } from "@/lib/openings/audience";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +52,32 @@ export async function POST(req: NextRequest) {
 
     const opening = await prisma.programOpening.findUnique({
       where: { id: openingId },
-      select: { id: true, status: true },
+      select: {
+        id: true,
+        status: true,
+        audienceType: true,
+        applicantsPhaseOpen: true,
+        program: { select: { active: true } },
+      },
     });
     if (!opening || opening.status !== "OPEN") {
       return NextResponse.json({ error: "OPENING_NOT_OPEN" }, { status: 400 });
+    }
+
+    // AUDIENCE ENFORCEMENT (server-side, single guard): a teacher who is not in
+    // this opening's audience cannot apply — even with a forced/replayed POST.
+    const inAudience = await canSeeOpeningDb(
+      { role: "TEACHER", teacherId: teacherProfile.id },
+      {
+        id: opening.id,
+        status: opening.status,
+        audienceType: opening.audienceType,
+        applicantsPhaseOpen: opening.applicantsPhaseOpen,
+        program: { active: opening.program.active },
+      }
+    );
+    if (!inAudience) {
+      return NextResponse.json({ error: "NOT_IN_AUDIENCE" }, { status: 403 });
     }
 
     const answers = sanitizeAnswers(body.answers);

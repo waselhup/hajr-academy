@@ -16,7 +16,7 @@
 import { prisma } from "@/lib/prisma";
 import { notify, notifyAdmins } from "@/lib/notify";
 import { audit } from "@/lib/audit";
-import type { ApplicantFeature, ApplicantStage, Prisma } from "@prisma/client";
+import type { ApplicantFeature, ApplicantStage, OpeningAudienceType, Prisma } from "@prisma/client";
 
 /** Private Supabase Storage bucket for recorded demo lessons (mirror of teacher-applications). */
 export const APPLICANT_DEMO_BUCKET = "applicant-demos";
@@ -413,6 +413,27 @@ export async function applyToProgram(args: {
     select: { id: true, nameEn: true, nameAr: true },
   });
   if (!program) return { ok: false, error: "PROGRAM_NOT_AVAILABLE" };
+
+  // AUDIENCE ENFORCEMENT (server-side): the applicant may only express interest
+  // if this program has an OPEN opening whose audience reaches applicants RIGHT
+  // NOW — i.e. APPLICANTS_ONLY, EVERYONE, or INTERNAL_THEN_APPLICANTS once phase
+  // 2 has been explicitly opened. This rejects forced/replayed requests against
+  // a program still in its internal-only phase. (Kept inline rather than via the
+  // audience module to avoid a service↔audience import cycle; mirrors
+  // audienceIncludesApplicantsNow exactly.)
+  const applicantOpenAudiences: OpeningAudienceType[] = ["APPLICANTS_ONLY", "EVERYONE"];
+  const visibleOpening = await prisma.programOpening.findFirst({
+    where: {
+      programId: program.id,
+      status: "OPEN",
+      OR: [
+        { audienceType: { in: applicantOpenAudiences } },
+        { audienceType: "INTERNAL_THEN_APPLICANTS", applicantsPhaseOpen: true },
+      ],
+    },
+    select: { id: true },
+  });
+  if (!visibleOpening) return { ok: false, error: "PROGRAM_NOT_AVAILABLE" };
 
   await prisma.applicantProfile.update({
     where: { id: applicant.id },
