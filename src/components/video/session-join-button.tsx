@@ -1,17 +1,25 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Loader2, Video, Eye, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { TechCheckDialog } from "@/components/teacher/tech-check-dialog";
 import {
   startClassAsTeacher,
   joinClassAsParticipant,
   reservePopup,
   closePopup,
 } from "@/lib/zoom/launcher";
+
+/** Teacher class-entry grace window, mirrors TECH_CHECK_CLASS_ENTRY_MINUTES. */
+const TECH_CHECK_GRACE_MINUTES = 60;
+
+type LastSummary = Awaited<
+  ReturnType<typeof import("@/lib/teacher/tech-check-gate").getLastTechCheckSummary>
+>;
 
 type Mode = "start" | "join" | "observe";
 
@@ -50,10 +58,38 @@ export function SessionJoinButton({
   const [isPending, startTransition] = useTransition();
   const [now, setNow] = useState(() => Date.now());
 
+  // Tech-check class-entry gate (teacher "Start Class" only). We resolve the
+  // teacher's latest passing check on mount so the click handler can decide
+  // SYNCHRONOUSLY whether to launch Zoom or pop the mandatory wizard — an
+  // await before reservePopup() would get the popup blocked.
+  const teacherStartsClass = mode === "start" && kind === "classSession";
+  const [graceOk, setGraceOk] = useState<boolean | null>(teacherStartsClass ? null : true);
+  const [lastSummary, setLastSummary] = useState<LastSummary>(null);
+  const [gateOpen, setGateOpen] = useState(false);
+
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+
+  const refreshGrace = useCallback(async () => {
+    if (!teacherStartsClass) return;
+    try {
+      const res = await fetch("/api/tech-check/last-valid", { cache: "no-store" });
+      const data = await res.json();
+      const last = data?.last ?? null;
+      setLastSummary(last);
+      setGraceOk(!!last && last.passed && last.ageMinutes < TECH_CHECK_GRACE_MINUTES);
+    } catch {
+      // If we can't determine it, fail OPEN so a flaky check never blocks a
+      // teacher's class. The server-side classroom gate remains the backstop.
+      setGraceOk(true);
+    }
+  }, [teacherStartsClass]);
+
+  useEffect(() => {
+    void refreshGrace();
+  }, [refreshGrace]);
 
   const start = new Date(scheduledDate).getTime();
   const end = start + durationMinutes * 60_000;
@@ -61,8 +97,8 @@ export function SessionJoinButton({
   const isLive = status === "LIVE";
 
   // Teacher start: always available, no window. Student/admin join:
-  // the timed window OR the session is LIVE.
-  const teacherStartsClass = mode === "start" && kind === "classSession";
+  // the timed window OR the session is LIVE. (teacherStartsClass declared above
+  // for the tech-check gate.)
   let open: boolean;
   if (teacherStartsClass) {
     open = true;
@@ -72,7 +108,11 @@ export function SessionJoinButton({
     const lead = mode === "start" ? BEFORE_START : BEFORE_JOIN;
     open = now >= start - lead && now <= end + AFTER;
   }
-  const enabled = open && !ended && !isPending;
+  // For a teacher start, wait until the tech-check grace status is resolved
+  // before enabling the button. This closes the sub-second race where a click
+  // landing before the grace fetch returns could launch without the gate.
+  const graceResolved = !teacherStartsClass || graceOk !== null;
+  const enabled = open && !ended && !isPending && graceResolved;
 
   const baseLabel =
     mode === "start"
@@ -86,7 +126,11 @@ export function SessionJoinButton({
       : tCls("joiningClass")
     : baseLabel;
 
-  const handleClick = () => {
+  // The actual launch. Must run from inside a real user gesture so the
+  // synchronous reservePopup() isn't blocked. Called either directly from the
+  // click (when the tech-check grace window is valid) or from the wizard's
+  // "Continue to class" button after a fresh pass.
+  const doLaunch = () => {
     // CRITICAL: reserve the popup SYNCHRONOUSLY inside the click handler.
     // Browsers block window.open that runs after an await, treating it
     // as non-user-initiated. This is the only path that reliably opens
@@ -148,6 +192,26 @@ export function SessionJoinButton({
     });
   };
 
+  const handleClick = () => {
+    // Teacher starting a class without a valid tech-check in the last hour →
+    // pop the MANDATORY wizard instead of launching. Students/parents (join /
+    // observe) and teachers within the grace window are never interrupted.
+    if (teacherStartsClass && graceOk === false) {
+      setGateOpen(true);
+      return;
+    }
+    doLaunch();
+  };
+
+  // After the teacher passes inside the mandatory modal, close it and launch
+  // the class. This runs inside the wizard button's click → a real gesture, so
+  // the synchronous popup reservation in doLaunch() still works.
+  const handleGatePassed = () => {
+    setGraceOk(true);
+    setGateOpen(false);
+    doLaunch();
+  };
+
   let hint = "";
   if (!teacherStartsClass && !ended && !open && now < start) {
     const diff = start - now;
@@ -164,7 +228,7 @@ export function SessionJoinButton({
         disabled={!enabled}
         onClick={handleClick}
         title={
-          !enabled && !ended
+          !enabled && !ended && graceResolved
             ? mode === "start"
               ? tCls("classTooEarly")
               : tCls("classNotStarted")
@@ -183,6 +247,17 @@ export function SessionJoinButton({
         {label}
       </Button>
       {hint && <p className="mt-1 text-xs text-muted-foreground num">{hint}</p>}
+
+      {teacherStartsClass && (
+        <TechCheckDialog
+          open={gateOpen}
+          onOpenChange={setGateOpen}
+          lastSummary={lastSummary}
+          mandatory
+          onPassed={handleGatePassed}
+          passActionLabel={tCls("startClass")}
+        />
+      )}
     </div>
   );
 }

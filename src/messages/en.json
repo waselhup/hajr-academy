@@ -2186,7 +2186,16 @@
     "colLatency": "Latency",
     "colAudio": "Audio",
     "colFailures": "Failures",
-    "emptyLog": "No tech checks yet."
+    "emptyLog": "No tech checks yet.",
+    "runAgain": "Run again",
+    "cardNoneTitle": "Run your tech check",
+    "cardNoneBody": "Pass it now and enter any class for the next hour without being asked.",
+    "cardValidTitle": "Passed — valid for {minutes} more min ✓",
+    "cardValidBody": "You can enter any class now without rerunning the check.",
+    "cardExpiredTitle": "Tech check expired — run it again",
+    "cardExpiredBody": "Your last check is over an hour old. Run it again to skip the class-entry prompt.",
+    "gateTitle": "Quick tech check before you start",
+    "gateBody": "Pass this check to start the class. It takes about a minute."
   },
   "Analytics": {
     "title": "User activity analytics",

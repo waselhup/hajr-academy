@@ -40,11 +40,20 @@ const PASS = {
 export function TechCheckWizard({
   returnTo,
   lastSummary,
+  onPassed,
+  passActionLabel,
 }: {
   returnTo: string | null;
   lastSummary: Awaited<ReturnType<
     typeof import("@/lib/teacher/tech-check-gate").getLastTechCheckSummary
   >>;
+  /**
+   * Optional — invoked once when a check passes. Used by the class-entry
+   * modal to proceed into the class. When provided, a custom pass-action
+   * button (labelled `passActionLabel`) replaces the dashboard links.
+   */
+  onPassed?: () => void;
+  passActionLabel?: string;
 }) {
   const t = useTranslations("TechCheck");
   const router = useRouter();
@@ -214,6 +223,7 @@ export function TechCheckWizard({
       });
       const j: SaveRes = await res.json();
       setSave(j);
+      if (j.passed) onPassed?.();
     } catch {
       setSave({ ok: false });
     }
@@ -389,17 +399,26 @@ export function TechCheckWizard({
               </div>
               <ResultsTable result={result} />
               {save.passed ? (
-                <div className="flex gap-2">
-                  {returnTo && (
-                    <Button
-                      onClick={() => router.push(returnTo)}
-                      className="bg-hajr-rose text-white hover:bg-hajr-rose/90"
-                    >
-                      {t("continueToClass")}
-                    </Button>
-                  )}
-                  <Button variant="outline" onClick={() => router.push("/teacher")}>{t("goToDashboard")}</Button>
-                </div>
+                onPassed ? (
+                  <Button
+                    onClick={onPassed}
+                    className="bg-hajr-rose text-white hover:bg-hajr-rose/90"
+                  >
+                    {passActionLabel ?? t("continueToClass")}
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    {returnTo && (
+                      <Button
+                        onClick={() => router.push(returnTo)}
+                        className="bg-hajr-rose text-white hover:bg-hajr-rose/90"
+                      >
+                        {t("continueToClass")}
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={() => router.push("/teacher")}>{t("goToDashboard")}</Button>
+                  </div>
+                )
               ) : (
                 <div className="space-y-3 rounded-md border border-red-200 bg-red-50 p-4 text-sm">
                   <div className="font-semibold text-red-700">{t("howToFix")}</div>
