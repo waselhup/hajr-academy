@@ -20,6 +20,7 @@ export default async function TeacherAssignmentsPage({
 
   let assignments: any[] = [];
   let teacherClasses: { id: string; label: string }[] = [];
+  let classStudents: Record<string, { id: string; name: string }[]> = {};
   let blackboardActive: any[] = [];
   let blackboardArchived: any[] = [];
   let myExercises: any[] = [];
@@ -31,7 +32,7 @@ export default async function TeacherAssignmentsPage({
         where: { class: { teacherId: teacher.id } },
         include: {
           class: { select: { name: true, nameAr: true, cohortCode: true } },
-          _count: { select: { submissions: true, attachmentList: true } },
+          _count: { select: { submissions: true, attachmentList: true, targets: true } },
         },
         orderBy: { createdAt: "desc" },
         take: 50,
@@ -56,7 +57,22 @@ export default async function TeacherAssignmentsPage({
       }),
       prisma.class.findMany({
         where: { teacherId: teacher.id, status: "ACTIVE" },
-        select: { id: true, name: true, nameAr: true, cohortCode: true },
+        select: {
+          id: true,
+          name: true,
+          nameAr: true,
+          cohortCode: true,
+          // Active roster for the "specific students" picker. Only ACTIVE
+          // enrollments — the same set the server validates a target against.
+          enrollments: {
+            where: { status: "ACTIVE" },
+            select: {
+              student: {
+                select: { id: true, user: { select: { name: true, nameAr: true } } },
+              },
+            },
+          },
+        },
         orderBy: { createdAt: "desc" },
       }),
     ]);
@@ -70,6 +86,9 @@ export default async function TeacherAssignmentsPage({
       dueDate: a.dueDate?.toISOString() ?? null,
       submissionCount: a._count.submissions,
       attachmentCount: a._count.attachmentList,
+      // Audience chip: ALL_CLASS → "All class"; SELECTED → "N students".
+      audience: a.audience,
+      targetCount: a._count.targets,
       createdAt: a.createdAt.toISOString(),
     }));
 
@@ -77,6 +96,22 @@ export default async function TeacherAssignmentsPage({
       id: c.id,
       label: `${locale === "ar" ? c.nameAr ?? c.name : c.name} · ${c.cohortCode}`,
     }));
+
+    // Per-class active roster for the picker, localized name with fallback.
+    classStudents = Object.fromEntries(
+      classes.map((c) => [
+        c.id,
+        c.enrollments
+          .map((e) => ({
+            id: e.student.id,
+            name:
+              (locale === "ar"
+                ? e.student.user.nameAr ?? e.student.user.name
+                : e.student.user.name) || e.student.user.name,
+          }))
+          .sort((a, b) => a.name.localeCompare(b.name, locale === "ar" ? "ar" : "en")),
+      ])
+    );
 
     blackboardActive = rooms
       .filter((r) => !r.archivedAt)
@@ -125,6 +160,7 @@ export default async function TeacherAssignmentsPage({
         locale={locale}
         assignments={assignments}
         teacherClasses={teacherClasses}
+        classStudents={classStudents}
         blackboardActive={blackboardActive}
         blackboardArchived={blackboardArchived}
         myExercises={myExercises}

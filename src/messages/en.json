@@ -1473,7 +1473,17 @@
     "stop": "Stop",
     "useRecording": "Use this recording",
     "reRecord": "Re-record",
-    "captureDenied": "Camera/microphone unavailable — you can still upload a file."
+    "captureDenied": "Camera/microphone unavailable — you can still upload a file.",
+    "audienceLabel": "Who is this for?",
+    "audienceAll": "All students",
+    "audienceSpecific": "Specific students",
+    "audienceAllHint": "Every student in the class will receive this assignment.",
+    "audienceAllChip": "All class",
+    "selectStudentsRequired": "Select at least one student.",
+    "selectAll": "Select all",
+    "clearSelection": "Clear",
+    "searchStudents": "Search students…",
+    "noStudentsMatch": "No students match your search."
   },
   "ClassResources": {
     "tab": "Resources",

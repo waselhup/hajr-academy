@@ -1473,7 +1473,17 @@
     "stop": "إيقاف",
     "useRecording": "استخدام هذا التسجيل",
     "reRecord": "إعادة التسجيل",
-    "captureDenied": "الكاميرا/الميكروفون غير متاح — لا يزال بإمكانك رفع ملف."
+    "captureDenied": "الكاميرا/الميكروفون غير متاح — لا يزال بإمكانك رفع ملف.",
+    "audienceLabel": "لمن هذا الواجب؟",
+    "audienceAll": "كل الطلاب",
+    "audienceSpecific": "طلاب محددون",
+    "audienceAllHint": "سيصل هذا الواجب إلى كل طالب في الصف.",
+    "audienceAllChip": "كل الصف",
+    "selectStudentsRequired": "اختر طالبًا واحدًا على الأقل.",
+    "selectAll": "تحديد الكل",
+    "clearSelection": "مسح",
+    "searchStudents": "ابحث عن طالب…",
+    "noStudentsMatch": "لا يوجد طلاب مطابقون لبحثك."
   },
   "ClassResources": {
     "tab": "الموارد",

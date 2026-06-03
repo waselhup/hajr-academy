@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/rbac";
 import { getTranslations } from "next-intl/server";
 import { prisma } from "@/lib/prisma";
 import { getStudentScope } from "@/lib/student/scope";
+import { assignmentVisibilityWhere } from "@/lib/assignments/visibility";
 import {
   StudentAssignmentsClient,
   type AssignmentRow,
@@ -32,7 +33,15 @@ export default async function StudentAssignmentsPage({
   if (scope) {
     const [aRaw, lRaw, eRows, attempts] = await Promise.all([
       prisma.assignment.findMany({
-        where: { classId: { in: scope.classIds } },
+        // Visibility is derived from the shared helper: ALL_CLASS → enrolled in
+        // the class; SELECTED → in this assignment's target set. A non-targeted
+        // student never receives the row.
+        where: {
+          AND: [
+            { classId: { in: scope.classIds } },
+            assignmentVisibilityWhere(scope.studentId),
+          ],
+        },
         include: {
           class: { select: { name: true, nameAr: true, cohortCode: true } },
           attachmentList: { orderBy: { createdAt: "asc" } },

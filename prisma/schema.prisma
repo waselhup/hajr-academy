@@ -115,6 +115,7 @@ model StudentProfile {
   enrollments           Enrollment[]
   attendances           Attendance[]
   submissions           Submission[]
+  assignmentTargets     AssignmentTarget[]
   invoices              Invoice[]
   subscriptions         Subscription[]
   labAttempts           LabAttempt[]
@@ -449,6 +450,15 @@ enum AttachmentKind {
   FILE
 }
 
+// Who an assignment is for. ALL_CLASS (default, backward-compatible) = every
+// ACTIVE-enrolled student in the class. SELECTED = only the students listed in
+// AssignmentTarget. Visibility/eligibility is always derived from this via the
+// `isAssignmentVisibleToStudent` helper — never trusted from the client.
+enum AssignmentAudience {
+  ALL_CLASS
+  SELECTED
+}
+
 // Lightweight "folder" for a teacher's private class materials. A flat set of
 // categories (not a nested tree) used as filter chips on the Resources tab.
 enum ClassResourceCategory {
@@ -469,10 +479,29 @@ model Assignment {
   attachments String[]
   // Response kinds the student is allowed to submit. Empty = text-only.
   allowedResponseTypes AttachmentKind[] @default([])
+  // Opt-in targeting. ALL_CLASS keeps today's whole-class behavior; SELECTED
+  // restricts the assignment to the students in `targets`.
+  audience    AssignmentAudience @default(ALL_CLASS)
   createdAt   DateTime  @default(now())
 
   submissions    Submission[]
   attachmentList AssignmentAttachment[]
+  targets        AssignmentTarget[]
+}
+
+// Join row: one per student an assignment is explicitly targeted to. Only
+// populated when Assignment.audience = SELECTED. The selected set must always
+// be a subset of the class's ACTIVE enrollments (validated server-side).
+model AssignmentTarget {
+  id           String         @id @default(uuid())
+  assignmentId String
+  assignment   Assignment     @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  createdAt    DateTime       @default(now())
+
+  @@unique([assignmentId, studentId])
+  @@index([studentId])
 }
 
 model Submission {

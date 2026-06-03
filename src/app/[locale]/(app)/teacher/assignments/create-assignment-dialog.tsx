@@ -31,7 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Users, UserCheck, Search } from "lucide-react";
 import {
   AttachmentComposer,
   type StagedAttachment,
@@ -41,12 +41,17 @@ import { createAssignmentAction } from "@/lib/assignments/actions";
 
 const RESPONSE_KINDS: AttachmentKind[] = ["VIDEO", "AUDIO", "FILE"];
 
+type Audience = "ALL_CLASS" | "SELECTED";
+
 export function CreateAssignmentDialog({
   locale,
   classes,
+  classStudents,
 }: {
   locale: string;
   classes: { id: string; label: string }[];
+  /** ACTIVE roster per class id, for the "specific students" picker. */
+  classStudents: Record<string, { id: string; name: string }[]>;
 }) {
   const t = useTranslations("Assignments");
   const router = useRouter();
@@ -61,9 +66,28 @@ export function CreateAssignmentDialog({
   const [dueDate, setDueDate] = useState("");
   const [allowed, setAllowed] = useState<AttachmentKind[]>(["FILE"]);
   const [attachments, setAttachments] = useState<StagedAttachment[]>([]);
+  const [audience, setAudience] = useState<Audience>("ALL_CLASS");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [studentQuery, setStudentQuery] = useState("");
+
+  // Roster for the currently-picked class (empty if none / class has no roster).
+  const roster = classStudents[classId] ?? [];
+  const filteredRoster = studentQuery.trim()
+    ? roster.filter((s) => s.name.toLowerCase().includes(studentQuery.trim().toLowerCase()))
+    : roster;
 
   const toggleAllowed = (k: AttachmentKind) =>
     setAllowed((prev) => (prev.includes(k) ? prev.filter((x) => x !== k) : [...prev, k]));
+
+  const toggleStudent = (id: string) =>
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+
+  // Switching the class invalidates any prior selection (different roster).
+  const onClassChange = (next: string) => {
+    setClassId(next);
+    setSelectedIds([]);
+    setStudentQuery("");
+  };
 
   const reset = () => {
     setTitle("");
@@ -72,6 +96,9 @@ export function CreateAssignmentDialog({
     setDueDate("");
     setAllowed(["FILE"]);
     setAttachments([]);
+    setAudience("ALL_CLASS");
+    setSelectedIds([]);
+    setStudentQuery("");
   };
 
   const onSubmit = () => {
@@ -83,6 +110,10 @@ export function CreateAssignmentDialog({
       toast.error(t("classRequired"));
       return;
     }
+    if (audience === "SELECTED" && selectedIds.length === 0) {
+      toast.error(t("selectStudentsRequired"));
+      return;
+    }
     startTransition(async () => {
       const res = await createAssignmentAction({
         classId,
@@ -91,6 +122,8 @@ export function CreateAssignmentDialog({
         description: description.trim() || undefined,
         dueDate: dueDate || null,
         allowedResponseTypes: allowed,
+        audience,
+        studentIds: audience === "SELECTED" ? selectedIds : undefined,
         attachments: attachments.map(({ kind, path, fileName, mimeType, sizeBytes, durationSec }) => ({
           kind,
           path,
@@ -131,7 +164,7 @@ export function CreateAssignmentDialog({
           {/* Class */}
           <div className="space-y-1.5">
             <Label>{t("classLabel")}</Label>
-            <Select value={classId} onValueChange={setClassId}>
+            <Select value={classId} onValueChange={onClassChange}>
               <SelectTrigger>
                 <SelectValue placeholder={t("classRequired")} />
               </SelectTrigger>
@@ -165,6 +198,110 @@ export function CreateAssignmentDialog({
           <div className="space-y-1.5">
             <Label htmlFor="a-due">{t("dueDateLabel")}</Label>
             <Input id="a-due" type="datetime-local" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+          </div>
+
+          {/* Audience — who gets this assignment */}
+          <div className="space-y-2 rounded-md border bg-muted/20 p-3">
+            <Label>{t("audienceLabel")}</Label>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setAudience("ALL_CLASS")}
+                aria-pressed={audience === "ALL_CLASS"}
+                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors ${
+                  audience === "ALL_CLASS"
+                    ? "border-hajr-rose bg-hajr-rose/10 font-medium text-hajr-rose"
+                    : "border-input hover:bg-muted"
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                {t("audienceAll")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAudience("SELECTED")}
+                aria-pressed={audience === "SELECTED"}
+                disabled={roster.length === 0}
+                className={`flex items-center justify-center gap-2 rounded-md border px-3 py-2 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+                  audience === "SELECTED"
+                    ? "border-hajr-rose bg-hajr-rose/10 font-medium text-hajr-rose"
+                    : "border-input hover:bg-muted"
+                }`}
+              >
+                <UserCheck className="h-4 w-4" />
+                {t("audienceSpecific")}
+              </button>
+            </div>
+
+            {audience === "ALL_CLASS" ? (
+              <p className="text-xs text-muted-foreground">
+                {roster.length > 0
+                  ? `${t("audienceAllHint")} (${roster.length})`
+                  : t("audienceAllHint")}
+              </p>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground">
+                    <span className="num">{selectedIds.length}</span> / <span className="num">{roster.length}</span>{" "}
+                    {ar ? "طالب" : "students"}
+                  </span>
+                  <div className="flex gap-1">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setSelectedIds(roster.map((s) => s.id))}
+                      disabled={selectedIds.length === roster.length}
+                    >
+                      {t("selectAll")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      onClick={() => setSelectedIds([])}
+                      disabled={selectedIds.length === 0}
+                    >
+                      {t("clearSelection")}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Search className="pointer-events-none absolute top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground ltr:left-2.5 rtl:right-2.5" />
+                  <Input
+                    value={studentQuery}
+                    onChange={(e) => setStudentQuery(e.target.value)}
+                    placeholder={t("searchStudents")}
+                    className="ltr:pl-8 rtl:pr-8"
+                  />
+                </div>
+
+                <div className="max-h-48 space-y-1 overflow-y-auto rounded-md border bg-background p-1">
+                  {filteredRoster.length === 0 ? (
+                    <p className="px-2 py-3 text-center text-xs text-muted-foreground">
+                      {t("noStudentsMatch")}
+                    </p>
+                  ) : (
+                    filteredRoster.map((s) => (
+                      <label
+                        key={s.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted"
+                      >
+                        <Checkbox
+                          checked={selectedIds.includes(s.id)}
+                          onCheckedChange={() => toggleStudent(s.id)}
+                        />
+                        <span className="truncate">{s.name}</span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Attachments */}

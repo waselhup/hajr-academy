@@ -14,8 +14,12 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { audit } from "@/lib/audit";
 import { notify, notifyMany } from "@/lib/notify";
-import type { AttachmentKind } from "@prisma/client";
+import type { AttachmentKind, AssignmentAudience } from "@prisma/client";
 import { canAccessSubmission } from "@/lib/assignments/attachments";
+import {
+  isAssignmentVisibleToStudent,
+  targetedStudentUserIds,
+} from "@/lib/assignments/visibility";
 
 type Result<T = {}> = ({ ok: true } & T) | { ok: false; error: string };
 
@@ -64,6 +68,10 @@ export async function createAssignmentAction(input: {
   dueDate?: string | null;
   allowedResponseTypes?: AttachmentKind[];
   attachments?: AttachmentInput[];
+  /** Opt-in targeting. Omitted/ALL_CLASS keeps whole-class behavior. */
+  audience?: AssignmentAudience;
+  /** StudentProfile ids — used only when audience=SELECTED. */
+  studentIds?: string[];
 }): Promise<Result<{ assignmentId: string }>> {
   const session = await requireRole("TEACHER");
 
@@ -86,6 +94,28 @@ export async function createAssignmentAction(input: {
   const allowed = (input.allowedResponseTypes ?? []).filter((k) => VALID_KINDS.includes(k));
   const atts = sanitizeAttachments(input.attachments);
 
+  // ── Audience resolution ──────────────────────────────────────────────
+  // Default to whole-class (backward-compatible). When SELECTED, the chosen
+  // student-set MUST be a subset of this class's ACTIVE enrollments — we never
+  // trust the client list; anything outside the class is rejected.
+  const audience: AssignmentAudience = input.audience === "SELECTED" ? "SELECTED" : "ALL_CLASS";
+  let targetStudentIds: string[] = [];
+  if (audience === "SELECTED") {
+    const requested = [...new Set((input.studentIds ?? []).filter((s) => typeof s === "string" && s))];
+    if (requested.length === 0) return { ok: false, error: "NO_STUDENTS_SELECTED" };
+
+    const activeEnrolled = await prisma.enrollment.findMany({
+      where: { classId: klass.id, status: "ACTIVE", studentId: { in: requested } },
+      select: { studentId: true },
+    });
+    const validIds = new Set(activeEnrolled.map((e) => e.studentId));
+    // Any requested id not actively enrolled in THIS class is invalid.
+    if (requested.some((id) => !validIds.has(id))) {
+      return { ok: false, error: "STUDENT_NOT_IN_CLASS" };
+    }
+    targetStudentIds = requested;
+  }
+
   let dueDate: Date | null = null;
   if (input.dueDate) {
     const d = new Date(input.dueDate);
@@ -100,6 +130,7 @@ export async function createAssignmentAction(input: {
       description: input.description?.trim() || null,
       dueDate,
       allowedResponseTypes: allowed,
+      audience,
       attachmentList: {
         create: atts.map((a) => ({
           kind: a.kind,
@@ -110,6 +141,10 @@ export async function createAssignmentAction(input: {
           durationSec: a.durationSec ?? null,
         })),
       },
+      // Only SELECTED assignments get target rows; ALL_CLASS stays empty.
+      ...(audience === "SELECTED"
+        ? { targets: { create: targetStudentIds.map((studentId) => ({ studentId })) } }
+        : {}),
     },
     select: { id: true },
   });
@@ -118,15 +153,18 @@ export async function createAssignmentAction(input: {
     classId: klass.id,
     attachments: atts.length,
     allowedResponseTypes: allowed,
+    audience,
+    targetCount: audience === "SELECTED" ? targetStudentIds.length : null,
   });
 
-  // Notify enrolled students (non-fatal).
+  // Notify ONLY the intended students (whole class, or the selected set) —
+  // a SELECTED assignment must never reach a non-targeted student (non-fatal).
   try {
-    const enrollments = await prisma.enrollment.findMany({
-      where: { classId: klass.id, status: "ACTIVE" },
-      select: { student: { select: { userId: true } } },
+    const userIds = await targetedStudentUserIds({
+      classId: klass.id,
+      audience,
+      studentIds: targetStudentIds,
     });
-    const userIds = enrollments.map((e) => e.student.userId).filter(Boolean);
     if (userIds.length > 0) {
       await notifyMany(userIds, {
         type: "SYSTEM_ANNOUNCEMENT",
@@ -176,12 +214,12 @@ export async function submitAssignmentAction(input: {
   });
   if (!assignment) return { ok: false, error: "ASSIGNMENT_NOT_FOUND" };
 
-  // Must have an ACTIVE enrollment in the assignment's class.
-  const enr = await prisma.enrollment.findFirst({
-    where: { studentId: student.id, classId: assignment.classId, status: "ACTIVE" },
-    select: { id: true },
-  });
-  if (!enr) return { ok: false, error: "NOT_ENROLLED" };
+  // Single source of truth for eligibility: requires an ACTIVE enrollment AND,
+  // for SELECTED assignments, that this student is in the target set. A
+  // non-targeted student is rejected here on the server even if they forge the
+  // assignmentId — the UI never gates this alone.
+  const visible = await isAssignmentVisibleToStudent(assignment.id, student.id);
+  if (!visible) return { ok: false, error: "NOT_ELIGIBLE" };
 
   const content = (input.content ?? "").trim() || null;
   const atts = sanitizeAttachments(input.attachments);

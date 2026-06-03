@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TeacherBlackboardList } from "../blackboard/blackboard-list";
 import { TeacherLabClient } from "../lab/teacher-lab-client";
 import { CreateAssignmentDialog } from "./create-assignment-dialog";
-import { Paperclip, ChevronRight } from "lucide-react";
+import { Paperclip, ChevronRight, Users, UserCheck } from "lucide-react";
 
 type Assignment = {
   id: string;
@@ -19,6 +19,8 @@ type Assignment = {
   dueDate: string | null;
   submissionCount: number;
   attachmentCount: number;
+  audience: "ALL_CLASS" | "SELECTED";
+  targetCount: number;
   createdAt: string;
 };
 
@@ -48,6 +50,7 @@ export function TeacherAssignmentsClient({
   locale,
   assignments,
   teacherClasses,
+  classStudents,
   blackboardActive,
   blackboardArchived,
   myExercises,
@@ -56,6 +59,7 @@ export function TeacherAssignmentsClient({
   locale: string;
   assignments: Assignment[];
   teacherClasses: { id: string; label: string }[];
+  classStudents: Record<string, { id: string; name: string }[]>;
   blackboardActive: Room[];
   blackboardArchived: Room[];
   myExercises: Exercise[];
@@ -75,7 +79,7 @@ export function TeacherAssignmentsClient({
       <TabsContent value="assignments" className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">{t("Assignments.teacherListHint")}</p>
-          <CreateAssignmentDialog locale={locale} classes={teacherClasses} />
+          <CreateAssignmentDialog locale={locale} classes={teacherClasses} classStudents={classStudents} />
         </div>
         {assignments.length === 0 ? (
           <Card>
@@ -108,6 +112,17 @@ export function TeacherAssignmentsClient({
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
+                      {a.audience === "SELECTED" ? (
+                        <Badge variant="outline" className="num gap-1">
+                          <UserCheck className="h-3 w-3" />
+                          {a.targetCount} {ar ? "طالب" : a.targetCount === 1 ? "student" : "students"}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="gap-1">
+                          <Users className="h-3 w-3" />
+                          {t("Assignments.audienceAllChip")}
+                        </Badge>
+                      )}
                       {a.attachmentCount > 0 && (
                         <Badge variant="outline" className="num gap-1">
                           <Paperclip className="h-3 w-3" />
