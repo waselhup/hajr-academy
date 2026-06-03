@@ -607,6 +607,7 @@ function CreateDialog({
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventStart")}</label>
               <input
                 type="datetime-local"
+                lang={isAr ? "ar" : "en"}
                 value={startAt}
                 onChange={(e) => setStartAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"
@@ -616,6 +617,7 @@ function CreateDialog({
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventEnd")}</label>
               <input
                 type="datetime-local"
+                lang={isAr ? "ar" : "en"}
                 value={endAt}
                 onChange={(e) => setEndAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 interface TeacherOption {
   id: string;
@@ -11,6 +11,7 @@ interface TeacherOption {
 
 export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
   const t = useTranslations("TeacherMeetings");
+  const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -110,6 +111,7 @@ export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
           <Field label={t("scheduledAt")}>
             <input
               type="datetime-local"
+              lang={locale}
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
               className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
@@ -118,6 +120,7 @@ export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
           <Field label={t("durationMin")}>
             <input
               type="number"
+              lang={locale}
               min={15}
               max={480}
               value={durationMin}

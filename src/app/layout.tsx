@@ -52,8 +52,11 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // lang/dir default to the app's defaultLocale (ar); HtmlLangSync corrects them
+  // to the active locale on the client so native date/number inputs format in
+  // the chosen language.
   return (
-    <html className={`${inter.variable} ${ibmPlex.variable}`}>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${ibmPlex.variable}`}>
       <body>{children}</body>
     </html>
   );
