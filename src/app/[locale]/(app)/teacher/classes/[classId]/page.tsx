@@ -8,7 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Users, ClipboardCheck } from "lucide-react";
+import { ArrowLeft, Users, ClipboardCheck, FolderOpen } from "lucide-react";
+import { ClassResourcesTab, type ResourceVM } from "./class-resources-tab";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +67,22 @@ export default async function TeacherClassDetailPage({
           attendances: { select: { id: true } },
         },
       },
+      // Class-scoped teaching materials — persist with the class across terms,
+      // so a returning/future assigned teacher finds all prior resources here.
+      resources: {
+        orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          kind: true,
+          category: true,
+          title: true,
+          fileName: true,
+          mimeType: true,
+          sizeBytes: true,
+          createdAt: true,
+          uploadedByUserId: true,
+        },
+      },
     },
   });
   if (!cls) {
@@ -84,6 +101,18 @@ export default async function TeacherClassDetailPage({
   }
 
   const displayName = locale === "ar" ? cls.nameAr ?? cls.name : cls.name;
+
+  const resources: ResourceVM[] = cls.resources.map((r) => ({
+    id: r.id,
+    kind: r.kind as ResourceVM["kind"],
+    category: r.category as ResourceVM["category"],
+    title: r.title,
+    fileName: r.fileName,
+    mimeType: r.mimeType,
+    sizeBytes: r.sizeBytes,
+    createdAt: r.createdAt.toISOString(),
+    mine: r.uploadedByUserId === session.user.id,
+  }));
 
   return (
     <div className="space-y-6">
@@ -122,6 +151,7 @@ export default async function TeacherClassDetailPage({
         <TabsList>
           <TabsTrigger value="roster">{t("Classes.roster")}</TabsTrigger>
           <TabsTrigger value="attendance">{t("Nav.attendance")}</TabsTrigger>
+          <TabsTrigger value="resources">{t("ClassResources.tab")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="roster">
@@ -209,6 +239,25 @@ export default async function TeacherClassDetailPage({
                   ))}
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="resources">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <FolderOpen className="h-4 w-4" />
+                {t("ClassResources.tab")}{" "}
+                <span className="num text-muted-foreground">({resources.length})</span>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ClassResourcesTab
+                classId={cls.id}
+                locale={locale}
+                initialResources={resources}
+              />
             </CardContent>
           </Card>
         </TabsContent>

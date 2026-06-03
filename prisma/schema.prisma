@@ -203,6 +203,7 @@ model Class {
   sessions       ClassSession[]
   assignments    Assignment[]
   calendarEvents CalendarEvent[]
+  resources      ClassResource[]
 }
 
 // ─────────────────── PROGRAM OPENINGS (apply-to-teach) ───────────────────
@@ -448,6 +449,15 @@ enum AttachmentKind {
   FILE
 }
 
+// Lightweight "folder" for a teacher's private class materials. A flat set of
+// categories (not a nested tree) used as filter chips on the Resources tab.
+enum ClassResourceCategory {
+  LESSON_PLAN
+  EXERCISE
+  SLIDES
+  OTHER
+}
+
 model Assignment {
   id          String    @id @default(uuid())
   classId     String
@@ -514,6 +524,32 @@ model SubmissionAttachment {
   createdAt    DateTime       @default(now())
 
   @@index([submissionId])
+}
+
+// A teacher's private teaching material kept WITH a class. Because it hangs off
+// the class (not a term/cohort), whenever the same — or a future — assigned
+// teacher reopens this class they find every prior resource ready to reuse.
+// `kind` reuses AttachmentKind (VIDEO/AUDIO/FILE; documents/images/pdf/slides
+// are all FILE, refined for display by mimeType). `category` is the chip-level
+// folder. The uploader is recorded as a plain user id (mirrors `createdBy`).
+// Access is decided server-side: only a teacher assigned to the class, or an
+// admin, may list or fetch; only the uploader (or an admin) may rename/delete.
+model ClassResource {
+  id               String                @id @default(uuid())
+  classId          String
+  class            Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  uploadedByUserId String
+  kind             AttachmentKind
+  category         ClassResourceCategory @default(OTHER)
+  title            String
+  fileName         String
+  mimeType         String
+  sizeBytes        Int
+  url              String
+  createdAt        DateTime              @default(now())
+
+  @@index([classId])
+  @@index([classId, category])
 }
 
 // ─────────────────────── ENGLISH LAB ───────────────────────
