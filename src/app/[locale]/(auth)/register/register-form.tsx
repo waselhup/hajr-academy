@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition, useEffect } from "react";
-import { useRouter } from "@/i18n/routing";
+import { useRouter, Link } from "@/i18n/routing";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
@@ -112,7 +112,7 @@ export function RegisterForm() {
       )}
       <div className="space-y-2">
         <Label>{t("Auth.iAm")}</Label>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             type="button"
             onClick={() => setValue("role", "STUDENT")}
@@ -135,6 +135,12 @@ export function RegisterForm() {
           >
             {t("Auth.parent")}
           </button>
+          <Link
+            href="/marketer/apply"
+            className="flex items-center justify-center rounded-lg border border-hajr-gray-200 px-3 py-2 text-center text-sm font-medium text-hajr-gray-500 transition-colors hover:border-hajr-rose hover:bg-hajr-rose/10 hover:text-hajr-navy"
+          >
+            {t("Auth.successPartner")}
+          </Link>
         </div>
       </div>
       <div className="space-y-2">
