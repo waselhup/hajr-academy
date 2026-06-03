@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -145,7 +145,7 @@ export function LibraryAdminGrid({
                       {i.durationMinutes} {t("minutes")} · {i.viewCount} {t("views")}
                     </span>
                     <Link
-                      href={`/${locale}/admin/library/${i.id}`}
+                      href={`/admin/library/${i.id}`}
                       className="inline-flex items-center gap-1 text-hajr-rose hover:underline"
                     >
                       <Pencil className="h-3 w-3" /> {t("edit")}

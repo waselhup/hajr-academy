@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/shell/sidebar";
 import { Topbar } from "@/components/shell/topbar";
@@ -12,7 +13,12 @@ import { RatingPrompts } from "@/components/ratings/rating-prompts";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
-  if (!session?.user) redirect("/ar/login");
+  // Preserve the active locale on the auth bounce — a hardcoded "/ar/login"
+  // dropped English users into the Arabic login (the locale-stickiness bug).
+  if (!session?.user) {
+    const locale = await getLocale();
+    redirect(`/${locale}/login`);
+  }
 
   const isAdmin =
     session.user.role === "SUPER_ADMIN" || session.user.role === "ADMIN";

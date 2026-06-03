@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useRouter } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
@@ -135,7 +135,7 @@ function OpeningCard({
 
         <div className="flex flex-wrap items-center gap-2 pt-1">
           <Button asChild variant="outline" size="sm">
-            <Link href={`/${locale}/admin/openings/${row.id}`}>{t("reviewApplicants")}</Link>
+            <Link href={`/admin/openings/${row.id}`}>{t("reviewApplicants")}</Link>
           </Button>
           {row.status === "OPEN" ? (
             <Button variant="ghost" size="sm" onClick={handleClose} disabled={isPending}>

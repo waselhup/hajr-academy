@@ -259,7 +259,7 @@ export default async function AdminDashboard({
         id: `pay-${p.id}`,
         type: "PAYMENT_RECEIVED",
         time: (p.paidAt ?? now).toISOString(),
-        href: `/${locale}/admin/finance`,
+        href: "/admin/finance",
         data: {
           amount: Number(p.totalSar),
           name:
@@ -274,7 +274,7 @@ export default async function AdminDashboard({
         id: `stud-${s.id}`,
         type: "STUDENT_REGISTERED",
         time: s.createdAt.toISOString(),
-        href: `/${locale}/admin/students`,
+        href: "/admin/students",
         data: { name: locale === "ar" && s.nameAr ? s.nameAr : s.name },
       });
     }
@@ -283,7 +283,7 @@ export default async function AdminDashboard({
         id: `trial-${tr.id}`,
         type: "TRIAL_REQUESTED",
         time: tr.createdAt.toISOString(),
-        href: `/${locale}/admin/trials`,
+        href: "/admin/trials",
         data: { name: tr.name },
       });
     }
@@ -292,7 +292,7 @@ export default async function AdminDashboard({
         id: `cls-${cs.id}`,
         type: "CLASS_STARTED",
         time: (cs.startedAt ?? now).toISOString(),
-        href: `/${locale}/admin/live`,
+        href: "/admin/live",
         data: {
           class:
             locale === "ar" ? cs.class.nameAr ?? cs.class.name : cs.class.name,
@@ -304,7 +304,7 @@ export default async function AdminDashboard({
         id: `ct-${c.id}`,
         type: "CONTACT_SUBMITTED",
         time: c.createdAt.toISOString(),
-        href: `/${locale}/admin/communications/contacts`,
+        href: "/admin/communications/contacts",
         data: { name: c.name },
       });
     }
@@ -313,7 +313,7 @@ export default async function AdminDashboard({
         id: `te-${e.id}`,
         type: "TEACHER_EARNING_APPROVED",
         time: (e.approvedAt ?? now).toISOString(),
-        href: `/${locale}/admin/teachers/payments`,
+        href: "/admin/teachers/payments",
         data: { amount: Number(e.amount) },
       });
     }

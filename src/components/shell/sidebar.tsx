@@ -1,8 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+// Locale-aware navigation: Link + usePathname from next-intl routing keep the
+// active locale prefix sticky on every click. Raw next/link / next/navigation
+// drop the prefix and bounce the user back to the default locale (the AR bug).
+import { Link, usePathname } from "@/i18n/routing";
 import {
   LayoutDashboard,
   Users,
@@ -169,6 +171,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.brandKit", href: "/admin/brand-kit", icon: Palette },
       { key: "Nav.techChecks", href: "/admin/tech-checks", icon: Wifi },
       { key: "Nav.analytics", href: "/admin/analytics", icon: Gauge },
+      { key: "Nav.activity", href: "/admin/activity", icon: ActivitySquare },
       { key: "Nav.ratingsHub", href: "/admin/ratings", icon: Star },
     ],
   },

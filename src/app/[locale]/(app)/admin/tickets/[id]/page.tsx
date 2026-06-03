@@ -5,6 +5,7 @@
  */
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { TicketDetail } from "@/components/tickets/TicketDetail";
@@ -42,12 +43,12 @@ export default async function AdminTicketDetailPage({
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <a
-          href={`/${locale}/admin/tickets`}
+        <Link
+          href="/admin/tickets"
           className="text-sm text-hajr-muted hover:text-hajr-rose"
         >
           ← {t("backToKanban")}
-        </a>
+        </Link>
       </div>
       <TicketDetail
         ticket={{

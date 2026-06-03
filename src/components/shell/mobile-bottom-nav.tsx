@@ -9,9 +9,10 @@
  * once on mount; updated subscriptions are handled by the existing bell
  * realtime channel (it touches the same Notification table).
  */
-import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+// Locale-aware Link + usePathname (next-intl) keep navigation inside the
+// current locale; raw next/link would bounce the user back to the default.
+import { Link, usePathname } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   Home, Calendar as CalendarIcon, MessageSquare, User as UserIcon,

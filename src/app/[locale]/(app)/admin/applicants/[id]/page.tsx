@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, Mail, Phone, User as UserIcon, MessagesSquare } from "lucide-react";
 import { requireRole } from "@/lib/rbac";
@@ -34,7 +34,7 @@ export default async function AdminApplicantDetailPage({
     return (
       <div className="space-y-4" dir={isAr ? "rtl" : "ltr"}>
         <Link
-          href={`/${locale}/admin/applicants`}
+          href="/admin/applicants"
           className="inline-flex items-center gap-1 text-sm text-hajr-muted hover:text-hajr-deep-navy"
         >
           <ArrowLeft className="h-4 w-4 rtl-flip" />
@@ -81,7 +81,7 @@ export default async function AdminApplicantDetailPage({
   return (
     <div className="space-y-6" dir={isAr ? "rtl" : "ltr"}>
       <Link
-        href={`/${locale}/admin/applicants`}
+        href="/admin/applicants"
         className="inline-flex items-center gap-1 text-sm text-hajr-muted hover:text-hajr-deep-navy"
       >
         <ArrowLeft className="h-4 w-4 rtl-flip" />

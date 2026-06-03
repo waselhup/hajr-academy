@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -42,7 +42,7 @@ export default async function AdminMarketerDetailPage({
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
       <div>
-        <Link href={`/${locale}/admin/marketers`} className="text-xs text-hajr-muted hover:text-hajr-rose">
+        <Link href="/admin/marketers" className="text-xs text-hajr-muted hover:text-hajr-rose">
           ← {isAr ? "العودة" : "Back"}
         </Link>
         <h1 className="mt-2 text-2xl font-bold text-hajr-text">

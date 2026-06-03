@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -130,7 +130,7 @@ export function ValidationClient({ categories }: { categories: ValidationCategor
                       {c.links.map((l) => (
                         <Link
                           key={l.href}
-                          href={`/${locale}${l.href}`}
+                          href={l.href}
                           target="_blank"
                         >
                           <Button variant="outline" size="sm" className="min-h-[40px]">

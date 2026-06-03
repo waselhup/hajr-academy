@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
@@ -135,7 +135,7 @@ export function ClassesClient({
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => router.push(`/admin/classes/${r.id}`)}>
+                      <DropdownMenuItem onClick={() => router.push(`/${locale}/admin/classes/${r.id}`)}>
                         <Users className="me-2 h-4 w-4" />{t("Classes.roster")}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditing(r)}>

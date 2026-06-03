@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useLocale, useTranslations } from "next-intl";
 import {
   Bar, BarChart, Cell, Pie, PieChart, ResponsiveContainer,
@@ -132,7 +132,7 @@ export function AdminFinanceClient({
               variant="outline"
               className="h-auto justify-start py-3"
             >
-              <Link href={`/${locale}${n.href}`}>
+              <Link href={n.href}>
                 <Icon className="me-2 h-4 w-4 text-hajr-rose" />
                 {n.label}
               </Link>

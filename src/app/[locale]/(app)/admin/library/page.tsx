@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -48,7 +48,7 @@ export default async function AdminLibraryPage({
           <p className="text-sm text-hajr-gray-500">{t("adminSubtitle")}</p>
         </div>
         <Button asChild className="bg-hajr-rose text-white hover:bg-hajr-rose/90">
-          <Link href={`/${locale}/admin/library/new`} data-testid="library-new-btn">
+          <Link href="/admin/library/new" data-testid="library-new-btn">
             {t("uploadNew")}
           </Link>
         </Button>

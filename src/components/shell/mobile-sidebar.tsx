@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+// Locale-aware Link + usePathname (next-intl) keep navigation inside the
+// current locale; raw next/link would bounce the user back to the default.
+import { Link, usePathname } from "@/i18n/routing";
 import { Menu, X, ChevronDown } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";

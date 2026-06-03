@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
@@ -40,7 +40,7 @@ export default async function AdminSpeakingClubDetailPage({
     <div className="container mx-auto px-4 py-6 space-y-6" dir={isAr ? "rtl" : "ltr"}>
       <div>
         <Button asChild size="sm" variant="ghost" className="mb-2">
-          <Link href={`/${locale}/admin/speaking-club`}>
+          <Link href="/admin/speaking-club">
             <ArrowLeft className="h-4 w-4 me-1" />
             {isAr ? "العودة" : "Back"}
           </Link>

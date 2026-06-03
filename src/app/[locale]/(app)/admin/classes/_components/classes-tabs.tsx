@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useRouter, useSearchParams, usePathname, useParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";

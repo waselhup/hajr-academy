@@ -1,5 +1,7 @@
 "use client";
-import Link from "next/link";
+// Locale-aware Link (next-intl) keeps dashboard links inside the current
+// locale; the explicit `/${locale}` prefixes below are therefore dropped.
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import {
   ResponsiveContainer,
@@ -144,7 +146,7 @@ export function AdminCommandCenter({
           deltaSuffix={t("AdminDashboard.vsLastMonth")}
           sparkline={payload.monthRevenue.sparkline}
           ar={ar}
-          href={`/${locale}/admin/finance`}
+          href={"/admin/finance"}
         />
         <KpiCard
           icon={<Users className="h-5 w-5" />}
@@ -156,7 +158,7 @@ export function AdminCommandCenter({
           )}`}
           sparkline={payload.activeStudents.sparkline}
           ar={ar}
-          href={`/${locale}/admin/students`}
+          href={"/admin/students"}
         />
         <KpiCard
           icon={<Radio className="h-5 w-5" />}
@@ -165,7 +167,7 @@ export function AdminCommandCenter({
           value={fmtNum(payload.liveClasses.value, ar)}
           pulse={payload.liveClasses.value > 0}
           ar={ar}
-          href={`/${locale}/admin/live`}
+          href={"/admin/live"}
         />
         <KpiCard
           icon={<AlertTriangle className="h-5 w-5" />}
@@ -217,7 +219,7 @@ export function AdminCommandCenter({
                   tint="amber"
                   label={t("AdminDashboard.alertContactRequests")}
                   count={payload.alerts.newContactRequests}
-                  href={`/${locale}/admin/communications/contacts`}
+                  href={"/admin/communications/contacts"}
                   ar={ar}
                 />
               )}
@@ -227,7 +229,7 @@ export function AdminCommandCenter({
                   tint="emerald"
                   label={t("AdminDashboard.alertPendingPayments")}
                   count={payload.alerts.pendingPayments}
-                  href={`/${locale}/admin/teachers/payments`}
+                  href={"/admin/teachers/payments"}
                   ar={ar}
                 />
               )}
@@ -237,7 +239,7 @@ export function AdminCommandCenter({
                   tint="red"
                   label={t("AdminDashboard.alertOverdueInvoices")}
                   count={payload.alerts.overdueInvoices}
-                  href={`/${locale}/admin/finance`}
+                  href={"/admin/finance"}
                   ar={ar}
                 />
               )}
@@ -247,7 +249,7 @@ export function AdminCommandCenter({
                   tint="rose"
                   label={t("AdminDashboard.alertFlaggedMessages")}
                   count={payload.alerts.flaggedMessages}
-                  href={`/${locale}/admin/communications/chats`}
+                  href={"/admin/communications/chats"}
                   ar={ar}
                 />
               )}
@@ -257,7 +259,7 @@ export function AdminCommandCenter({
                   tint="blue"
                   label={t("AdminDashboard.alertNewTrials")}
                   count={payload.alerts.newTrials}
-                  href={`/${locale}/admin/trials`}
+                  href={"/admin/trials"}
                   ar={ar}
                 />
               )}
@@ -279,22 +281,22 @@ export function AdminCommandCenter({
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           <QuickTile
-            href={`/${locale}/admin/students`}
+            href={"/admin/students"}
             icon={<UserCheck className="h-6 w-6" />}
             label={t("AdminDashboard.quickAddStudent")}
           />
           <QuickTile
-            href={`/${locale}/admin/teachers`}
+            href={"/admin/teachers"}
             icon={<GraduationCap className="h-6 w-6" />}
             label={t("AdminDashboard.quickAddTeacher")}
           />
           <QuickTile
-            href={`/${locale}/admin/classes`}
+            href={"/admin/classes"}
             icon={<BookText className="h-6 w-6" />}
             label={t("AdminDashboard.quickCreateClass")}
           />
           <QuickTile
-            href={`/${locale}/admin/finance`}
+            href={"/admin/finance"}
             icon={<FileText className="h-6 w-6" />}
             label={t("AdminDashboard.quickMonthReport")}
           />
@@ -501,7 +503,7 @@ function TodayClasses({
             )}
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link href={`/${locale}/admin/schedule`}>
+            <Link href={"/admin/schedule"}>
               {t("todayClassesViewAll")}
               <ArrowRight className="ms-1 h-3 w-3 rtl-flip" />
             </Link>
@@ -516,7 +518,7 @@ function TodayClasses({
             {items.slice(0, 6).map((c) => (
               <li key={c.id}>
                 <Link
-                  href={`/${locale}/admin/schedule`}
+                  href={"/admin/schedule"}
                   className={cn(
                     "flex items-center gap-3 rounded-md border p-2.5 text-sm transition-colors hover:bg-muted/50",
                     c.status === "LIVE" && "border-rose-200 bg-rose-50/30"
@@ -613,7 +615,7 @@ function SmartActivity({
             </h2>
           </div>
           <Button asChild variant="ghost" size="sm">
-            <Link href={`/${locale}/admin/audit-log`}>
+            <Link href={"/admin/audit-log"}>
               {t("activityViewAudit")}
               <ArrowRight className="ms-1 h-3 w-3 rtl-flip" />
             </Link>

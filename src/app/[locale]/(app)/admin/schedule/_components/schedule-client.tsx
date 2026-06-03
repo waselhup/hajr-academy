@@ -214,7 +214,7 @@ export function ScheduleClient({
               <Row label={t("Nav.programs")} value={t("Programs." + selected.programCode as any)} />
             </div>
             <div className="mt-6 flex gap-2">
-              <Button variant="outline" className="flex-1" onClick={() => router.push(`/admin/classes/${selected.classId}`)}>{t("Common.view")}</Button>
+              <Button variant="outline" className="flex-1" onClick={() => router.push(`/${locale}/admin/classes/${selected.classId}`)}>{t("Common.view")}</Button>
             </div>
           </SheetContent>
         </Sheet>

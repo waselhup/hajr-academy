@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
@@ -43,7 +43,7 @@ export default async function AdminPlacementTestsPage({
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold text-hajr-text">{isAr ? "اختبارات تحديد المستوى" : "Placement tests"}</h1>
         <Link
-          href={`/${locale}/admin/placement-tests/leads`}
+          href="/admin/placement-tests/leads"
           className="inline-flex h-10 items-center rounded-lg bg-hajr-deep-navy px-4 text-sm font-medium text-white"
         >
           {isAr ? "الطلبات المحتملة" : "Leads"}
@@ -70,7 +70,7 @@ export default async function AdminPlacementTestsPage({
               {t.durationMin} min · {t.passingScore}% pass
             </div>
             <Link
-              href={`/${locale}/admin/placement-tests/${t.id}`}
+              href={`/admin/placement-tests/${t.id}`}
               className="mt-3 inline-block text-xs font-medium text-hajr-rose hover:underline"
             >
               {isAr ? "عرض الإعدادات →" : "View config →"}

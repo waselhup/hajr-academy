@@ -1,7 +1,7 @@
 /**
  * Sprint 3 — Admin teacher-meetings list + create.
  */
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -77,7 +77,7 @@ export default async function AdminMeetingsPage({
                   <td className="px-4 py-3 text-hajr-muted">{m._count.attendees}</td>
                   <td className="px-4 py-3 text-end">
                     <Link
-                      href={`/${locale}/admin/teacher-meetings/${m.id}`}
+                      href={`/admin/teacher-meetings/${m.id}`}
                       className="font-medium text-hajr-rose hover:underline"
                     >
                       {t("manage")} →

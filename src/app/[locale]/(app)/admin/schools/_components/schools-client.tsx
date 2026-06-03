@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations, useLocale } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -115,7 +115,7 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
                       <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/${locale}/admin/schools/${r.id}`}>
+                          <Link href={`/admin/schools/${r.id}`}>
                             <Eye className="me-2 h-4 w-4" />{t("Schools.viewDetails")}
                           </Link>
                         </DropdownMenuItem>

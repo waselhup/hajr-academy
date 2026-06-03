@@ -13,10 +13,11 @@ export default async function StudentBlackboardRoomPage({
 }: {
   params: { roomId: string; locale: string };
 }) {
+  const { locale } = params;
   const session = await auth();
-  if (!session?.user) redirect("/ar/login");
+  if (!session?.user) redirect(`/${locale}/login`);
 
-  if (session.user.role !== "STUDENT") redirect("/ar/login");
+  if (session.user.role !== "STUDENT") redirect(`/${locale}/login`);
 
   let student: any;
   let room: any;

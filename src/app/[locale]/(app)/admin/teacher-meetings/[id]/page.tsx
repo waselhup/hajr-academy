@@ -3,6 +3,7 @@
  */
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/routing";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { AdminMeetingDetail } from "@/components/meetings/AdminMeetingDetail";
@@ -36,12 +37,12 @@ export default async function AdminMeetingDetailPage({
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div>
-        <a
-          href={`/${locale}/admin/teacher-meetings`}
+        <Link
+          href="/admin/teacher-meetings"
           className="text-sm text-hajr-muted hover:text-hajr-rose"
         >
           ← {t("backToList")}
-        </a>
+        </Link>
         <h1 className="mt-2 text-2xl font-bold text-hajr-text">
           {isAr ? meeting.titleAr : meeting.title}
         </h1>

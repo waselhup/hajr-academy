@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
@@ -72,7 +72,7 @@ export default async function AdminMarketersPage({
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <h1 className="text-2xl font-bold text-hajr-text">{t("adminMarketers")}</h1>
         <Link
-          href={`/${locale}/admin/marketers/commissions`}
+          href="/admin/marketers/commissions"
           className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-hajr-deep-navy px-4 text-sm font-medium text-white"
         >
           <Receipt className="h-4 w-4" />
@@ -101,10 +101,10 @@ export default async function AdminMarketersPage({
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
-        <FilterPill href={`/${locale}/admin/marketers`} active={!sp.status} label={isAr ? "الكل" : "All"} count={marketers.length} />
-        <FilterPill href={`/${locale}/admin/marketers?status=pending`} active={sp.status === "pending"} label={t("status_PENDING")} count={countByStatus.PENDING ?? 0} />
-        <FilterPill href={`/${locale}/admin/marketers?status=active`} active={sp.status === "active"} label={t("status_ACTIVE")} count={countByStatus.ACTIVE ?? 0} />
-        <FilterPill href={`/${locale}/admin/marketers?status=suspended`} active={sp.status === "suspended"} label={t("status_SUSPENDED")} count={countByStatus.SUSPENDED ?? 0} />
+        <FilterPill href="/admin/marketers" active={!sp.status} label={isAr ? "الكل" : "All"} count={marketers.length} />
+        <FilterPill href="/admin/marketers?status=pending" active={sp.status === "pending"} label={t("status_PENDING")} count={countByStatus.PENDING ?? 0} />
+        <FilterPill href="/admin/marketers?status=active" active={sp.status === "active"} label={t("status_ACTIVE")} count={countByStatus.ACTIVE ?? 0} />
+        <FilterPill href="/admin/marketers?status=suspended" active={sp.status === "suspended"} label={t("status_SUSPENDED")} count={countByStatus.SUSPENDED ?? 0} />
       </div>
 
       {/* Table */}
@@ -151,7 +151,7 @@ export default async function AdminMarketersPage({
                   </td>
                   <td className="px-4 py-3 text-end">
                     <Link
-                      href={`/${locale}/admin/marketers/${m.id}`}
+                      href={`/admin/marketers/${m.id}`}
                       className="rounded-lg border border-hajr-border bg-white px-3 py-1.5 text-xs font-medium text-hajr-text hover:border-hajr-rose"
                     >
                       {isAr ? "تفاصيل" : "Details"}

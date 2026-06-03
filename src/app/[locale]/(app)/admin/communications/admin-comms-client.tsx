@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslations, useLocale } from "next-intl";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -66,25 +66,25 @@ export function AdminCommsClient() {
       {/* Quick links */}
       <div className="flex flex-wrap gap-2">
         <Button asChild variant="default" size="sm">
-          <Link href={`/${locale}/admin/communications/chats`}>
+          <Link href="/admin/communications/chats">
             <MessagesSquare className="me-2 h-4 w-4" />
             {t("chatsLink")}
           </Link>
         </Button>
         <Button asChild variant="default" size="sm">
-          <Link href={`/${locale}/admin/communications/contacts`}>
+          <Link href="/admin/communications/contacts">
             <Inbox className="me-2 h-4 w-4" />
             {t("contactsLink")}
           </Link>
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/${locale}/admin/communications/templates`}>
+          <Link href="/admin/communications/templates">
             <FileText className="me-2 h-4 w-4" />
             {t("templates")}
           </Link>
         </Button>
         <Button asChild variant="outline" size="sm">
-          <Link href={`/${locale}/admin/communications/logs`}>
+          <Link href="/admin/communications/logs">
             <ScrollText className="me-2 h-4 w-4" />
             {t("logs")}
           </Link>
@@ -153,7 +153,7 @@ export function AdminCommsClient() {
               {stats.totalFailed} {t("failedMessages")}
             </span>
             <Button asChild size="sm" variant="outline" className="ms-auto">
-              <Link href={`/${locale}/admin/communications/logs?status=FAILED`}>
+              <Link href="/admin/communications/logs?status=FAILED">
                 {t("review")}
               </Link>
             </Button>

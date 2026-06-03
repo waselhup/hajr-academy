@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -127,7 +127,7 @@ export default async function AdminRatingsPage({
                     <tr key={tr.teacherId} className="border-t border-hajr-gray-100">
                       <td className="px-3 py-2">
                         <Link
-                          href={`/${locale}/admin/ratings/teachers/${tr.teacherId}`}
+                          href={`/admin/ratings/teachers/${tr.teacherId}`}
                           className="font-medium text-hajr-rose hover:underline"
                         >
                           {tr.teacherName}

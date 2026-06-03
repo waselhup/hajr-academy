@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -118,7 +118,7 @@ export function AnalyticsTabs({
                       <tr key={u.userId} className="border-t border-hajr-gray-100">
                         <td className="px-3 py-2">
                           <Link
-                            href={`/${locale}/admin/analytics/users/${u.userId}`}
+                            href={`/admin/analytics/users/${u.userId}`}
                             className="font-medium text-hajr-rose hover:underline"
                           >
                             {u.name}
@@ -211,7 +211,7 @@ export function AnalyticsTabs({
                       <tr key={r.id} className="border-t border-hajr-gray-100">
                         <td className="px-3 py-2">
                           <Link
-                            href={`/${locale}/admin/analytics/users/${r.id}`}
+                            href={`/admin/analytics/users/${r.id}`}
                             className="font-medium text-hajr-rose hover:underline"
                           >
                             {r.name}

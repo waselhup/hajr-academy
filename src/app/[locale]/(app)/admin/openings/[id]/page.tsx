@@ -6,7 +6,7 @@
  * survey question labels via i18n, then hands everything to ReviewClient which
  * wires the shortlist/select/reject + reopen/close server actions.
  */
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { ArrowLeft, Users } from "lucide-react";
 import { requireRole } from "@/lib/rbac";
@@ -60,7 +60,7 @@ export default async function AdminOpeningReviewPage({
     return (
       <div className="space-y-4" dir={isAr ? "rtl" : "ltr"}>
         <Button asChild size="sm" variant="ghost">
-          <Link href={`/${locale}/admin/openings`}>
+          <Link href="/admin/openings">
             <ArrowLeft className="me-1 h-4 w-4" />
             {t("adminTitle")}
           </Link>
@@ -154,7 +154,7 @@ export default async function AdminOpeningReviewPage({
     <div className="space-y-6" dir={isAr ? "rtl" : "ltr"}>
       <div>
         <Button asChild size="sm" variant="ghost" className="mb-2">
-          <Link href={`/${locale}/admin/openings`}>
+          <Link href="/admin/openings">
             <ArrowLeft className="me-1 h-4 w-4" />
             {t("adminTitle")}
           </Link>

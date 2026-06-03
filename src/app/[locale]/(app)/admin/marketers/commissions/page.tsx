@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getTranslations } from "next-intl/server";
@@ -38,7 +38,7 @@ export default async function AdminCommissionsPage({
   return (
     <div className="mx-auto max-w-7xl space-y-5 p-4 md:p-6">
       <div>
-        <Link href={`/${locale}/admin/marketers`} className="text-xs text-hajr-muted hover:text-hajr-rose">
+        <Link href="/admin/marketers" className="text-xs text-hajr-muted hover:text-hajr-rose">
           ← {isAr ? "العودة للمسوّقين" : "Back to marketers"}
         </Link>
         <h1 className="mt-1 text-2xl font-bold text-hajr-text">{t("adminCommissions")}</h1>
@@ -48,7 +48,7 @@ export default async function AdminCommissionsPage({
         {(["PENDING", "APPROVED", "PAID", "REJECTED"] as const).map((s) => (
           <Link
             key={s}
-            href={`/${locale}/admin/marketers/commissions?status=${s.toLowerCase()}`}
+            href={`/admin/marketers/commissions?status=${s.toLowerCase()}`}
             className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium ${
               status === s
                 ? "border-hajr-deep-navy bg-hajr-deep-navy text-white"

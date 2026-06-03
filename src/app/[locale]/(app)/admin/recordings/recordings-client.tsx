@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Sparkles, Video, Search, Loader2, ExternalLink } from "lucide-react";
 import { RecordingPlayer } from "@/components/video/recording-player";
 import { toast } from "sonner";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 export interface RecordingRow {
   id: string;
@@ -205,7 +205,7 @@ export function RecordingsClient({ rows: initial }: { rows: RecordingRow[] }) {
                       <TableCell className="text-end">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/${locale}/teacher/sessions/${r.id}/summary`}
+                            href={`/teacher/sessions/${r.id}/summary`}
                             className="inline-flex items-center text-xs text-brand-navy hover:underline"
                           >
                             <ExternalLink className="h-3 w-3 me-1" />

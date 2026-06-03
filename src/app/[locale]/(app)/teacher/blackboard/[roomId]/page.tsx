@@ -13,12 +13,13 @@ export default async function TeacherBlackboardRoomPage({
 }: {
   params: { roomId: string; locale: string };
 }) {
+  const { locale } = params;
   const session = await auth();
-  if (!session?.user) redirect("/ar/login");
+  if (!session?.user) redirect(`/${locale}/login`);
 
   const role = session.user.role;
   if (!["TEACHER", "ADMIN", "SUPER_ADMIN"].includes(role)) {
-    redirect("/ar/login");
+    redirect(`/${locale}/login`);
   }
 
   let room: any;

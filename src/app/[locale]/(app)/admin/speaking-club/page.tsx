@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -70,7 +70,7 @@ export default async function AdminSpeakingClubPage({
               {events.map((e) => (
                 <Link
                   key={e.id}
-                  href={`/${locale}/admin/speaking-club/${e.id}`}
+                  href={`/admin/speaking-club/${e.id}`}
                   className="flex items-center justify-between p-3 border border-hajr-border rounded-md hover:bg-hajr-ivory min-h-[44px]"
                 >
                   <div>

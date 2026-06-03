@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { UserPlus, Inbox } from "lucide-react";
 import { requireRole } from "@/lib/rbac";
@@ -87,7 +87,7 @@ export default async function AdminApplicantsPage({
         {filters.map((f) => (
           <Link
             key={f.key}
-            href={`/${locale}${f.href}`}
+            href={f.href}
             className={`rounded-full border px-3 py-1 text-sm font-medium transition-colors ${
               f.active
                 ? "border-hajr-rose bg-hajr-rose/10 text-hajr-rose"
@@ -139,7 +139,7 @@ export default async function AdminApplicantsPage({
                       >
                         <td className="px-4 py-3">
                           <Link
-                            href={`/${locale}/admin/applicants/${a.id}`}
+                            href={`/admin/applicants/${a.id}`}
                             className="font-semibold text-hajr-deep-navy hover:underline"
                           >
                             {a.fullName}

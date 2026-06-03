@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -64,7 +64,7 @@ export default async function AdminRatingTeacherDrilldown({
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">{t("teacherNotFound")}</h1>
         <Button asChild variant="outline">
-          <Link href={`/${locale}/admin/ratings`}>{t("backToRatings")}</Link>
+          <Link href="/admin/ratings">{t("backToRatings")}</Link>
         </Button>
       </div>
     );
@@ -78,7 +78,7 @@ export default async function AdminRatingTeacherDrilldown({
           <p className="text-sm text-hajr-gray-500">{t("teacherDrillSubtitle")}</p>
         </div>
         <Button asChild variant="outline">
-          <Link href={`/${locale}/admin/ratings`}>{t("backToRatings")}</Link>
+          <Link href="/admin/ratings">{t("backToRatings")}</Link>
         </Button>
       </div>
 
