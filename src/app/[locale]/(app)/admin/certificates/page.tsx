@@ -16,7 +16,7 @@ export default async function AdminCertificatesPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations("Certificates");
   const isAr = locale === "ar";
 

@@ -17,7 +17,7 @@ export default async function AdminSpeakingClubDetailPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations("SpeakingClub");
   const isAr = locale === "ar";
 

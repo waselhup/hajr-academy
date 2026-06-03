@@ -14,7 +14,7 @@ export default async function AdminPaymentRequestsPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations("PaymentReq");
   const isAr = locale === "ar";
 

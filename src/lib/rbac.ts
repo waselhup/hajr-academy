@@ -1,6 +1,7 @@
 import type { Role } from "@prisma/client";
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { ROLE_HOME } from "@/lib/role-home";
 
 // Re-exported for backward compatibility; canonical definition lives in
@@ -9,7 +10,11 @@ export { ROLE_HOME };
 
 export async function requireSession() {
   const session = await auth();
-  if (!session?.user) redirect("/ar/login");
+  if (!session?.user) {
+    // Preserve the active locale on the auth bounce (was hardcoded /ar/login).
+    const locale = await getLocale();
+    redirect(`/${locale}/login`);
+  }
   return session;
 }
 

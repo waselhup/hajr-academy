@@ -11,7 +11,7 @@ import { notify } from "@/lib/notify";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const events = await prisma.speakingClubEvent.findMany({
     orderBy: { scheduledAt: "desc" },
     include: {
@@ -23,7 +23,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await requireRole("ADMIN");
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const body = (await req.json().catch(() => ({}))) as {
     titleAr?: string;
     titleEn?: string;
