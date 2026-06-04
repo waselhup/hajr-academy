@@ -10,6 +10,7 @@ import AdminChatPanel from "@/components/admin/AdminChatPanel";
 import HajrChatPanel from "@/components/shared/HajrChatPanel";
 import { PageVisitTracker } from "@/components/analytics/page-visit-tracker";
 import { RatingPrompts } from "@/components/ratings/rating-prompts";
+import { UpcomingReminders } from "@/components/shared/upcoming-reminders";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -39,6 +40,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </div>
       <MobileBottomNav role={session.user.role} />
       <PageVisitTracker />
+      <UpcomingReminders userId={session.user.id} />
       {(session.user.role === "STUDENT" || session.user.role === "PARENT") && (
         <RatingPrompts role={session.user.role as "STUDENT" | "PARENT"} />
       )}

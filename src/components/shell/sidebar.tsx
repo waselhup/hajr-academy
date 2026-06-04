@@ -84,7 +84,19 @@ export type NavGroup = {
 };
 
 /* =============================================================
- * ADMIN navigation — 7 groups, 36 items (covers every admin hub)
+ * ADMIN navigation — 5 tight parent-child groups.
+ *
+ * Restructured from the older 7-group layout to shorten the top-level
+ * menu while keeping EVERY href reachable (nothing orphaned):
+ *   • People                     (unchanged)
+ *   • Academics & Content        (former Academics + Content merged — all
+ *                                 teaching/curriculum surfaces live together)
+ *   • Finance                    (former Finance + the money-related System
+ *                                 items: marketers, commissions, teacher payouts)
+ *   • Communications             (unchanged)
+ *   • Operations & System        (former Operations + the remaining System
+ *                                 items: tickets, schools, QA, audit logs)
+ * superAdminOnly flags are preserved verbatim on every moved item.
  * ============================================================= */
 export const ADMIN_DASHBOARD_ITEM: NavItem = {
   key: "Nav.dashboard",
@@ -108,6 +120,8 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    // Academics + Content merged: programs/classes/scheduling AND the
+    // curriculum surfaces (test bank, exams, lab, blackboards, library, certs).
     key: "Nav.groupAcademics",
     icon: GraduationCap,
     items: [
@@ -119,12 +133,6 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
       { key: "Nav.placementTests", href: "/admin/placement-tests", icon: TestTube },
       { key: "Nav.speakingClub", href: "/admin/speaking-club", icon: Mic },
-    ],
-  },
-  {
-    key: "Nav.groupContent",
-    icon: BookOpen,
-    items: [
       { key: "Nav.testBank", href: "/admin/test-bank", icon: BookOpen },
       { key: "Nav.mockExams", href: "/admin/exams", icon: ClipboardCheck },
       { key: "Nav.labHub", href: "/admin/lab", icon: FlaskConical },
@@ -134,6 +142,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    // Finance + the money-related System items folded in.
     key: "Nav.groupFinance",
     icon: Wallet,
     items: [
@@ -144,6 +153,9 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.promoCodes", href: "/admin/finance/promo-codes", icon: Sparkles },
       { key: "Nav.refunds", href: "/admin/finance/refunds", icon: HandCoins },
       { key: "Nav.paymentRequests", href: "/admin/payment-requests", icon: PiggyBank },
+      { key: "Nav.teacherPayouts", href: "/admin/teachers/payments", icon: CreditCard },
+      { key: "Nav.adminMarketers", href: "/admin/marketers", icon: Megaphone },
+      { key: "Nav.adminCommissions", href: "/admin/marketers/commissions", icon: LineChart },
     ],
   },
   {
@@ -159,6 +171,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    // Operations + the remaining System items (tickets, schools, QA, audit).
     key: "Nav.groupOperations",
     icon: Radio,
     items: [
@@ -173,17 +186,8 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.analytics", href: "/admin/analytics", icon: Gauge },
       { key: "Nav.activity", href: "/admin/activity", icon: ActivitySquare },
       { key: "Nav.ratingsHub", href: "/admin/ratings", icon: Star },
-    ],
-  },
-  {
-    key: "Nav.groupSystem",
-    icon: Settings,
-    items: [
       { key: "Nav.tickets", href: "/admin/tickets", icon: LifeBuoy },
-      { key: "Nav.adminMarketers", href: "/admin/marketers", icon: Megaphone },
-      { key: "Nav.adminCommissions", href: "/admin/marketers/commissions", icon: LineChart },
       { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
-      { key: "Nav.teacherPayouts", href: "/admin/teachers/payments", icon: CreditCard },
       { key: "Nav.qaI18n", href: "/admin/qa/i18n", icon: Languages, superAdminOnly: true },
       { key: "Nav.qaNotifications", href: "/admin/qa/notifications", icon: Bell, superAdminOnly: true },
       { key: "Nav.qaAuditLog", href: "/admin/qa/audit-log", icon: ShieldAlert, superAdminOnly: true },
@@ -344,6 +348,8 @@ function sharedItemsFor(role: Role): NavItem[] {
   const items: NavItem[] = [
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.calendar", href: "/calendar", icon: Calendar },
+    // Owner batch 3 (C7): user-facing surface for recordings an admin targeted to them.
+    { key: "Nav.recordings", href: "/recordings", icon: Video },
   ];
   if (role === "PARENT") {
     items.push({ key: "Nav.notifications", href: "/settings/notifications", icon: Bell });
@@ -389,6 +395,7 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
     { key: "Nav.marketerProfile", href: "/marketer/profile", icon: UserIcon },
     { key: "Nav.messages", href: "/messages", icon: MessageSquare },
     { key: "Nav.calendar", href: "/calendar", icon: Calendar },
+    { key: "Nav.recordings", href: "/recordings", icon: Video },
   ],
   // APPLICANT uses a dedicated minimal shell (see (applicant) route group) and
   // never renders through this Sidebar. This entry exists only to satisfy the
@@ -614,9 +621,15 @@ function GroupedSidebar({
     ...trailing,
   ];
 
+  // Default each group to COLLAPSED so the (now longer, merged) groups keep the
+  // menu short. Exceptions, in priority order: the group containing the active
+  // route is always open; otherwise a previously-stored explicit choice wins
+  // ("open" → open, "closed" → closed). Same localStorage keys/format as before,
+  // so a user's saved open-states are still honoured — only the never-touched
+  // default flips from open to closed.
   const [openMap, setOpenMap] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    for (const g of groups) init[g.key] = true;
+    for (const g of groups) init[g.key] = isGroupActive(pathname, g, allFlat);
     return init;
   });
 
@@ -627,8 +640,9 @@ function GroupedSidebar({
         typeof window !== "undefined" ? localStorage.getItem(LS_PREFIX + g.key) : null;
       const active = isGroupActive(pathname, g, allFlat);
       if (active) next[g.key] = true;
+      else if (stored === "open") next[g.key] = true;
       else if (stored === "closed") next[g.key] = false;
-      else next[g.key] = true;
+      else next[g.key] = false;
     }
     setOpenMap(next);
     // eslint-disable-next-line react-hooks/exhaustive-deps

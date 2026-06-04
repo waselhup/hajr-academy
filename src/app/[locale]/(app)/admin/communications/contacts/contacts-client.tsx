@@ -10,7 +10,7 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  Loader2, Search, Mail, Phone, Inbox, CheckCircle2, Archive, Reply,
+  Loader2, Search, Mail, Phone, Inbox, CheckCircle2, Archive, Reply, MessageCircle,
 } from "lucide-react";
 import { fmtRiyadh } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -96,6 +96,16 @@ export function ContactsClient() {
   function replyByEmail(s: Submission) {
     const subject = encodeURIComponent(`Re: ${tc(`subject${s.subject}` as any)}`);
     window.open(`mailto:${s.email}?subject=${subject}`, "_blank");
+    if (s.status === "NEW") setStatus(s.id, "REPLIED");
+  }
+
+  function replyOnWhatsApp(s: Submission) {
+    if (!s.phone) return;
+    // Strip every non-digit so a stored "+966 50 …" becomes a clean wa.me path.
+    const digits = s.phone.replace(/\D/g, "");
+    if (!digits) return;
+    const text = encodeURIComponent(t("whatsappPrefill", { name: s.name }));
+    window.open(`https://wa.me/${digits}?text=${text}`, "_blank");
     if (s.status === "NEW") setStatus(s.id, "REPLIED");
   }
 
@@ -222,6 +232,12 @@ export function ContactsClient() {
                     <Reply className="me-1.5 h-4 w-4 rtl-flip" />
                     {t("replyByEmail")}
                   </Button>
+                  {active.phone && (
+                    <Button variant="cta" size="sm" onClick={() => replyOnWhatsApp(active)}>
+                      <MessageCircle className="me-1.5 h-4 w-4 rtl-flip" />
+                      {t("replyOnWhatsApp")}
+                    </Button>
+                  )}
                   {active.status !== "REPLIED" && (
                     <Button
                       variant="outline"

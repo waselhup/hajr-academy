@@ -4,6 +4,8 @@ import { prisma } from "@/lib/prisma";
 import { fmtRiyadh } from "@/lib/format";
 import { AdminCommandCenter, type DashboardPayload } from "./_components/admin-command-center";
 import { MoatCards } from "@/components/shell/moat-cards";
+import { StickyNotesWidget } from "./_components/sticky-notes";
+import { listMyNotes, type StickyNoteDTO } from "./_actions/sticky-notes";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -358,6 +360,12 @@ export default async function AdminDashboard({
     console.error("[admin-dashboard] DB query failed:", e);
   }
 
+  // Per-admin private reminders (C5). Failure degrades to an empty list so the
+  // widget still renders its empty state instead of crashing the dashboard.
+  let stickyNotes: StickyNoteDTO[] = [];
+  const notesRes = await listMyNotes();
+  if (notesRes.ok) stickyNotes = notesRes.data;
+
   return (
     <div className="space-y-6">
       <div>
@@ -369,6 +377,7 @@ export default async function AdminDashboard({
         </p>
       </div>
       <AdminCommandCenter locale={locale} payload={payload} />
+      <StickyNotesWidget initialNotes={stickyNotes} />
       <MoatCards role="admin" locale={locale} />
     </div>
   );

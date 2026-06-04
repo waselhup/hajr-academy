@@ -5,7 +5,9 @@ import { createSupabaseServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_BYTES = 5 * 1024 * 1024; // 5 MB for images/docs
+// Recorded audio/video can be larger; mirrors the assignment-media media cap.
+const MAX_MEDIA_BYTES = 25 * 1024 * 1024; // 25 MB for audio/video
 
 const MAGIC_BYTES: Record<string, number[]> = {
   "image/png": [0x89, 0x50, 0x4e, 0x47],
@@ -14,18 +16,30 @@ const MAGIC_BYTES: Record<string, number[]> = {
   "application/pdf": [0x25, 0x50, 0x44, 0x46],
 };
 
+// WebM / Matroska share the EBML header (1A 45 DF A3); the recorder tells us
+// whether it captured audio or video via the `kind` form field.
+const WEBM_MAGIC = [0x1a, 0x45, 0xdf, 0xa3];
+
 const EXT_MAP: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
   "application/pdf": "pdf",
+  "audio/webm": "webm",
+  "video/webm": "webm",
 };
+
+const MEDIA_MIMES = new Set(["audio/webm", "video/webm"]);
 
 function detectMime(buffer: Uint8Array): string | null {
   for (const [mime, bytes] of Object.entries(MAGIC_BYTES)) {
     if (bytes.every((b, i) => buffer[i] === b)) return mime;
   }
   return null;
+}
+
+function isWebm(buffer: Uint8Array): boolean {
+  return WEBM_MAGIC.every((b, i) => buffer[i] === b);
 }
 
 /**
@@ -44,23 +58,42 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
+    // Recorder hint: "AUDIO" | "VIDEO" disambiguates the shared webm header.
+    const kindHint = (formData.get("kind") as string | null)?.toUpperCase() ?? null;
+    const durationRaw = (formData.get("durationSec") as string | null) ?? null;
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
-    if (file.size > MAX_BYTES) {
+
+    const buffer = new Uint8Array(await file.arrayBuffer());
+
+    // Detect: images/docs by magic bytes; webm recordings by EBML header + hint.
+    let mime = detectMime(buffer);
+    if (!mime && isWebm(buffer) && (kindHint === "AUDIO" || kindHint === "VIDEO")) {
+      mime = kindHint === "VIDEO" ? "video/webm" : "audio/webm";
+    }
+    if (!mime) {
       return NextResponse.json(
-        { error: "File too large (max 5MB)" },
+        { error: "Unsupported file type (PNG, JPEG, WEBP, PDF, audio/video only)" },
+        { status: 415 }
+      );
+    }
+
+    // Recorded media gets a higher ceiling than images/docs.
+    const isMedia = MEDIA_MIMES.has(mime);
+    const cap = isMedia ? MAX_MEDIA_BYTES : MAX_BYTES;
+    if (file.size > cap) {
+      return NextResponse.json(
+        { error: `File too large (max ${Math.round(cap / 1024 / 1024)}MB)` },
         { status: 413 }
       );
     }
 
-    const buffer = new Uint8Array(await file.arrayBuffer());
-    const mime = detectMime(buffer);
-    if (!mime) {
-      return NextResponse.json(
-        { error: "Unsupported file type (PNG, JPEG, WEBP, PDF only)" },
-        { status: 415 }
-      );
+    // Optional recorded duration (purely informational; stored in audit only).
+    let durationSec: number | null = null;
+    if (durationRaw != null && durationRaw !== "") {
+      const d = Math.round(Number(durationRaw));
+      if (Number.isFinite(d) && d >= 0) durationSec = d;
     }
 
     const ext = EXT_MAP[mime];
@@ -93,7 +126,7 @@ export async function POST(req: NextRequest) {
       userId: session.user.id,
       action: "CHAT_ATTACHMENT_UPLOADED",
       entity: "Message",
-      metadata: { path, mime, size: file.size },
+      metadata: { path, mime, size: file.size, durationSec },
     });
 
     // Keep the original filename for display; cap its length.

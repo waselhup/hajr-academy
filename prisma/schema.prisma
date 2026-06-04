@@ -40,18 +40,21 @@ model User {
   parentProfile           ParentProfile?
   marketerProfile         MarketerProfile?
   applicantProfile        ApplicantProfile?
-  messagesSent            Message[]               @relation("MessagesSent")
-  messagesReceived        Message[]               @relation("MessagesReceived")
+  messagesSent            Message[]                 @relation("MessagesSent")
+  messagesReceived        Message[]                 @relation("MessagesReceived")
   notifications           Notification[]
   notificationPreferences NotificationPreference?
   auditLogs               AuditLog[]
   agentConversations      AgentConversation[]
-  calendarEvents          CalendarEvent[]         @relation("UserCalendarEvents")
-  ticketsRequested        Ticket[]                @relation("TicketsRequested")
-  ticketsAssigned         Ticket[]                @relation("TicketsAssigned")
+  calendarEvents          CalendarEvent[]           @relation("UserCalendarEvents")
+  ticketsRequested        Ticket[]                  @relation("TicketsRequested")
+  ticketsAssigned         Ticket[]                  @relation("TicketsAssigned")
   ticketReplies           TicketReply[]
   teacherRatings          TeacherRating[]
-  paymentRequests         PaymentRequest[]        @relation("PaymentRequestRequester")
+  paymentRequests         PaymentRequest[]          @relation("PaymentRequestRequester")
+  stickyNotes             StickyNote[]              @relation("StickyNoteOwner")
+  targetedRecordings      TargetedRecording[]       @relation("TargetedRecordingUploader")
+  targetedRecordingViews  TargetedRecordingViewer[] @relation("TargetedRecordingViewer")
 }
 
 model TeacherProfile {
@@ -248,13 +251,13 @@ model ProgramOpening {
   // Additive: default ALL_INTERNAL preserves the original "notify every active
   // teacher" behaviour. The audience rule is the single source of truth for both
   // the visibility guard and the notify() fan-out.
-  audienceType      OpeningAudienceType @default(ALL_INTERNAL)
+  audienceType        OpeningAudienceType @default(ALL_INTERNAL)
   // Snapshot of the SELECTED_TEACHERS pick + the filter used to build it, e.g.
   // { teacherIds: [...], filter: { gender, specializations, minRating, ... } }.
-  audienceConfig    Json?
+  audienceConfig      Json?
   // INTERNAL_THEN_APPLICANTS: false = Phase 1 (internal only); the admin flips it
   // true to start Phase 2 (applicants). The system NEVER auto-opens phase 2.
-  applicantsPhaseOpen Boolean           @default(false)
+  applicantsPhaseOpen Boolean             @default(false)
   // Stamped when phase 1 is explicitly closed / phase 2 opened (audit + UI).
   internalClosedAt    DateTime?
 
@@ -317,22 +320,22 @@ model TeacherApplication {
 // `appliedProgramId` (the openings page sets this) so the existing
 // TeacherApplication flow stays 100% untouched.
 model ApplicantProfile {
-  id              String          @id @default(uuid())
-  userId          String          @unique
-  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName        String
-  phone           String?
+  id               String         @id @default(uuid())
+  userId           String         @unique
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName         String
+  phone            String?
   appliedProgramId String?
-  appliedProgram  Program?        @relation(fields: [appliedProgramId], references: [id], onDelete: SetNull)
-  stage           ApplicantStage  @default(NEW)
-  gender          Gender?
+  appliedProgram   Program?       @relation(fields: [appliedProgramId], references: [id], onDelete: SetNull)
+  stage            ApplicantStage @default(NEW)
+  gender           Gender?
   // Rejected/closed applicants become read-only (no destructive delete).
-  isReadOnly      Boolean         @default(false)
-  lastActivityAt  DateTime        @default(now())
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  isReadOnly       Boolean        @default(false)
+  lastActivityAt   DateTime       @default(now())
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
-  featureAccess   ApplicantFeatureAccess[]
+  featureAccess    ApplicantFeatureAccess[]
   openingAudiences OpeningAudienceMember[]
 
   @@index([stage, createdAt])
@@ -487,20 +490,20 @@ enum ClassResourceCategory {
 }
 
 model Assignment {
-  id          String    @id @default(uuid())
-  classId     String
-  class       Class     @relation(fields: [classId], references: [id], onDelete: Cascade)
-  title       String
-  titleAr     String?
-  description String?
-  dueDate     DateTime?
-  attachments String[]
+  id                   String             @id @default(uuid())
+  classId              String
+  class                Class              @relation(fields: [classId], references: [id], onDelete: Cascade)
+  title                String
+  titleAr              String?
+  description          String?
+  dueDate              DateTime?
+  attachments          String[]
   // Response kinds the student is allowed to submit. Empty = text-only.
-  allowedResponseTypes AttachmentKind[] @default([])
+  allowedResponseTypes AttachmentKind[]   @default([])
   // Opt-in targeting. ALL_CLASS keeps today's whole-class behavior; SELECTED
   // restricts the assignment to the students in `targets`.
-  audience    AssignmentAudience @default(ALL_CLASS)
-  createdAt   DateTime  @default(now())
+  audience             AssignmentAudience @default(ALL_CLASS)
+  createdAt            DateTime           @default(now())
 
   submissions    Submission[]
   attachmentList AssignmentAttachment[]
@@ -1345,18 +1348,18 @@ enum OpeningStatus {
 
 // WHO an opening is targeted at. Drives both the visibility guard and notify().
 enum OpeningAudienceType {
-  SELECTED_TEACHERS        // explicit teacher pick (audienceConfig.teacherIds)
-  ALL_INTERNAL             // every active internal teacher (the original behaviour)
-  APPLICANTS_ONLY          // external applicant-portal users only
+  SELECTED_TEACHERS // explicit teacher pick (audienceConfig.teacherIds)
+  ALL_INTERNAL // every active internal teacher (the original behaviour)
+  APPLICANTS_ONLY // external applicant-portal users only
   INTERNAL_THEN_APPLICANTS // phased: internal first, applicants after an explicit flip
-  EVERYONE                 // all active internal teachers + all eligible applicants
+  EVERYONE // all active internal teachers + all eligible applicants
 }
 
 // How an OpeningAudienceMember row was added (provenance for the audit trail).
 enum OpeningMemberSource {
-  SELECTED  // hand-picked by the admin
-  FILTER    // added by applying the reusable teacher filter
-  ALL       // swept in by an ALL_INTERNAL / EVERYONE audience
+  SELECTED // hand-picked by the admin
+  FILTER // added by applying the reusable teacher filter
+  ALL // swept in by an ALL_INTERNAL / EVERYONE audience
   APPLICANT // an applicant made eligible (phase 2 / APPLICANTS_ONLY / EVERYONE)
 }
 
@@ -2457,4 +2460,66 @@ model PurchaseOrder {
 
   @@index([status, createdAt])
   @@index([paymentStatus])
+}
+
+// ─────────────────────── OWNER BATCH 3 ───────────────────────
+
+// C5 — Per-admin private sticky notes / reminders shown on the admin dashboard.
+// Access is gated server-side (admin-only, scoped to ownerId == session.user.id).
+model StickyNote {
+  id        String          @id @default(uuid())
+  ownerId   String
+  owner     User            @relation("StickyNoteOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  body      String          @db.Text
+  color     StickyNoteColor @default(YELLOW)
+  done      Boolean         @default(false)
+  dueAt     DateTime?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([ownerId, done, createdAt])
+}
+
+enum StickyNoteColor {
+  YELLOW
+  GREEN
+  BLUE
+  PINK
+  PURPLE
+}
+
+// C7 — A video the admin uploads FOR specific users (targeted). Stored in a private
+// bucket; chosen users see it on their recordings surface via short-lived signed URLs.
+// Access gated server-side: an uploader admin, or a user listed in viewers.
+model TargetedRecording {
+  id            String                    @id @default(uuid())
+  title         String
+  titleAr       String?
+  description   String?                   @db.Text
+  descriptionAr String?                   @db.Text
+  storagePath   String // path inside the private bucket
+  mimeType      String
+  sizeBytes     Int
+  durationSec   Int?
+  uploadedById  String
+  uploadedBy    User                      @relation("TargetedRecordingUploader", fields: [uploadedById], references: [id], onDelete: Cascade)
+  viewers       TargetedRecordingViewer[]
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  @@index([uploadedById, createdAt])
+}
+
+// Join: which users a TargetedRecording is shared with (+ per-user viewed tracking).
+model TargetedRecordingViewer {
+  id          String            @id @default(uuid())
+  recordingId String
+  recording   TargetedRecording @relation(fields: [recordingId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User              @relation("TargetedRecordingViewer", fields: [userId], references: [id], onDelete: Cascade)
+  viewedAt    DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@unique([recordingId, userId])
+  @@index([userId, viewedAt])
 }

@@ -14,10 +14,12 @@ import {
 } from "@/components/ui/dialog";
 import {
   Loader2, Send, Plus, Search, MessageSquare, Paperclip, X,
-  Check, CheckCheck, ArrowLeft, FileText, ImageIcon,
+  Check, CheckCheck, ArrowLeft, FileText, ImageIcon, Mic, Video,
 } from "lucide-react";
+import { toast } from "sonner";
 import { createSupabaseClient } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import { VoiceRecorder } from "@/components/shared/voice-recorder";
 
 /* ── types ──────────────────────────────────────────────── */
 interface Conversation {
@@ -97,6 +99,8 @@ export function MessagesClient({
   const [pendingFile, setPendingFile] = useState<Attachment | null>(null);
   const [uploading, setUploading] = useState(false);
   const [otherTyping, setOtherTyping] = useState(false);
+  // In-browser recorder: null = closed, else the active capture mode.
+  const [recorderMode, setRecorderMode] = useState<"voice" | "video" | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -335,6 +339,32 @@ export function MessagesClient({
         const err = await res.json().catch(() => ({}));
         alert(err.error || t("uploadFailed"));
       }
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  /* ── in-browser recording upload (reuses the chat upload route) ── */
+  async function uploadRecording(blob: Blob, durationSec: number, mode: "voice" | "video") {
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      const ext = "webm";
+      const kind = mode === "video" ? "VIDEO" : "AUDIO";
+      fd.append("file", blob, `${mode}.${ext}`);
+      fd.append("kind", kind);
+      fd.append("durationSec", String(durationSec));
+      const res = await fetch("/api/messages/upload", { method: "POST", body: fd });
+      if (res.ok) {
+        const data = await res.json();
+        setPendingFile(data.attachment);
+        setRecorderMode(null);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.error || t("uploadFailed"));
+      }
+    } catch {
+      toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
     }
@@ -579,6 +609,19 @@ export function MessagesClient({
                   </div>
                 )}
 
+                {/* in-browser recorder panel (voice/video) */}
+                {recorderMode && (
+                  <div className="border-t border-hajr-border bg-white px-4 py-3">
+                    <VoiceRecorder
+                      mode={recorderMode}
+                      maxSeconds={3 * 60}
+                      busy={uploading}
+                      onCaptured={(blob, sec) => uploadRecording(blob, sec, recorderMode)}
+                      onCancel={() => setRecorderMode(null)}
+                    />
+                  </div>
+                )}
+
                 {/* composer */}
                 <div className="flex items-end gap-2 border-t border-hajr-border bg-white p-3">
                   <input
@@ -590,7 +633,7 @@ export function MessagesClient({
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
+                    disabled={uploading || !!recorderMode}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-hajr-navy transition-colors hover:bg-hajr-hover disabled:opacity-50"
                     aria-label={t("attach")}
                   >
@@ -599,6 +642,30 @@ export function MessagesClient({
                     ) : (
                       <Paperclip className="h-5 w-5" />
                     )}
+                  </button>
+                  <button
+                    onClick={() => setRecorderMode((m) => (m === "voice" ? null : "voice"))}
+                    disabled={uploading}
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-hajr-hover disabled:opacity-50",
+                      recorderMode === "voice" ? "bg-hajr-rose/10 text-hajr-rose" : "text-hajr-navy"
+                    )}
+                    aria-label={t("recordVoice")}
+                    title={t("recordVoice")}
+                  >
+                    <Mic className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={() => setRecorderMode((m) => (m === "video" ? null : "video"))}
+                    disabled={uploading}
+                    className={cn(
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors hover:bg-hajr-hover disabled:opacity-50",
+                      recorderMode === "video" ? "bg-hajr-rose/10 text-hajr-rose" : "text-hajr-navy"
+                    )}
+                    aria-label={t("recordVideo")}
+                    title={t("recordVideo")}
+                  >
+                    <Video className="h-5 w-5" />
                   </button>
                   <textarea
                     ref={composerRef}
@@ -815,6 +882,8 @@ function AttachmentBlock({
   mine: boolean;
 }) {
   const isImage = type.startsWith("image/");
+  const isAudio = type.startsWith("audio/");
+  const isVideo = type.startsWith("video/");
   if (isImage) {
     return (
       <a href={url} target="_blank" rel="noopener noreferrer" className="block">
@@ -825,6 +894,19 @@ function AttachmentBlock({
           className="max-h-56 w-full rounded-lg object-cover"
         />
       </a>
+    );
+  }
+  if (isAudio) {
+    return <audio controls src={url} className="w-full max-w-[240px]" />;
+  }
+  if (isVideo) {
+    return (
+      <video
+        controls
+        src={url}
+        className="max-h-64 w-full rounded-lg bg-black"
+        playsInline
+      />
     );
   }
   return (
@@ -845,10 +927,16 @@ function AttachmentBlock({
 
 function AttachmentChip({ att }: { att: Attachment }) {
   const isImage = att.type.startsWith("image/");
+  const isAudio = att.type.startsWith("audio/");
+  const isVideo = att.type.startsWith("video/");
   return (
     <div className="flex items-center gap-2 rounded-lg bg-hajr-surface px-2.5 py-1.5">
       {isImage ? (
         <ImageIcon className="h-4 w-4 text-hajr-navy" />
+      ) : isAudio ? (
+        <Mic className="h-4 w-4 text-hajr-navy" />
+      ) : isVideo ? (
+        <Video className="h-4 w-4 text-hajr-navy" />
       ) : (
         <FileText className="h-4 w-4 text-hajr-navy" />
       )}
