@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 export async function GET(req: NextRequest) {
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const url = new URL(req.url);
   const studentId = url.searchParams.get("studentId");
   const type = url.searchParams.get("type");
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await requireRole("ADMIN");
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const body = (await req.json().catch(() => ({}))) as {
     studentId?: string;
     type?: CertificateType;

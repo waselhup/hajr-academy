@@ -9,7 +9,7 @@ import type { PaymentRequestStatus } from "@prisma/client";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  await requireRole("ADMIN");
+  await requireRole("ADMIN", "SUPER_ADMIN");
   const url = new URL(req.url);
   const status = url.searchParams.get("status") as PaymentRequestStatus | null;
   const requesterId = url.searchParams.get("requesterId");

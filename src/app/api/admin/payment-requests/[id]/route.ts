@@ -15,7 +15,7 @@ export async function PATCH(
   req: NextRequest,
   ctx: { params: Promise<{ id: string }> }
 ) {
-  const session = await requireRole("ADMIN");
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => ({}))) as {
     action?: "approve" | "markPaid" | "reject";

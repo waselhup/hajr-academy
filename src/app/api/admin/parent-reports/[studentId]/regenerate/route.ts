@@ -14,7 +14,7 @@ export async function POST(
   req: NextRequest,
   ctx: { params: Promise<{ studentId: string }> }
 ) {
-  const session = await requireRole("ADMIN");
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const { studentId } = await ctx.params;
 
   const body = (await req.json().catch(() => ({}))) as {
