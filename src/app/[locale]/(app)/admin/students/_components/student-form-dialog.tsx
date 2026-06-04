@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -125,7 +126,7 @@ export function StudentFormDialog({
             <Input dir="ltr" placeholder="05XXXXXXXX" {...register("phone")} />
           </Field>
           <Field label={t("Students.birthDate")}>
-            <Input type="date" {...register("birthDate")} />
+            <DateField {...register("birthDate")} />
           </Field>
           <Field label={t("Students.gradeLevel")}>
             <Input {...register("gradeLevel")} />
@@ -176,14 +177,14 @@ export function StudentFormDialog({
           </Field>
 
           <Field label={t("Students.packageStartedAt")}>
-            <Input type="date" {...register("packageStartedAt")} />
+            <DateField {...register("packageStartedAt")} />
           </Field>
           <Field label={t("Students.packageExpiresAt")}>
-            <Input type="date" {...register("packageExpiresAt")} />
+            <DateField {...register("packageExpiresAt")} />
           </Field>
 
           <Field label={t("Students.subscriptionDate")}>
-            <Input type="date" {...register("subscriptionDate")} />
+            <DateField {...register("subscriptionDate")} />
           </Field>
           <Field label={t("Students.studentPhone")}>
             <Input dir="ltr" placeholder="05XXXXXXXX" {...register("studentPhone")} />

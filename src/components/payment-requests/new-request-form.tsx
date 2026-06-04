@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -78,8 +79,7 @@ export function NewRequestForm({ available, locale }: Props) {
       </div>
       <div>
         <Label>{isAr ? "من تاريخ *" : "Period start *"}</Label>
-        <Input
-          type="date"
+        <DateField
           value={form.periodStart}
           onChange={(e) => setForm({ ...form, periodStart: e.target.value })}
           required
@@ -87,8 +87,7 @@ export function NewRequestForm({ available, locale }: Props) {
       </div>
       <div>
         <Label>{isAr ? "إلى تاريخ *" : "Period end *"}</Label>
-        <Input
-          type="date"
+        <DateField
           value={form.periodEnd}
           onChange={(e) => setForm({ ...form, periodEnd: e.target.value })}
           required

@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { DateField } from "@/components/ui/western-fields";
 import { fmtRiyadh, fmtHijri } from "@/lib/format";
 
 type Row = {
@@ -115,8 +116,8 @@ export function AuditLogClient({
               <SelectItem value="PARENT">PARENT</SelectItem>
             </SelectContent>
           </Select>
-          <Input type="date" className="w-36" value={sp.get("from") ?? ""} onChange={(e) => update("from", e.target.value || null)} />
-          <Input type="date" className="w-36" value={sp.get("to") ?? ""} onChange={(e) => update("to", e.target.value || null)} />
+          <DateField className="w-36" value={sp.get("from") ?? ""} onChange={(e) => update("from", e.target.value || null)} />
+          <DateField className="w-36" value={sp.get("to") ?? ""} onChange={(e) => update("to", e.target.value || null)} />
         </div>
       </Card>
 

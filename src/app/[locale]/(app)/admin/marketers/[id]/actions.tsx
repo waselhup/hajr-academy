@@ -1,6 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { sanitizeNumeric } from "@/lib/western-format";
 
 type Props = {
   marketerId: string;
@@ -105,13 +106,11 @@ export function MarketerActions({ marketerId, currentStatus, currentRate, locale
           </label>
           <input
             id="rate"
-            type="number"
-            lang="en-GB"
-            step="0.01"
-            min="0"
-            max="1"
+            type="text"
+            inputMode="numeric"
+            dir="ltr"
             value={rate}
-            onChange={(e) => setRate(e.target.value)}
+            onChange={(e) => setRate(sanitizeNumeric(e.target.value))}
             className="h-10 w-full rounded-lg border border-hajr-border bg-white px-3 text-sm"
           />
         </div>

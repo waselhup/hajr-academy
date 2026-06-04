@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateTimeField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -103,8 +104,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
       </div>
       <div>
         <Label>{isAr ? "موعد الجلسة *" : "Scheduled at *"}</Label>
-        <Input
-          type="datetime-local"
+        <DateTimeField
           value={form.scheduledAt}
           onChange={(e) => setForm({ ...form, scheduledAt: e.target.value })}
           required

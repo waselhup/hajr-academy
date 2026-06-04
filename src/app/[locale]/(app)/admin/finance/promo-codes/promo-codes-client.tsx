@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -248,8 +249,7 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
               </div>
               <div>
                 <Label>{t("validUntil")}</Label>
-                <Input
-                  type="date"
+                <DateField
                   value={form.expiresAt}
                   onChange={(e) =>
                     setForm({ ...form, expiresAt: e.target.value })

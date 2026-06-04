@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { DateTimeField } from "@/components/ui/western-fields";
 
 interface TeacherOption {
   id: string;
@@ -109,8 +110,7 @@ export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
             />
           </Field>
           <Field label={t("scheduledAt")}>
-            <Input
-              type="datetime-local"
+            <DateTimeField
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
             />

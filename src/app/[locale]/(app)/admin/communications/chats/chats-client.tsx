@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import {
   Select, SelectTrigger, SelectValue, SelectContent, SelectItem,
 } from "@/components/ui/select";
@@ -204,14 +205,12 @@ export function ChatsClient() {
               <SelectItem value="ADMIN">{t("role_ADMIN")}</SelectItem>
             </SelectContent>
           </Select>
-          <Input
-            type="date"
+          <DateField
             value={from}
             onChange={(e) => setFrom(e.target.value)}
             className="w-36"
           />
-          <Input
-            type="date"
+          <DateField
             value={to}
             onChange={(e) => setTo(e.target.value)}
             className="w-36"

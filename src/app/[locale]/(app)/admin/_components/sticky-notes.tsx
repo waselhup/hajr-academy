@@ -14,6 +14,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { DateTimeField } from "@/components/ui/western-fields";
 import { cn } from "@/lib/utils";
 import { fmtDateLong } from "@/lib/format";
 import {
@@ -164,9 +165,7 @@ export function StickyNotesWidget({
             {/* Optional due date */}
             <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <CalendarClock className="h-3.5 w-3.5 shrink-0" />
-              <input
-                type="datetime-local"
-                lang="en-GB"
+              <DateTimeField
                 value={dueAt}
                 onChange={(e) => setDueAt(e.target.value)}
                 aria-label={t("dueLabel")}

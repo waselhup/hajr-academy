@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -163,8 +164,7 @@ export function IssueForm({ students, locale }: Props) {
       </div>
       <div className="sm:col-span-2">
         <Label>{isAr ? "تاريخ الانتهاء (اختياري)" : "Expiry date (optional)"}</Label>
-        <Input
-          type="date"
+        <DateField
           value={form.expiryDate}
           onChange={(e) => setForm({ ...form, expiryDate: e.target.value })}
         />

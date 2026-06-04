@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { FileSignature, Loader2 } from "lucide-react";
@@ -148,8 +149,7 @@ export function SchoolContractClient({
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
                 <Label>{t("contractStart")}</Label>
-                <Input
-                  type="date"
+                <DateField
                   value={form.startDate}
                   onChange={(e) =>
                     setForm({ ...form, startDate: e.target.value })
@@ -158,8 +158,7 @@ export function SchoolContractClient({
               </div>
               <div>
                 <Label>{t("contractEnd")}</Label>
-                <Input
-                  type="date"
+                <DateField
                   value={form.endDate}
                   onChange={(e) =>
                     setForm({ ...form, endDate: e.target.value })

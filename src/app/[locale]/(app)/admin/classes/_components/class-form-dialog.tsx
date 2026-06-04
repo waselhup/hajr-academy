@@ -10,6 +10,7 @@ import { Loader2, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField, TimeField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
@@ -124,7 +125,7 @@ export function ClassFormDialog({
             <Input {...register("cohortCode")} placeholder="auto" />
           </Field>
           <Field label={t("Classes.timeSlot")} error={errors.timeSlot?.message}>
-            <Input type="time" dir="ltr" {...register("timeSlot")} />
+            <TimeField {...register("timeSlot")} />
             <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />GMT+3 · Asia/Riyadh
             </span>
@@ -145,8 +146,8 @@ export function ClassFormDialog({
               </SelectContent>
             </Select>
           </Field>
-          <Field label={t("Classes.startDate")} error={errors.startDate?.message}><Input type="date" {...register("startDate")} /></Field>
-          <Field label={t("Classes.endDate")}><Input type="date" {...register("endDate")} /></Field>
+          <Field label={t("Classes.startDate")} error={errors.startDate?.message}><DateField {...register("startDate")} /></Field>
+          <Field label={t("Classes.endDate")}><DateField {...register("endDate")} /></Field>
           <div className="sm:col-span-2 flex items-center justify-between rounded-md border p-3">
             <Label>{t("Classes.allowCrossGenderChat")}</Label>
             <Switch checked={watch("allowCrossGenderChat") ?? false} onCheckedChange={(c) => setValue("allowCrossGenderChat", !!c)} />

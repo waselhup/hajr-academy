@@ -12,7 +12,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { CalendarClock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { DateTimeField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
@@ -97,8 +97,7 @@ export function RescheduleSessionButton({
           </DialogHeader>
           <div className="space-y-1.5">
             <Label>{isAr ? "التاريخ والوقت" : "Date & time"}</Label>
-            <Input
-              type="datetime-local"
+            <DateTimeField
               value={value}
               onChange={(e) => setValue(e.target.value)}
             />

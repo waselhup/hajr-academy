@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -202,8 +203,7 @@ export function AdminPaymentsClient({
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{locale === "ar" ? "من" : "From"}</Label>
-              <Input
-                type="date"
+              <DateField
                 defaultValue={sp.get("from") ?? ""}
                 onChange={(e) => setFromTo("from", e.target.value)}
                 className="h-9 w-40"
@@ -211,8 +211,7 @@ export function AdminPaymentsClient({
             </div>
             <div className="space-y-1">
               <Label className="text-xs">{locale === "ar" ? "إلى" : "To"}</Label>
-              <Input
-                type="date"
+              <DateField
                 defaultValue={sp.get("to") ?? ""}
                 onChange={(e) => setFromTo("to", e.target.value)}
                 className="h-9 w-40"

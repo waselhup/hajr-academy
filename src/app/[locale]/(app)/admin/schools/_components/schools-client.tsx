@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -189,8 +190,8 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
               <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
-          <Field label={t("Schools.contractStart")} error={errors.contractStart?.message}><Input type="date" {...register("contractStart")} /></Field>
-          <Field label={t("Schools.contractEnd")} error={errors.contractEnd?.message}><Input type="date" {...register("contractEnd")} /></Field>
+          <Field label={t("Schools.contractStart")} error={errors.contractStart?.message}><DateField {...register("contractStart")} /></Field>
+          <Field label={t("Schools.contractEnd")} error={errors.contractEnd?.message}><DateField {...register("contractEnd")} /></Field>
           <Field label={t("Schools.monthlyFee")}><Input type="number" step="100" {...register("monthlyFeeSar")} /></Field>
           <Field label={t("Schools.studentCap")}><Input type="number" {...register("studentCap")} /></Field>
           <DialogFooter className="sm:col-span-2">

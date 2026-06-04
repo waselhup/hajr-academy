@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { DateTimeField } from "@/components/ui/western-fields";
 import {
   Dialog,
   DialogContent,
@@ -197,7 +198,7 @@ export function CreateAssignmentDialog({
           {/* Due date */}
           <div className="space-y-1.5">
             <Label htmlFor="a-due">{t("dueDateLabel")}</Label>
-            <Input id="a-due" type="datetime-local" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <DateTimeField id="a-due" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
 
           {/* Audience — who gets this assignment */}

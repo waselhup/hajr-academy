@@ -22,6 +22,7 @@ import {
 import { ar as arLocale, enUS } from "date-fns/locale";
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, Plus, X, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { DateTimeField } from "@/components/ui/western-fields";
 import { cn } from "@/lib/utils";
 import { fmtDateLong } from "@/lib/format";
 
@@ -605,9 +606,7 @@ function CreateDialog({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventStart")}</label>
-              <input
-                type="datetime-local"
-                lang="en-GB"
+              <DateTimeField
                 value={startAt}
                 onChange={(e) => setStartAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"
@@ -615,9 +614,7 @@ function CreateDialog({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventEnd")}</label>
-              <input
-                type="datetime-local"
-                lang="en-GB"
+              <DateTimeField
                 value={endAt}
                 onChange={(e) => setEndAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TimeField } from "@/components/ui/western-fields";
 import { Loader2, Check } from "lucide-react";
 
 interface Prefs {
@@ -136,8 +137,7 @@ export function NotificationSettingsClient() {
               <label className="text-xs text-muted-foreground">
                 {t("from")}
               </label>
-              <Input
-                type="time"
+              <TimeField
                 value={prefs.quietHoursStart ?? ""}
                 onChange={(e) => setQuiet("quietHoursStart", e.target.value)}
                 className="mt-1 w-32"
@@ -145,8 +145,7 @@ export function NotificationSettingsClient() {
             </div>
             <div>
               <label className="text-xs text-muted-foreground">{t("to")}</label>
-              <Input
-                type="time"
+              <TimeField
                 value={prefs.quietHoursEnd ?? ""}
                 onChange={(e) => setQuiet("quietHoursEnd", e.target.value)}
                 className="mt-1 w-32"

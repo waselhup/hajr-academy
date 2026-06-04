@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { sanitizeNumeric } from "@/lib/western-format";
 
 interface InitialState {
   bio: string;
@@ -100,12 +101,11 @@ export function PublicProfileEditor({ initial }: { initial: InitialState }) {
 
         <Field label={t("fieldYearsExp")}>
           <input
-            type="number"
-            lang="en-GB"
-            min={0}
-            max={80}
+            type="text"
+            inputMode="numeric"
+            dir="ltr"
             value={yearsExp}
-            onChange={(e) => setYearsExp(Number(e.target.value))}
+            onChange={(e) => setYearsExp(Number(sanitizeNumeric(e.target.value)))}
             className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm focus:border-hajr-rose focus:outline-none focus:ring-2 focus:ring-hajr-rose/30"
           />
         </Field>
