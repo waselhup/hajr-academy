@@ -4,13 +4,16 @@ import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Power, Trash2, Search, Star } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Power, Trash2, Search, Star, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
@@ -32,6 +35,9 @@ type Row = {
     salaryBase: string;
     hourlyRate?: string;
     zoomHostEmail: string | null;
+    ageGroup: string | null;
+    availabilityDays: string[];
+    availabilityHours: string | null;
     rating: string | null;
     totalStudents: number;
     classCount: number;
@@ -46,6 +52,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
   const pathname = usePathname();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [previewing, setPreviewing] = useState<Row | null>(null);
   const [confirmDel, setConfirmDel] = useState<Row | null>(null);
 
   let timer: any;
@@ -136,6 +143,9 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => setPreviewing(r)}>
+                        <Eye className="me-2 h-4 w-4" />{t("Teachers.preview")}
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditing(r)}>
                         <Pencil className="me-2 h-4 w-4" />{t("Teachers.edit")}
                       </DropdownMenuItem>
@@ -174,6 +184,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
 
       {showAdd && <TeacherFormDialog mode="create" onClose={() => setShowAdd(false)} onDone={() => router.refresh()} />}
       {editing && <TeacherFormDialog mode="edit" existing={editing} onClose={() => setEditing(null)} onDone={() => router.refresh()} />}
+      {previewing && <TeacherPreviewDialog row={previewing} onClose={() => setPreviewing(null)} />}
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
@@ -194,6 +205,92 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function TeacherPreviewDialog({ row, onClose }: { row: Row; onClose: () => void }) {
+  const t = useTranslations();
+  const locale = useLocale();
+  const p = row.profile;
+  const name = locale === "ar" && row.nameAr ? row.nameAr : row.name;
+  const ageGroupLabel = p?.ageGroup ? t(("Teachers.ageGroup_" + p.ageGroup) as any) : "—";
+  const days = p?.availabilityDays ?? [];
+
+  return (
+    <Dialog open onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{t("Teachers.previewTitle")}</DialogTitle>
+          <DialogDescription>{name}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 text-sm">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-12 w-12">
+              <AvatarFallback>{row.name.split(" ").map((x) => x[0]).slice(0, 2).join("")}</AvatarFallback>
+            </Avatar>
+            <div>
+              <div className="font-semibold">{name}</div>
+              <div className="text-xs text-muted-foreground" dir="ltr">{row.phone ?? "—"}</div>
+            </div>
+            <Badge variant={row.isActive ? "success" : "danger"} className="ms-auto">
+              {row.isActive ? t("Common.active") : t("Common.inactive")}
+            </Badge>
+          </div>
+
+          <Row2 label={t("Common.email")}><span dir="ltr">{row.email}</span></Row2>
+
+          <Row2 label={t("Teachers.specializations")}>
+            {p && p.specializations.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {p.specializations.map((s) => <Badge key={s} variant="info">{s}</Badge>)}
+              </div>
+            ) : "—"}
+          </Row2>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Row2 label={t("Teachers.salaryBase")}>
+              <span className="num">{p ? fmtSAR(p.salaryBase, locale as "ar" | "en") : "—"}</span>
+            </Row2>
+            <Row2 label={t("AdminPay.rateLabel")}>
+              <span className="num">{p?.hourlyRate ? fmtSAR(p.hourlyRate, locale as "ar" | "en") : "—"}</span>
+            </Row2>
+            <Row2 label={t("Teachers.rating")}>
+              {p?.rating ? (
+                <span className="inline-flex items-center gap-1 num">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />{p.rating}
+                </span>
+              ) : "—"}
+            </Row2>
+            <Row2 label={t("Teachers.ageGroup")}>{ageGroupLabel}</Row2>
+          </div>
+
+          <Row2 label={t("Teachers.availabilityDays")}>
+            {days.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {days.map((d) => <Badge key={d} variant="outline">{t(("Days." + d) as any)}</Badge>)}
+              </div>
+            ) : "—"}
+          </Row2>
+
+          <Row2 label={t("Teachers.availabilityHours")}>
+            <span dir="ltr">{p?.availabilityHours || "—"}</span>
+          </Row2>
+
+          <Row2 label={t("Teachers.bio")}>
+            <p className="whitespace-pre-wrap text-muted-foreground">{p?.bio || "—"}</p>
+          </Row2>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function Row2({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-1">
+      <div className="text-xs font-medium text-muted-foreground">{label}</div>
+      <div>{children}</div>
     </div>
   );
 }

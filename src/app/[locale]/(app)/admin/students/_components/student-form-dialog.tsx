@@ -33,6 +33,13 @@ const formSchema = z.object({
   activePackage: z.enum(["ESSENTIAL", "INTEGRATED", "PRIVATE", "SCHOOL", ""]).optional(),
   packageStartedAt: z.string().optional(),
   packageExpiresAt: z.string().optional(),
+  subscriptionDate: z.string().optional(),
+  studentPhone: z.string().optional(),
+  guardianName: z.string().optional(),
+  guardianPhone: z.string().optional(),
+  residenceAddress: z.string().optional(),
+  englishTeacherName: z.string().optional(),
+  importantNotes: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -68,6 +75,13 @@ export function StudentFormDialog({
           activePackage: existing.profile?.activePackage ?? "",
           packageStartedAt: existing.profile?.packageStartedAt?.slice(0, 10) ?? "",
           packageExpiresAt: existing.profile?.packageExpiresAt?.slice(0, 10) ?? "",
+          subscriptionDate: existing.profile?.subscriptionDate?.slice(0, 10) ?? "",
+          studentPhone: existing.profile?.studentPhone ?? "",
+          guardianName: existing.profile?.guardianName ?? "",
+          guardianPhone: existing.profile?.guardianPhone ?? "",
+          residenceAddress: existing.profile?.residenceAddress ?? "",
+          englishTeacherName: existing.profile?.englishTeacherName ?? "",
+          importantNotes: existing.profile?.importantNotes ?? "",
         }
       : { englishLevel: "BEGINNER", gender: "MALE" } as any,
   });
@@ -168,9 +182,34 @@ export function StudentFormDialog({
             <Input type="date" {...register("packageExpiresAt")} />
           </Field>
 
+          <Field label={t("Students.subscriptionDate")}>
+            <Input type="date" {...register("subscriptionDate")} />
+          </Field>
+          <Field label={t("Students.studentPhone")}>
+            <Input dir="ltr" placeholder="05XXXXXXXX" {...register("studentPhone")} />
+          </Field>
+          <Field label={t("Students.guardianName")}>
+            <Input {...register("guardianName")} />
+          </Field>
+          <Field label={t("Students.guardianPhone")}>
+            <Input dir="ltr" placeholder="05XXXXXXXX" {...register("guardianPhone")} />
+          </Field>
+          <Field label={t("Students.englishTeacherName")}>
+            <Input {...register("englishTeacherName")} />
+          </Field>
+          <Field label={t("Students.residenceAddress")}>
+            <Input {...register("residenceAddress")} />
+          </Field>
+
           <div className="sm:col-span-2">
             <Field label={t("Students.learningGoals")}>
               <Textarea rows={3} {...register("learningGoals")} />
+            </Field>
+          </div>
+
+          <div className="sm:col-span-2">
+            <Field label={t("Students.importantNotes")}>
+              <Textarea rows={3} {...register("importantNotes")} />
             </Field>
           </div>
 

@@ -10,6 +10,7 @@ import { logAudit } from "@/lib/audit";
 import { normalizeSaudiPhone } from "@/lib/utils";
 
 const SPEC_VALUES = ["STEP", "IELTS", "UNIVERSITY_PREP", "GENERAL", "BUSINESS"] as const;
+const DAY_VALUES = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"] as const;
 
 const createSchema = z.object({
   name: z.string().min(2),
@@ -21,6 +22,9 @@ const createSchema = z.object({
   salaryBase: z.number().nonnegative().default(0),
   hourlyRate: z.number().nonnegative().default(0),
   zoomHostEmail: z.string().email().optional().nullable(),
+  ageGroup: z.string().optional().nullable(),
+  availabilityDays: z.array(z.enum(DAY_VALUES)).default([]),
+  availabilityHours: z.string().optional().nullable(),
 });
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
@@ -55,6 +59,9 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
           salaryBase: parsed.data.salaryBase,
           hourlyRate: parsed.data.hourlyRate,
           zoomHostEmail: parsed.data.zoomHostEmail ?? null,
+          ageGroup: parsed.data.ageGroup ?? null,
+          availabilityDays: parsed.data.availabilityDays,
+          availabilityHours: parsed.data.availabilityHours ?? null,
         },
       },
     },
@@ -85,6 +92,9 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   if (patch.salaryBase !== undefined) profilePatch.salaryBase = patch.salaryBase;
   if (patch.hourlyRate !== undefined) profilePatch.hourlyRate = patch.hourlyRate;
   if (patch.zoomHostEmail !== undefined) profilePatch.zoomHostEmail = patch.zoomHostEmail;
+  if (patch.ageGroup !== undefined) profilePatch.ageGroup = patch.ageGroup;
+  if (patch.availabilityDays !== undefined) profilePatch.availabilityDays = patch.availabilityDays;
+  if (patch.availabilityHours !== undefined) profilePatch.availabilityHours = patch.availabilityHours;
 
   await prisma.user.update({ where: { id }, data: { ...userPatch, teacherProfile: { update: profilePatch } } });
   await logAudit({ userId: session.user.id, action: "TEACHER_UPDATED", entity: "User", entityId: id, metadata: patch as any, ipAddress: await ip() });

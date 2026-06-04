@@ -28,6 +28,13 @@ const createSchema = z.object({
   activePackage: PackageEnum.optional().nullable(),
   packageStartedAt: z.string().optional().nullable(),
   packageExpiresAt: z.string().optional().nullable(),
+  subscriptionDate: z.string().optional().nullable(),
+  importantNotes: z.string().optional().nullable(),
+  studentPhone: z.string().optional().nullable(),
+  guardianName: z.string().optional().nullable(),
+  guardianPhone: z.string().optional().nullable(),
+  residenceAddress: z.string().optional().nullable(),
+  englishTeacherName: z.string().optional().nullable(),
 });
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
@@ -71,6 +78,13 @@ export async function createStudentAction(input: z.infer<typeof createSchema>): 
             activePackage: parsed.data.activePackage ?? null,
             packageStartedAt: parsed.data.packageStartedAt ? new Date(parsed.data.packageStartedAt) : null,
             packageExpiresAt: parsed.data.packageExpiresAt ? new Date(parsed.data.packageExpiresAt) : null,
+            subscriptionDate: parsed.data.subscriptionDate ? new Date(parsed.data.subscriptionDate) : null,
+            importantNotes: parsed.data.importantNotes ?? null,
+            studentPhone: parsed.data.studentPhone ?? null,
+            guardianName: parsed.data.guardianName ?? null,
+            guardianPhone: parsed.data.guardianPhone ?? null,
+            residenceAddress: parsed.data.residenceAddress ?? null,
+            englishTeacherName: parsed.data.englishTeacherName ?? null,
           },
         },
       },
@@ -117,6 +131,13 @@ export async function updateStudentAction(input: z.infer<typeof updateSchema>): 
   if (patch.activePackage !== undefined) profilePatch.activePackage = patch.activePackage;
   if (patch.packageStartedAt !== undefined) profilePatch.packageStartedAt = patch.packageStartedAt ? new Date(patch.packageStartedAt) : null;
   if (patch.packageExpiresAt !== undefined) profilePatch.packageExpiresAt = patch.packageExpiresAt ? new Date(patch.packageExpiresAt) : null;
+  if (patch.subscriptionDate !== undefined) profilePatch.subscriptionDate = patch.subscriptionDate ? new Date(patch.subscriptionDate) : null;
+  if (patch.importantNotes !== undefined) profilePatch.importantNotes = patch.importantNotes ?? null;
+  if (patch.studentPhone !== undefined) profilePatch.studentPhone = patch.studentPhone ?? null;
+  if (patch.guardianName !== undefined) profilePatch.guardianName = patch.guardianName ?? null;
+  if (patch.guardianPhone !== undefined) profilePatch.guardianPhone = patch.guardianPhone ?? null;
+  if (patch.residenceAddress !== undefined) profilePatch.residenceAddress = patch.residenceAddress ?? null;
+  if (patch.englishTeacherName !== undefined) profilePatch.englishTeacherName = patch.englishTeacherName ?? null;
 
   try {
     await prisma.user.update({
@@ -133,6 +154,84 @@ export async function updateStudentAction(input: z.infer<typeof updateSchema>): 
     });
     revalidatePath("/admin/students");
     return { ok: true, data: null };
+  } catch (e: any) {
+    return { ok: false, error: e?.message ?? "DB_ERROR" };
+  }
+}
+
+export async function getStudentPreviewAction(studentProfileId: string): Promise<Result> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+  try {
+    const profile = await prisma.studentProfile.findUnique({
+      where: { id: studentProfileId },
+      include: {
+        user: { select: { name: true, nameAr: true, email: true, phone: true } },
+        school: { select: { nameEn: true, nameAr: true } },
+        invoices: {
+          select: {
+            invoiceNumber: true,
+            month: true,
+            year: true,
+            totalSar: true,
+            status: true,
+            invoiceStatus: true,
+            issuedAt: true,
+            dueDate: true,
+            paidAt: true,
+          },
+          orderBy: { issuedAt: "desc" },
+          take: 24,
+        },
+      },
+    });
+    if (!profile) return { ok: false, error: "NOT_FOUND" };
+
+    await logAudit({
+      userId: session.user.id,
+      action: "STUDENT_PREVIEWED",
+      entity: "StudentProfile",
+      entityId: studentProfileId,
+      ipAddress: await ipFromHeaders(),
+    });
+
+    return {
+      ok: true,
+      data: {
+        id: profile.id,
+        name: profile.user?.name ?? null,
+        nameAr: profile.user?.nameAr ?? null,
+        email: profile.user?.email ?? null,
+        phone: profile.user?.phone ?? null,
+        birthDate: profile.birthDate?.toISOString() ?? null,
+        gradeLevel: profile.gradeLevel,
+        englishLevel: profile.englishLevel,
+        gender: profile.gender,
+        schoolName: profile.school?.nameEn ?? profile.schoolName ?? null,
+        schoolNameAr: profile.school?.nameAr ?? null,
+        learningGoals: profile.learningGoals,
+        activePackage: profile.activePackage,
+        packageStartedAt: profile.packageStartedAt?.toISOString() ?? null,
+        packageExpiresAt: profile.packageExpiresAt?.toISOString() ?? null,
+        subscriptionDate: profile.subscriptionDate?.toISOString() ?? null,
+        importantNotes: profile.importantNotes,
+        studentPhone: profile.studentPhone,
+        guardianName: profile.guardianName,
+        guardianPhone: profile.guardianPhone,
+        residenceAddress: profile.residenceAddress,
+        englishTeacherName: profile.englishTeacherName,
+        invoices: profile.invoices.map((inv) => ({
+          invoiceNumber: inv.invoiceNumber,
+          month: inv.month,
+          year: inv.year,
+          totalSar: inv.totalSar.toString(),
+          status: inv.status,
+          invoiceStatus: inv.invoiceStatus,
+          issuedAt: inv.issuedAt?.toISOString() ?? null,
+          dueDate: inv.dueDate?.toISOString() ?? null,
+          paidAt: inv.paidAt?.toISOString() ?? null,
+        })),
+      },
+    };
   } catch (e: any) {
     return { ok: false, error: e?.message ?? "DB_ERROR" };
   }

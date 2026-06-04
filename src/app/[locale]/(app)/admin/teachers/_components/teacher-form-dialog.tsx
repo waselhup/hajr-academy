@@ -15,9 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { createTeacherAction, updateTeacherAction } from "../../_actions/teachers";
 
 const SPEC = ["STEP", "IELTS", "UNIVERSITY_PREP", "GENERAL", "BUSINESS"] as const;
+const DAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"] as const;
+const AGE_GROUPS = ["KIDS", "TEENS", "ADULTS", "ALL_AGES"] as const;
 
 const schema = z.object({
   name: z.string().min(2),
@@ -29,6 +32,9 @@ const schema = z.object({
   salaryBase: z.coerce.number().nonnegative().default(0),
   hourlyRate: z.coerce.number().nonnegative().default(0),
   zoomHostEmail: z.union([z.string().email(), z.literal("")]).optional(),
+  ageGroup: z.string().optional(),
+  availabilityDays: z.array(z.enum(DAYS)).default([]),
+  availabilityHours: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
@@ -48,14 +54,22 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           salaryBase: Number(existing.profile?.salaryBase ?? 0),
           hourlyRate: Number(existing.profile?.hourlyRate ?? 0),
           zoomHostEmail: existing.profile?.zoomHostEmail ?? "",
+          ageGroup: existing.profile?.ageGroup ?? "",
+          availabilityDays: existing.profile?.availabilityDays ?? [],
+          availabilityHours: existing.profile?.availabilityHours ?? "",
         }
-      : { specializations: [], salaryBase: 0, hourlyRate: 0 } as any,
+      : { specializations: [], salaryBase: 0, hourlyRate: 0, availabilityDays: [] } as any,
   });
 
   const specs = watch("specializations") ?? [];
+  const availDays = watch("availabilityDays") ?? [];
 
   function toggleSpec(s: typeof SPEC[number]) {
     setValue("specializations", specs.includes(s) ? specs.filter((x) => x !== s) : [...specs, s]);
+  }
+
+  function toggleDay(d: typeof DAYS[number]) {
+    setValue("availabilityDays", availDays.includes(d) ? availDays.filter((x) => x !== d) : [...availDays, d]);
   }
 
   const onSubmit = (data: FormData) => {
@@ -97,6 +111,30 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
                 <label key={s} className="flex items-center gap-2 text-sm">
                   <Checkbox checked={specs.includes(s)} onCheckedChange={() => toggleSpec(s)} />
                   {s}
+                </label>
+              ))}
+            </div>
+          </div>
+          <Field label={t("Teachers.ageGroup")}>
+            <Select value={watch("ageGroup") || ""} onValueChange={(v) => setValue("ageGroup", v)}>
+              <SelectTrigger><SelectValue placeholder={t("Common.all")} /></SelectTrigger>
+              <SelectContent>
+                {AGE_GROUPS.map((g) => (
+                  <SelectItem key={g} value={g}>{t("Teachers.ageGroup_" + g as any)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field label={t("Teachers.availabilityHours")}>
+            <Input dir="ltr" placeholder="4:00 PM - 9:00 PM" {...register("availabilityHours")} />
+          </Field>
+          <div className="sm:col-span-2">
+            <Label>{t("Teachers.availabilityDays")}</Label>
+            <div className="mt-2 flex flex-wrap gap-3">
+              {DAYS.map((d) => (
+                <label key={d} className="flex items-center gap-2 text-sm">
+                  <Checkbox checked={availDays.includes(d)} onCheckedChange={() => toggleDay(d)} />
+                  {t("Days." + d as any)}
                 </label>
               ))}
             </div>

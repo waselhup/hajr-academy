@@ -21,12 +21,16 @@ import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription,
   AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { StudentFormDialog } from "./student-form-dialog";
 import {
   deleteStudentAction, toggleStudentActiveAction, bulkImportStudentsAction,
+  getStudentPreviewAction,
 } from "../../_actions/students";
 
 type Row = {
@@ -47,7 +51,51 @@ type Row = {
     birthDate?: string | null;
     packageStartedAt?: string | null;
     packageExpiresAt?: string | null;
+    subscriptionDate?: string | null;
+    importantNotes?: string | null;
+    studentPhone?: string | null;
+    guardianName?: string | null;
+    guardianPhone?: string | null;
+    residenceAddress?: string | null;
+    englishTeacherName?: string | null;
+    profileId?: string | null;
   } | null;
+};
+
+type PreviewData = {
+  id: string;
+  name: string | null;
+  nameAr: string | null;
+  email: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  gradeLevel: string | null;
+  englishLevel: string | null;
+  gender: string | null;
+  schoolName: string | null;
+  schoolNameAr: string | null;
+  learningGoals: string | null;
+  activePackage: string | null;
+  packageStartedAt: string | null;
+  packageExpiresAt: string | null;
+  subscriptionDate: string | null;
+  importantNotes: string | null;
+  studentPhone: string | null;
+  guardianName: string | null;
+  guardianPhone: string | null;
+  residenceAddress: string | null;
+  englishTeacherName: string | null;
+  invoices: {
+    invoiceNumber: string;
+    month: number;
+    year: number;
+    totalSar: string;
+    status: string;
+    invoiceStatus: string;
+    issuedAt: string | null;
+    dueDate: string | null;
+    paidAt: string | null;
+  }[];
 };
 
 const LEVEL_VARIANT: Record<string, "success" | "info" | "rose"> = {
@@ -62,12 +110,14 @@ export function StudentsClient({
   page,
   pageSize,
   schools,
+  gradeOptions = [],
 }: {
   rows: Row[];
   total: number;
   page: number;
   pageSize: number;
   schools: { id: string; name: string }[];
+  gradeOptions?: string[];
 }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -79,6 +129,31 @@ export function StudentsClient({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
+  const [previewRow, setPreviewRow] = useState<Row | null>(null);
+  const [previewData, setPreviewData] = useState<PreviewData | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  async function openPreview(row: Row) {
+    setPreviewRow(row);
+    setPreviewData(null);
+    setPreviewError(null);
+    const profileId = row.profile?.profileId;
+    if (!profileId) {
+      setPreviewError("NOT_FOUND");
+      return;
+    }
+    setPreviewLoading(true);
+    try {
+      const res = await getStudentPreviewAction(profileId);
+      if (res.ok) setPreviewData(res.data as PreviewData);
+      else setPreviewError(res.error);
+    } catch (e: any) {
+      setPreviewError(e?.message ?? "ERROR");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
 
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const q = sp.get("q") ?? "";
@@ -195,8 +270,20 @@ export function StudentsClient({
             { v: "PRIVATE", l: t("Packages.PRIVATE") },
             { v: "SCHOOL", l: t("Packages.SCHOOL") },
           ]} onChange={(v) => updateFilter("package", v)} />
+          {gradeOptions.length > 0 && (
+            <FilterChip label={t("Students.gradeFilter")} param="grade" current={sp.get("grade")} options={
+              gradeOptions.map((g) => ({ v: g, l: g }))
+            } onChange={(v) => updateFilter("grade", v)} />
+          )}
+          <FilterChip label={t("Students.ageFilter")} param="age" current={sp.get("age")} options={[
+            { v: "6-9", l: t("Students.age6to9") },
+            { v: "10-12", l: t("Students.age10to12") },
+            { v: "13-15", l: t("Students.age13to15") },
+            { v: "16-18", l: t("Students.age16to18") },
+            { v: "18+", l: t("Students.age18plus") },
+          ]} onChange={(v) => updateFilter("age", v)} />
 
-          {(sp.get("q") || sp.get("level") || sp.get("gender") || sp.get("package")) && (
+          {(sp.get("q") || sp.get("level") || sp.get("gender") || sp.get("package") || sp.get("grade") || sp.get("age")) && (
             <Button variant="ghost" size="sm" onClick={() => router.push(pathname)}>
               {t("Common.cancel")}
             </Button>
@@ -293,6 +380,9 @@ export function StudentsClient({
                         <Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openPreview(r)}>
+                          <Eye className="me-2 h-4 w-4" />{t("Students.preview")}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setEditing(r)}>
                           <Pencil className="me-2 h-4 w-4" />{t("Students.edit")}
                         </DropdownMenuItem>
@@ -338,6 +428,105 @@ export function StudentsClient({
       {editing && (
         <StudentFormDialog mode="edit" existing={editing} schools={schools} onClose={() => setEditing(null)} onDone={() => router.refresh()} />
       )}
+
+      <Dialog open={!!previewRow} onOpenChange={(o) => { if (!o) { setPreviewRow(null); setPreviewData(null); setPreviewError(null); } }}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{t("Students.previewTitle")}</DialogTitle>
+            <DialogDescription>
+              {previewRow ? (locale === "ar" && previewRow.nameAr ? previewRow.nameAr : previewRow.name) : ""}
+            </DialogDescription>
+          </DialogHeader>
+
+          {previewLoading ? (
+            <div className="space-y-3 py-2">
+              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-6 w-full" />)}
+            </div>
+          ) : previewError ? (
+            <div className="py-10 text-center text-sm text-muted-foreground">{t("Common.error")}</div>
+          ) : previewData ? (
+            <div className="space-y-5 py-2 text-sm">
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Students.subscription")}</h3>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  <PreviewRow label={t("Students.subscriptionDate")} value={fmtDate(previewData.subscriptionDate)} />
+                  <PreviewRow label={t("Common.package")} value={previewData.activePackage ? t(("Packages." + previewData.activePackage) as any) : null} />
+                  <PreviewRow label={t("Students.packageStartedAt")} value={fmtDate(previewData.packageStartedAt)} />
+                  <PreviewRow label={t("Students.packageExpiresAt")} value={fmtDate(previewData.packageExpiresAt)} />
+                </dl>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Students.title")}</h3>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  <PreviewRow label={t("Common.email")} value={previewData.email} />
+                  <PreviewRow label={t("Common.phone")} value={previewData.phone} />
+                  <PreviewRow label={t("Students.studentPhone")} value={previewData.studentPhone} />
+                  <PreviewRow label={t("Students.birthDate")} value={fmtDate(previewData.birthDate)} />
+                  <PreviewRow label={t("Students.gradeLevel")} value={previewData.gradeLevel} />
+                  <PreviewRow label={t("Common.level")} value={previewData.englishLevel ? t(("Levels." + previewData.englishLevel) as any) : null} />
+                  <PreviewRow label={t("Common.gender")} value={previewData.gender ? t(("Common." + previewData.gender.toLowerCase()) as any) : null} />
+                  <PreviewRow label={t("Common.school")} value={locale === "ar" && previewData.schoolNameAr ? previewData.schoolNameAr : previewData.schoolName} />
+                  <PreviewRow label={t("Students.englishTeacherName")} value={previewData.englishTeacherName} />
+                </dl>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Students.residence")}</h3>
+                <dl className="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+                  <PreviewRow label={t("Students.guardianName")} value={previewData.guardianName} />
+                  <PreviewRow label={t("Students.guardianPhone")} value={previewData.guardianPhone} />
+                  <div className="sm:col-span-2">
+                    <PreviewRow label={t("Students.residenceAddress")} value={previewData.residenceAddress} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <PreviewRow label={t("Students.learningGoals")} value={previewData.learningGoals} />
+                  </div>
+                  <div className="sm:col-span-2">
+                    <PreviewRow label={t("Students.importantNotes")} value={previewData.importantNotes} />
+                  </div>
+                </dl>
+              </section>
+
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Students.monthlyPayments")}</h3>
+                {previewData.invoices.length === 0 ? (
+                  <p className="text-muted-foreground">{t("Students.noPayments")}</p>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("Students.subscriptionDate")}</TableHead>
+                        <TableHead>{t("Students.amount")}</TableHead>
+                        <TableHead>{t("Common.status")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {previewData.invoices.map((inv) => {
+                        const isPaid = inv.invoiceStatus === "PAID" || inv.status === "PAID";
+                        return (
+                          <TableRow key={inv.invoiceNumber}>
+                            <TableCell className="num">{String(inv.month).padStart(2, "0")}/{inv.year}</TableCell>
+                            <TableCell className="num">{inv.totalSar} {t("Students.sar")}</TableCell>
+                            <TableCell>
+                              <Badge variant={isPaid ? "success" : "danger"}>
+                                {isPaid ? t("Students.paid") : t("Students.unpaid")}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                )}
+              </section>
+            </div>
+          ) : (
+            <div className="py-10 text-center text-sm text-muted-foreground">{t("Common.noData")}</div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -361,6 +550,19 @@ export function StudentsClient({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </div>
+  );
+}
+
+function fmtDate(v: string | null): string | null {
+  return v ? v.slice(0, 10) : null;
+}
+
+function PreviewRow({ label, value }: { label: string; value: string | null | undefined }) {
+  return (
+    <div className="space-y-0.5">
+      <dt className="text-xs text-muted-foreground">{label}</dt>
+      <dd className="font-medium">{value && value.length ? value : "—"}</dd>
     </div>
   );
 }

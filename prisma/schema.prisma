@@ -79,6 +79,11 @@ model TeacherProfile {
   publicSlug             String?  @unique
   responseTimeMinutesAvg Int?
 
+  // Owner batch 1 — teaching availability (additive, all nullable).
+  ageGroup          String? // age group the teacher serves, e.g. "Kids 6-12", "Teens", "Adults"
+  availabilityDays  String[] // days of the week available (SUNDAY..SATURDAY)
+  availabilityHours String? // free-text hours, e.g. "4:00 PM - 9:00 PM"
+
   classes             Class[]
   privateLessons      PrivateLesson[]
   blackboardRooms     BlackboardRoom[]
@@ -109,6 +114,15 @@ model StudentProfile {
   packageStartedAt DateTime?
   packageExpiresAt DateTime?
   createdAt        DateTime     @default(now())
+
+  // Admin-managed enrolment details (Owner batch 1 — additive, all nullable).
+  subscriptionDate   DateTime? // when the family subscribed (distinct from package window)
+  importantNotes     String? // free-text notes the academy keeps on the student
+  studentPhone       String? // the student's own contact number (account phone is on User)
+  guardianName       String? // parent/guardian full name
+  guardianPhone      String? // parent/guardian contact number
+  residenceAddress   String? // home / residence address
+  englishTeacherName String? // the student's English teacher (free text)
 
   parentLinks           ParentStudentLink[]
   parentInvites         ParentInvite[]
