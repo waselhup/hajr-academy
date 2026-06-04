@@ -44,6 +44,41 @@ export default async function AdminOpeningReviewPage({
   const t = await getTranslations("Openings");
   const isAr = locale === "ar";
 
+  try {
+    return await renderOpeningReview({ locale, id, t, isAr });
+  } catch (e) {
+    // Never 500 the review page: the audience-resolution + signed-URL minting
+    // touch several relations; if any throws, fall back to a clean error card.
+    console.error("[admin-openings/[id]] render failed:", e);
+    return (
+      <div className="space-y-4" dir={isAr ? "rtl" : "ltr"}>
+        <Button asChild size="sm" variant="ghost">
+          <Link href="/admin/openings">
+            <ArrowLeft className="me-1 h-4 w-4" />
+            {t("adminTitle")}
+          </Link>
+        </Button>
+        <Card>
+          <CardContent className="p-8 text-center text-sm text-destructive">
+            {t("loadError")}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+}
+
+async function renderOpeningReview({
+  locale,
+  id,
+  t,
+  isAr,
+}: {
+  locale: string;
+  id: string;
+  t: Awaited<ReturnType<typeof getTranslations>>;
+  isAr: boolean;
+}) {
   const opening = await prisma.programOpening.findUnique({
     where: { id },
     include: {

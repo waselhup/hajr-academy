@@ -43,7 +43,9 @@ export async function uploadInvoiceDocument(params: {
     const { error } = await supabase.storage
       .from(BUCKET)
       .upload(path, params.body, {
-        contentType: "text/html; charset=utf-8",
+        // Plain "text/html" (no charset suffix): the bucket allow-list matches
+        // the MIME string verbatim and rejects "; charset=utf-8" with HTTP 415.
+        contentType: "text/html",
         upsert: true,
       });
     if (error) return { ok: false, error: error.message };

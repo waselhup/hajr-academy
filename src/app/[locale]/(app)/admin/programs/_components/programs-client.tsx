@@ -43,7 +43,6 @@ const schema = z.object({
   nameAr: z.string().min(2),
   descriptionEn: z.string().min(2),
   descriptionAr: z.string().min(2),
-  defaultPriceSar: z.coerce.number().nonnegative(),
   durationHours: z.union([z.coerce.number().int().positive(), z.literal(""), z.null()]).optional(),
 });
 type FormData = z.infer<typeof schema>;
@@ -145,7 +144,6 @@ const createFormSchema = z.object({
   descriptionEn: z.string().min(2),
   descriptionAr: z.string().min(2),
   type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
-  defaultPriceSar: z.coerce.number().nonnegative(),
   durationHours: z.union([z.coerce.number().int().positive(), z.literal(""), z.null()]).optional(),
   audienceType: z.enum(["ALL_INTERNAL", "INTERNAL_THEN_APPLICANTS", "APPLICANTS_ONLY", "EVERYONE"]),
 });
@@ -157,7 +155,7 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
   const [isPending, startTransition] = useTransition();
   const { register, handleSubmit, formState: { errors } } = useForm<CreateFormData>({
     resolver: zodResolver(createFormSchema),
-    defaultValues: { type: "GROUP", defaultPriceSar: 0, durationHours: "", audienceType: "ALL_INTERNAL" } as any,
+    defaultValues: { type: "GROUP", durationHours: "", audienceType: "ALL_INTERNAL" } as any,
   });
 
   const onSubmit = (data: CreateFormData) => {
@@ -169,7 +167,6 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
         descriptionEn: data.descriptionEn,
         descriptionAr: data.descriptionAr,
         type: data.type,
-        defaultPriceSar: data.defaultPriceSar,
         durationHours: typeof data.durationHours === "number" ? data.durationHours : null,
         audienceType: data.audienceType,
       });
@@ -206,7 +203,6 @@ function CreateDialog({ locale, onClose, onDone }: { locale: string; onClose: ()
           <Field label={t("Common.name") + " (AR)"} error={errors.nameAr?.message}><Input dir="rtl" {...register("nameAr")} /></Field>
           <div className="sm:col-span-2"><Field label="Description (EN)" error={errors.descriptionEn?.message}><Textarea rows={2} {...register("descriptionEn")} /></Field></div>
           <div className="sm:col-span-2"><Field label="Description (AR)" error={errors.descriptionAr?.message}><Textarea rows={2} dir="rtl" {...register("descriptionAr")} /></Field></div>
-          <Field label={t("ProgramsPage.defaultPrice")} error={errors.defaultPriceSar?.message}><Input type="number" step="10" {...register("defaultPriceSar")} /></Field>
           <Field label={t("ProgramsPage.durationHours")}><Input type="number" {...register("durationHours")} /></Field>
           <div className="sm:col-span-2">
             <Field label={t("Openings.audienceTitle")}>
@@ -239,7 +235,6 @@ function EditDialog({ program, onClose, onDone }: { program: Row; onClose: () =>
       nameAr: program.nameAr,
       descriptionEn: program.descriptionEn,
       descriptionAr: program.descriptionAr,
-      defaultPriceSar: Number(program.defaultPriceSar),
       durationHours: program.durationHours ?? "",
     } as any,
   });
@@ -252,7 +247,6 @@ function EditDialog({ program, onClose, onDone }: { program: Row; onClose: () =>
         nameAr: data.nameAr,
         descriptionEn: data.descriptionEn,
         descriptionAr: data.descriptionAr,
-        defaultPriceSar: data.defaultPriceSar,
         durationHours: typeof data.durationHours === "number" ? data.durationHours : null,
       });
       if (!res.ok) { toast.error(res.error); return; }
@@ -274,7 +268,6 @@ function EditDialog({ program, onClose, onDone }: { program: Row; onClose: () =>
           <Field label={t("Common.name") + " (AR)"} error={errors.nameAr?.message}><Input dir="rtl" {...register("nameAr")} /></Field>
           <div className="sm:col-span-2"><Field label="Description (EN)" error={errors.descriptionEn?.message}><Textarea rows={3} {...register("descriptionEn")} /></Field></div>
           <div className="sm:col-span-2"><Field label="Description (AR)" error={errors.descriptionAr?.message}><Textarea rows={3} dir="rtl" {...register("descriptionAr")} /></Field></div>
-          <Field label={t("ProgramsPage.defaultPrice")} error={errors.defaultPriceSar?.message}><Input type="number" step="10" {...register("defaultPriceSar")} /></Field>
           <Field label={t("ProgramsPage.durationHours")}><Input type="number" {...register("durationHours")} /></Field>
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>{t("Common.cancel")}</Button>

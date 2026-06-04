@@ -16,7 +16,9 @@ const updateSchema = z.object({
   nameAr: z.string().min(2),
   descriptionEn: z.string().min(2),
   descriptionAr: z.string().min(2),
-  defaultPriceSar: z.coerce.number().nonnegative(),
+  // Price is no longer edited from the admin program form; it is optional here so
+  // the form can omit it. When absent, the existing stored price is preserved.
+  defaultPriceSar: z.coerce.number().nonnegative().optional(),
   durationHours: z.coerce.number().int().positive().nullable().optional(),
   active: z.boolean().optional(),
 });
@@ -37,7 +39,9 @@ const createSchema = z.object({
   descriptionEn: z.string().min(2),
   descriptionAr: z.string().min(2),
   type: z.enum(["GROUP", "PRIVATE", "B2B", "SELF_STUDY"]),
-  defaultPriceSar: z.coerce.number().nonnegative(),
+  // Price is not collected on the create form anymore; default to 0 server-side.
+  // Admins set per-class pricing on the class form (Class.pricePerMonth).
+  defaultPriceSar: z.coerce.number().nonnegative().optional(),
   durationHours: z.coerce.number().int().positive().nullable().optional(),
   // Audience for the opening auto-created with the program. Defaults to
   // ALL_INTERNAL (the original behaviour). SELECTED_TEACHERS is configured later
@@ -67,7 +71,7 @@ export async function createProgramAction(
         descriptionEn: parsed.data.descriptionEn,
         descriptionAr: parsed.data.descriptionAr,
         type: parsed.data.type,
-        defaultPriceSar: parsed.data.defaultPriceSar,
+        defaultPriceSar: parsed.data.defaultPriceSar ?? 0,
         durationHours: parsed.data.durationHours ?? null,
         active: true,
       },

@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +24,7 @@ const TYPES = [
 
 export function IssueForm({ students, locale }: Props) {
   const router = useRouter();
+  const t = useTranslations("Certificates");
   const isAr = locale === "ar";
   const [pending, startTransition] = useTransition();
   const [form, setForm] = useState({
@@ -39,7 +42,7 @@ export function IssueForm({ students, locale }: Props) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.studentId || !form.titleAr || !form.titleEn) {
-      alert(isAr ? "املأ كل الحقول المطلوبة" : "Fill required fields");
+      toast.error(t("fillRequired"));
       return;
     }
     startTransition(async () => {
@@ -66,9 +69,10 @@ export function IssueForm({ students, locale }: Props) {
           score: "",
           expiryDate: "",
         });
+        toast.success(t("issueSuccess"));
         router.refresh();
       } else {
-        alert(d.error || (isAr ? "فشل الإصدار" : "Issue failed"));
+        toast.error(d.error || t("issueFailed"));
       }
     });
   }

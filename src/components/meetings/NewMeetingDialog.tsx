@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 interface TeacherOption {
   id: string;
@@ -11,7 +13,6 @@ interface TeacherOption {
 
 export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
   const t = useTranslations("TeacherMeetings");
-  const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -93,65 +94,59 @@ export function NewMeetingDialog({ teachers }: { teachers: TeacherOption[] }) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("titleEn")}>
-            <input
+            <Input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
             />
           </Field>
           <Field label={t("titleAr")}>
-            <input
+            <Input
               type="text"
+              dir="rtl"
               value={titleAr}
               onChange={(e) => setTitleAr(e.target.value)}
-              className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
             />
           </Field>
           <Field label={t("scheduledAt")}>
-            <input
+            <Input
               type="datetime-local"
-              lang={locale}
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
-              className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
             />
           </Field>
           <Field label={t("durationMin")}>
-            <input
+            <Input
               type="number"
-              lang={locale}
               min={15}
               max={480}
               value={durationMin}
               onChange={(e) => setDurationMin(Number(e.target.value))}
-              className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
             />
           </Field>
           <Field label={t("agendaEn")}>
-            <textarea
+            <Textarea
               value={agenda}
               onChange={(e) => setAgenda(e.target.value)}
               rows={3}
-              className="w-full rounded-lg border border-hajr-border px-3 py-2 text-sm"
             />
           </Field>
           <Field label={t("agendaAr")}>
-            <textarea
+            <Textarea
               value={agendaAr}
+              dir="rtl"
               onChange={(e) => setAgendaAr(e.target.value)}
               rows={3}
-              className="w-full rounded-lg border border-hajr-border px-3 py-2 text-sm"
             />
           </Field>
           <div className="sm:col-span-2">
             <Field label={t("zoomLink")}>
-              <input
+              <Input
                 type="url"
+                dir="ltr"
                 value={zoomJoinUrl}
                 onChange={(e) => setZoomJoinUrl(e.target.value)}
                 placeholder="https://zoom.us/j/..."
-                className="h-11 w-full rounded-lg border border-hajr-border px-3 text-sm"
               />
             </Field>
           </div>

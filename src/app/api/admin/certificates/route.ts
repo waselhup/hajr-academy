@@ -90,12 +90,19 @@ export async function POST(req: NextRequest) {
   });
 
   const path = `${new Date().getFullYear()}/${verificationCode}.html`;
+  // Content type is plain "text/html" (no charset param): the certificates
+  // bucket's allowed_mime_types matches the type string verbatim, so a
+  // "; charset=utf-8" suffix is rejected (HTTP 415). The charset is already
+  // declared inside the document via <meta charset="UTF-8">.
   const up = await uploadToBucket({
     bucket: "certificates",
     path,
     body: html,
-    contentType: "text/html; charset=utf-8",
+    contentType: "text/html",
   });
+  if (!up.ok) {
+    console.error("[admin-certificates] document upload failed:", up.error);
+  }
   const pdfUrl = up.ok
     ? getPublicUrl("certificates", path)
     : verifyUrl;
