@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useLocale } from "next-intl";
 import { MessageCircle, X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAgentChat } from "@/lib/agent/use-agent-chat";
@@ -73,7 +74,10 @@ export default function ChatBubble() {
     reset,
   } = useAgentChat({ agentType: "PUBLIC_ASSISTANT", visitorId });
 
-  const isArabic = typeof document !== "undefined" && document.documentElement.lang === "ar";
+  // Locale comes from next-intl, not <html lang> — the document lang is pinned
+  // to en-GB (so native inputs render Western digits) and no longer reflects UI
+  // language.
+  const isArabic = useLocale() === "ar";
   const quickReplies = isArabic ? QUICK_REPLIES_AR : QUICK_REPLIES_EN;
 
   const welcomeMessage = isArabic

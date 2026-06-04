@@ -28,7 +28,7 @@ export function AdminFinanceClient({
   const isAr = locale === "ar";
 
   const money = (n: number) =>
-    new Intl.NumberFormat(isAr ? "ar-SA" : "en-US", {
+    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
       maximumFractionDigits: 0,
     }).format(n);
   const sar = isAr ? "ر.س" : "SAR";

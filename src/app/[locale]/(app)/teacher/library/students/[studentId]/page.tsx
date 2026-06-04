@@ -163,7 +163,7 @@ export default async function TeacherLibraryStudentPage({
                         {fmtTime(p.timeSpentSec)}
                       </td>
                       <td className="px-4 py-3 text-hajr-gray-500">
-                        {p.lastAccessAt.toLocaleString(locale === "ar" ? "ar-SA" : "en-US", {
+                        {p.lastAccessAt.toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
                           dateStyle: "short",
                           timeStyle: "short",
                         })}

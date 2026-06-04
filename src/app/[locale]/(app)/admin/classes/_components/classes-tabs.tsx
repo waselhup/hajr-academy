@@ -127,7 +127,7 @@ function AttendanceTab({
 
   const fmtN = (n: number) => {
     try {
-      return ar ? Number(n).toLocaleString("ar-SA") : String(n);
+      return ar ? Number(n).toLocaleString("ar-SA-u-nu-latn") : String(n);
     } catch {
       return String(n);
     }
@@ -136,7 +136,7 @@ function AttendanceTab({
     try {
       const d = new Date(iso);
       if (isNaN(d.getTime())) return iso;
-      return d.toLocaleString(ar ? "ar-SA" : "en-GB", {
+      return d.toLocaleString(ar ? "ar-SA-u-nu-latn" : "en-GB", {
         dateStyle: "medium",
         timeStyle: "short",
         timeZone: "Asia/Riyadh",

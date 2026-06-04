@@ -112,7 +112,7 @@ export function AdminBlackboardsClient() {
                     </span>
                   </td>
                   <td className="px-3 py-2 text-muted-foreground">
-                    {r.lastEditedAt ? new Date(r.lastEditedAt).toLocaleString("ar-SA") : "—"}
+                    {r.lastEditedAt ? new Date(r.lastEditedAt).toLocaleString("ar-SA-u-nu-latn") : "—"}
                   </td>
                   <td className="px-3 py-2">
                     <div className="flex gap-1">

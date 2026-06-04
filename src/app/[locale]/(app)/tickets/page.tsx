@@ -109,7 +109,7 @@ export default async function TicketsPage({
                   </td>
                   <td className="px-4 py-3 text-hajr-muted">{tk._count.replies}</td>
                   <td className="px-4 py-3 text-hajr-muted">
-                    {new Date(tk.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-US")}
+                    {new Date(tk.createdAt).toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-US")}
                   </td>
                 </tr>
               ))}

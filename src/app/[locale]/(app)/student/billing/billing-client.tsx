@@ -86,7 +86,7 @@ export function StudentBillingClient({
   const [cancelReason, setCancelReason] = useState("");
 
   function money(n: number) {
-    return new Intl.NumberFormat(isAr ? "ar-SA" : "en-US", {
+    return new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(n);

@@ -144,7 +144,7 @@ export function TicketDetail({ ticket, currentUserId, isAdmin, locale }: TicketD
           <div className="flex items-center gap-2 text-sm text-hajr-muted">
             <span className="font-medium text-hajr-text">{requesterName}</span>
             <span>·</span>
-            <span>{new Date(ticket.createdAt).toLocaleString(isAr ? "ar-SA" : "en-US")}</span>
+            <span>{new Date(ticket.createdAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")}</span>
           </div>
           <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-hajr-text">
             {ticket.body}
@@ -195,7 +195,7 @@ export function TicketDetail({ ticket, currentUserId, isAdmin, locale }: TicketD
                     <span className="font-medium text-hajr-text">{authorName}</span>
                     <span className="text-hajr-muted">·</span>
                     <span className="text-hajr-muted">
-                      {new Date(r.createdAt).toLocaleString(isAr ? "ar-SA" : "en-US")}
+                      {new Date(r.createdAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")}
                     </span>
                     {r.isInternal && (
                       <span className="rounded bg-amber-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-amber-900">

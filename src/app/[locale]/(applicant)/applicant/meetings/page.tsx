@@ -45,7 +45,7 @@ export default async function ApplicantMeetingsPage({
     loadError = true;
   }
 
-  const fmt = new Intl.DateTimeFormat(isAr ? "ar-SA" : "en-GB", {
+  const fmt = new Intl.DateTimeFormat(isAr ? "ar-SA-u-nu-latn" : "en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",

@@ -36,7 +36,7 @@ export default async function ParentDashboardPage({
   function fmtNext(iso: string | null): string {
     if (!iso) return "—";
     const d = new Date(iso);
-    return d.toLocaleString(isAr ? "ar-SA" : "en-US", {
+    return d.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US", {
       weekday: "short",
       hour: "2-digit",
       minute: "2-digit",

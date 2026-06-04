@@ -83,11 +83,11 @@ export interface DashboardPayload {
 }
 
 function fmtNum(n: number, ar: boolean): string {
-  return ar ? n.toLocaleString("ar-SA") : n.toLocaleString("en-US");
+  return ar ? n.toLocaleString("ar-SA-u-nu-latn") : n.toLocaleString("en-US");
 }
 
 function fmtSar(n: number, ar: boolean): string {
-  return new Intl.NumberFormat(ar ? "ar-SA" : "en-US", {
+  return new Intl.NumberFormat(ar ? "ar-SA-u-nu-latn" : "en-US", {
     maximumFractionDigits: 0,
   }).format(n);
 }
@@ -101,7 +101,7 @@ function relTime(iso: string, ar: boolean): string {
   const hrs = Math.round(abs / 3_600_000);
   const days = Math.round(abs / 86_400_000);
   const fmt = (n: number, unitAr: string, unitEn: string) => {
-    const num = ar ? n.toLocaleString("ar-SA") : String(n);
+    const num = ar ? n.toLocaleString("ar-SA-u-nu-latn") : String(n);
     if (ar) return past ? `قبل ${num} ${unitAr}` : `بعد ${num} ${unitAr}`;
     return past ? `${num}${unitEn} ago` : `in ${num}${unitEn}`;
   };
@@ -115,11 +115,11 @@ function startsInText(iso: string, ar: boolean): string {
   const diff = new Date(iso).getTime() - Date.now();
   const mins = Math.max(0, Math.round(diff / 60_000));
   if (mins < 60) {
-    const n = ar ? mins.toLocaleString("ar-SA") : String(mins);
+    const n = ar ? mins.toLocaleString("ar-SA-u-nu-latn") : String(mins);
     return ar ? `${n} دقيقة` : `${n} min`;
   }
   const hrs = Math.round(mins / 60);
-  const n = ar ? hrs.toLocaleString("ar-SA") : String(hrs);
+  const n = ar ? hrs.toLocaleString("ar-SA-u-nu-latn") : String(hrs);
   return ar ? `${n} ساعة` : `${n}h`;
 }
 
@@ -469,7 +469,7 @@ function AlertRow({
         </span>
         <span className="flex-1 truncate font-medium">{label}</span>
         <Badge variant="danger" className="num">
-          {ar ? count.toLocaleString("ar-SA") : count}
+          {ar ? count.toLocaleString("ar-SA-u-nu-latn") : count}
         </Badge>
         <ArrowRight className="h-4 w-4 text-muted-foreground rtl-flip" />
       </Link>
@@ -498,7 +498,7 @@ function TodayClasses({
             </h2>
             {items.length > 0 && (
               <span className="num text-xs text-muted-foreground">
-                ({ar ? items.length.toLocaleString("ar-SA") : items.length})
+                ({ar ? items.length.toLocaleString("ar-SA-u-nu-latn") : items.length})
               </span>
             )}
           </div>
@@ -527,7 +527,7 @@ function TodayClasses({
                   <StatusDot status={c.status} />
                   <span className="num w-14 shrink-0 text-xs font-medium text-muted-foreground">
                     {new Date(c.scheduledStartAt).toLocaleTimeString(
-                      ar ? "ar-SA" : "en-GB",
+                      ar ? "ar-SA-u-nu-latn" : "en-GB",
                       {
                         hour: "2-digit",
                         minute: "2-digit",
@@ -555,7 +555,7 @@ function TodayClasses({
                       {c.teacherName} ·{" "}
                       {t("studentsCount", {
                         n: ar
-                          ? c.studentCount.toLocaleString("ar-SA")
+                          ? c.studentCount.toLocaleString("ar-SA-u-nu-latn")
                           : c.studentCount,
                       })}
                     </p>

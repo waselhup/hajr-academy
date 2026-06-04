@@ -37,7 +37,7 @@ const SKILL_TINT: Record<string, { bg: string; text: string }> = {
 };
 
 function fmtNum(n: number, ar: boolean): string {
-  return ar ? n.toLocaleString("ar-SA") : String(n);
+  return ar ? n.toLocaleString("ar-SA-u-nu-latn") : String(n);
 }
 
 function nextLevel(level: Cefr): Cefr | null {
@@ -385,7 +385,7 @@ export default async function StudentProgressPage({
                           </p>
                           {a.submittedAt && (
                             <p className="num text-xs text-muted-foreground">
-                              {a.submittedAt.toLocaleDateString(ar ? "ar-SA" : "en-GB")}
+                              {a.submittedAt.toLocaleDateString(ar ? "ar-SA-u-nu-latn" : "en-GB")}
                             </p>
                           )}
                         </div>

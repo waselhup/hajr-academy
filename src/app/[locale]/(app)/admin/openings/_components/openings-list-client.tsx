@@ -85,7 +85,7 @@ function OpeningCard({
   const [isPending, startTransition] = useTransition();
 
   const name = isAr ? row.nameAr : row.nameEn;
-  const openedAt = new Date(row.openedAt).toLocaleDateString(isAr ? "ar-SA" : "en-US");
+  const openedAt = new Date(row.openedAt).toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-US");
 
   const handleReopen = () => {
     startTransition(async () => {

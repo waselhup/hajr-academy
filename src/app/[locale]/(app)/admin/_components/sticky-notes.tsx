@@ -166,6 +166,7 @@ export function StickyNotesWidget({
               <CalendarClock className="h-3.5 w-3.5 shrink-0" />
               <input
                 type="datetime-local"
+                lang="en-GB"
                 value={dueAt}
                 onChange={(e) => setDueAt(e.target.value)}
                 aria-label={t("dueLabel")}

@@ -9,7 +9,7 @@ import { Mic, Users, Clock } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 function fmtDateTime(d: Date, isAr: boolean): string {
-  return d.toLocaleString(isAr ? "ar-SA" : "en-US", {
+  return d.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",

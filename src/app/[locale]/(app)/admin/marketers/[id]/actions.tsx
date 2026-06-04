@@ -106,6 +106,7 @@ export function MarketerActions({ marketerId, currentStatus, currentRate, locale
           <input
             id="rate"
             type="number"
+            lang="en-GB"
             step="0.01"
             min="0"
             max="1"

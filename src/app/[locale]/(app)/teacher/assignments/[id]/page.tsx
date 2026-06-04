@@ -93,7 +93,7 @@ export default async function TeacherAssignmentDetailPage({
                   {" · "}
                   {t("due")}{" "}
                   <span className="num">
-                    {new Date(assignment.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-US")}
+                    {new Date(assignment.dueDate).toLocaleDateString(ar ? "ar-SA-u-nu-latn" : "en-US")}
                   </span>
                 </>
               )}

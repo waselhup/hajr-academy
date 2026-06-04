@@ -28,7 +28,7 @@ export function UpcomingSessionCard({
 }) {
   const isLive = session.status === "LIVE";
   const date = new Date(session.scheduledDate);
-  const dateStr = date.toLocaleString(locale === "ar" ? "ar-SA" : "en-GB", {
+  const dateStr = date.toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-GB", {
     weekday: "short",
     day: "numeric",
     month: "short",

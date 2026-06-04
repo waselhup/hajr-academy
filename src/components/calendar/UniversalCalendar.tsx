@@ -447,7 +447,7 @@ function EventListItem({
             {isAr ? ev.titleAr : ev.title}
           </div>
           <div className="text-xs text-hajr-muted">
-            {ev.allDay ? "—" : new Date(ev.startAt).toLocaleTimeString(isAr ? "ar-SA" : "en-US", { hour: "2-digit", minute: "2-digit" })}
+            {ev.allDay ? "—" : new Date(ev.startAt).toLocaleTimeString(isAr ? "ar-SA-u-nu-latn" : "en-US", { hour: "2-digit", minute: "2-digit" })}
           </div>
         </div>
       </button>
@@ -501,13 +501,13 @@ function EventDialog({
           <div>
             <div className="text-[0.7rem] text-hajr-muted">{t("eventStart")}</div>
             <div className="font-medium text-hajr-text">
-              {event.allDay ? t("eventAllDay") : start.toLocaleString(isAr ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short" })}
+              {event.allDay ? t("eventAllDay") : start.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US", { dateStyle: "medium", timeStyle: "short" })}
             </div>
           </div>
           <div>
             <div className="text-[0.7rem] text-hajr-muted">{t("eventEnd")}</div>
             <div className="font-medium text-hajr-text">
-              {event.allDay ? t("eventAllDay") : end.toLocaleString(isAr ? "ar-SA" : "en-US", { dateStyle: "medium", timeStyle: "short" })}
+              {event.allDay ? t("eventAllDay") : end.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US", { dateStyle: "medium", timeStyle: "short" })}
             </div>
           </div>
         </div>
@@ -607,7 +607,7 @@ function CreateDialog({
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventStart")}</label>
               <input
                 type="datetime-local"
-                lang={isAr ? "ar" : "en"}
+                lang="en-GB"
                 value={startAt}
                 onChange={(e) => setStartAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"
@@ -617,7 +617,7 @@ function CreateDialog({
               <label className="mb-1 block text-xs font-medium text-hajr-muted">{t("eventEnd")}</label>
               <input
                 type="datetime-local"
-                lang={isAr ? "ar" : "en"}
+                lang="en-GB"
                 value={endAt}
                 onChange={(e) => setEndAt(e.target.value)}
                 className="block w-full rounded-lg border border-hajr-border bg-white px-2 py-2 text-sm"

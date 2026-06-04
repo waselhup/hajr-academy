@@ -390,7 +390,7 @@ export function TargetedRecordingsAdmin({ users }: { users: TargetUser[] }) {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {rows.map((r) => {
-              const dateStr = new Date(r.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-GB");
+              const dateStr = new Date(r.createdAt).toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB");
               const displayTitle = isAr && r.titleAr ? r.titleAr : r.title;
               return (
                 <Card key={r.id}>

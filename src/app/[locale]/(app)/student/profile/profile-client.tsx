@@ -73,7 +73,7 @@ export function ProfileClient({ initial }: { initial: ProfileData }) {
 
   // Birth date display in the user's locale, dates only.
   const birthDateDisplay = initial.birthDate
-    ? new Intl.DateTimeFormat(isAr ? "ar-SA" : "en-GB", {
+    ? new Intl.DateTimeFormat(isAr ? "ar-SA-u-nu-latn" : "en-GB", {
         dateStyle: "long",
       }).format(new Date(initial.birthDate))
     : "—";

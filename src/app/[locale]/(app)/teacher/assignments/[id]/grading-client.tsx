@@ -91,7 +91,7 @@ function SubmissionCard({ s, ar }: { s: SubmissionVM; ar: boolean }) {
         <p className="text-xs text-muted-foreground">
           {t("submittedAt")}{" "}
           <span className="num">
-            {new Date(s.submittedAt).toLocaleString(ar ? "ar-SA" : "en-US")}
+            {new Date(s.submittedAt).toLocaleString(ar ? "ar-SA-u-nu-latn" : "en-US")}
           </span>
         </p>
 

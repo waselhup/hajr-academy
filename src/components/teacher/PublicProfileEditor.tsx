@@ -101,6 +101,7 @@ export function PublicProfileEditor({ initial }: { initial: InitialState }) {
         <Field label={t("fieldYearsExp")}>
           <input
             type="number"
+            lang="en-GB"
             min={0}
             max={80}
             value={yearsExp}

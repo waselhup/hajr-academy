@@ -22,20 +22,21 @@ export function fmtRelative(d: Date | string): string {
 }
 
 /**
- * Long date string. AR uses Arabic-Indic digits via numberingSystem; no "م"
- * (هـ) suffix to avoid the cluttered "22 مايو 2026 م" form teachers flagged.
- *   ar → "22 مايو 2026"
+ * Long date string. AR keeps Arabic month NAMES but uses Western digits (0-9)
+ * via the `-u-nu-latn` numbering extension — the owner's rule is numbers are
+ * always Western, regardless of UI language. No "م" (هـ) suffix to avoid the
+ * cluttered "22 مايو 2026 م" form teachers flagged.
+ *   ar → "22 مايو 2026"  (Western digits, Arabic month name)
  *   en → "May 22, 2026"
  */
 export function fmtDateLong(d: Date | string, locale: "ar" | "en"): string {
   const date = new Date(d);
   if (locale === "ar") {
-    return new Intl.DateTimeFormat("ar-SA", {
+    return new Intl.DateTimeFormat("ar-SA-u-nu-latn", {
       day: "numeric",
       month: "long",
       year: "numeric",
       calendar: "gregory",
-      numberingSystem: "arab",
     }).format(date);
   }
   return new Intl.DateTimeFormat("en-US", {

@@ -163,7 +163,7 @@ export function ActivityClient({ initialItems }: { initialItems: Item[] }) {
 
   const lastSyncLabel = useMemo(() => {
     if (!lastSync) return null;
-    return new Date(lastSync).toLocaleTimeString(ar ? "ar-SA" : "en-GB", {
+    return new Date(lastSync).toLocaleTimeString(ar ? "ar-SA-u-nu-latn" : "en-GB", {
       hour: "2-digit",
       minute: "2-digit",
       second: "2-digit",

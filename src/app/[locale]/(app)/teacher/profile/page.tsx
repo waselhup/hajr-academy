@@ -26,7 +26,7 @@ function initials(name: string): string {
 }
 
 function fmtSar(amount: number, locale: string): string {
-  return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+  return new Intl.NumberFormat(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
     style: "decimal",
     maximumFractionDigits: 2,
   }).format(amount);
@@ -246,7 +246,7 @@ export default async function TeacherProfilePage({
                   <TableBody>
                     {earnings.map((e) => {
                       const date = (e.classSession?.scheduledDate ?? e.createdAt).toLocaleDateString(
-                        locale === "ar" ? "ar-SA" : "en-US"
+                        locale === "ar" ? "ar-SA-u-nu-latn" : "en-US"
                       );
                       const className = e.classSession?.class
                         ? locale === "ar"

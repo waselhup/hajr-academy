@@ -77,7 +77,7 @@ export function AttendanceGridClient({
         <CardHeader>
           <CardTitle>{t("takeAttendance")} — {className}</CardTitle>
           <p className="text-xs text-muted-foreground num">
-            {new Date(scheduledDate).toLocaleString(locale === "ar" ? "ar-SA" : "en-GB", {
+            {new Date(scheduledDate).toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-GB", {
               dateStyle: "medium",
               timeStyle: "short",
             })}

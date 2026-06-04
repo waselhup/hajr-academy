@@ -52,11 +52,14 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  // lang/dir default to the app's defaultLocale (ar); HtmlLangSync corrects them
-  // to the active locale on the client so native date/number inputs format in
-  // the chosen language.
+  // <html lang> is pinned to a Western-digit locale (en-GB) so native date/
+  // number controls ALWAYS render Western digits (0-9) + dd/mm/yyyy, regardless
+  // of UI language — the owner's platform-wide rule (Arabic-Indic digits are
+  // banned). dir defaults to rtl (defaultLocale is ar); HtmlLangSync keeps dir
+  // in sync on the client. Content language for a11y lives on the inner
+  // <div lang={locale}> in [locale]/layout.tsx, not here.
   return (
-    <html lang="ar" dir="rtl" className={`${inter.variable} ${ibmPlex.variable}`}>
+    <html lang="en-GB" dir="rtl" className={`${inter.variable} ${ibmPlex.variable}`}>
       <body>{children}</body>
     </html>
   );

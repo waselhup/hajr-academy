@@ -176,7 +176,7 @@ function ResourceCard({
   }, [fetchUrl]);
 
   const date = new Date(resource.createdAt).toLocaleDateString(
-    locale === "ar" ? "ar-SA" : "en-US",
+    locale === "ar" ? "ar-SA-u-nu-latn" : "en-US",
     { year: "numeric", month: "short", day: "numeric" }
   );
 

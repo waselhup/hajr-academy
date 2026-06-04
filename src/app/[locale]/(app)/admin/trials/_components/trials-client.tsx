@@ -94,7 +94,7 @@ const STATUS_OPTIONS: TrialStatus[] = [
 
 function formatDate(iso: string, locale: string) {
   try {
-    return new Date(iso).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US", {
+    return new Date(iso).toLocaleDateString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",

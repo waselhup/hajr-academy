@@ -50,7 +50,7 @@ export function SchoolContractClient({
   });
 
   const money = (n: number) =>
-    new Intl.NumberFormat(isAr ? "ar-SA" : "en-US", {
+    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
       minimumFractionDigits: 2,
     }).format(n);
   const sar = isAr ? "ر.س" : "SAR";

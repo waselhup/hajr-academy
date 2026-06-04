@@ -169,7 +169,7 @@ export function ReviewClient({
           {ordered.map((app) => {
             const greyed = isFilled && app.status !== "SELECTED";
             const submitted = app.submittedAt
-              ? new Date(app.submittedAt).toLocaleString(isAr ? "ar-SA" : "en-US")
+              ? new Date(app.submittedAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")
               : null;
             const canShortlist = !isFilled && app.status === "SUBMITTED";
             const canSelect = !isFilled && (app.status === "SUBMITTED" || app.status === "SHORTLISTED");

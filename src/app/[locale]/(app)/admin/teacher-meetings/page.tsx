@@ -67,7 +67,7 @@ export default async function AdminMeetingsPage({
                 <tr key={m.id} className="hover:bg-hajr-ivory/50">
                   <td className="px-4 py-3 font-medium text-hajr-text">{title}</td>
                   <td className="px-4 py-3 text-hajr-muted">
-                    {new Date(m.scheduledAt).toLocaleString(isAr ? "ar-SA" : "en-US")}
+                    {new Date(m.scheduledAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")}
                   </td>
                   <td className="px-4 py-3">
                     <span className="inline-flex rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">

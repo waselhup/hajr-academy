@@ -59,7 +59,7 @@ export default async function TeacherMeetingDetailPage({
           {isAr ? meeting.titleAr : meeting.title}
         </h1>
         <p className="mt-1 text-sm text-hajr-muted">
-          {new Date(meeting.scheduledAt).toLocaleString(isAr ? "ar-SA" : "en-US")} ·{" "}
+          {new Date(meeting.scheduledAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")} ·{" "}
           {meeting.durationMin} {t("minutesShort")}
         </p>
       </div>

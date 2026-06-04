@@ -91,7 +91,7 @@ function relTime(iso: string, locale: string, ar: boolean): string {
   const days = Math.round(abs / 86_400_000);
 
   const fmt = (n: number, unitAr: string, unitEn: string) => {
-    const num = ar ? n.toLocaleString("ar-SA") : String(n);
+    const num = ar ? n.toLocaleString("ar-SA-u-nu-latn") : String(n);
     if (ar) return past ? `قبل ${num} ${unitAr}` : `بعد ${num} ${unitAr}`;
     return past ? `${num}${unitEn} ago` : `in ${num}${unitEn}`;
   };
@@ -105,11 +105,11 @@ function startsInText(iso: string, ar: boolean): string {
   const diff = new Date(iso).getTime() - Date.now();
   const mins = Math.max(0, Math.round(diff / 60_000));
   if (mins < 60) {
-    const n = ar ? mins.toLocaleString("ar-SA") : String(mins);
+    const n = ar ? mins.toLocaleString("ar-SA-u-nu-latn") : String(mins);
     return ar ? `${n} دقيقة` : `${n} min`;
   }
   const hrs = Math.round(mins / 60);
-  const n = ar ? hrs.toLocaleString("ar-SA") : String(hrs);
+  const n = ar ? hrs.toLocaleString("ar-SA-u-nu-latn") : String(hrs);
   return ar ? `${n} ساعة` : `${n}h`;
 }
 
@@ -332,7 +332,7 @@ export function StudentHero({
 }
 
 function formatNum(n: number, ar: boolean): string {
-  return ar ? n.toLocaleString("ar-SA") : String(n);
+  return ar ? n.toLocaleString("ar-SA-u-nu-latn") : String(n);
 }
 
 function HeroStat({ label, value }: { label: string; value: string }) {
@@ -369,7 +369,7 @@ function NextClassCard({
   }
 
   const date = new Date(data.scheduledStartAt);
-  const dateStr = date.toLocaleString(ar ? "ar-SA" : "en-GB", {
+  const dateStr = date.toLocaleString(ar ? "ar-SA-u-nu-latn" : "en-GB", {
     weekday: "long",
     day: "numeric",
     month: "long",

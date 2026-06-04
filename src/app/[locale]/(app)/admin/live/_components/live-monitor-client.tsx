@@ -52,13 +52,13 @@ function fmtElapsed(iso: string, ar: boolean): string {
   const ms = Date.now() - new Date(iso).getTime();
   const mins = Math.max(0, Math.floor(ms / 60_000));
   if (mins < 60) {
-    const n = ar ? mins.toLocaleString("ar-SA") : String(mins);
+    const n = ar ? mins.toLocaleString("ar-SA-u-nu-latn") : String(mins);
     return ar ? `${n} د` : `${n}m`;
   }
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  const hn = ar ? h.toLocaleString("ar-SA") : String(h);
-  const mn = ar ? m.toLocaleString("ar-SA") : String(m);
+  const hn = ar ? h.toLocaleString("ar-SA-u-nu-latn") : String(h);
+  const mn = ar ? m.toLocaleString("ar-SA-u-nu-latn") : String(m);
   return ar ? `${hn}س ${mn}د` : `${hn}h ${mn}m`;
 }
 
@@ -144,7 +144,7 @@ export function LiveMonitorClient({
         <Radio className="h-5 w-5 text-brand-rose" />
         <h1 className="text-2xl font-bold">{t("liveClassesTitle")}</h1>
         <Badge variant="rose" className="num">
-          {ar ? live.length.toLocaleString("ar-SA") : live.length}
+          {ar ? live.length.toLocaleString("ar-SA-u-nu-latn") : live.length}
         </Badge>
       </div>
 
@@ -185,7 +185,7 @@ export function LiveMonitorClient({
                     label={tV("participants")}
                     value={
                       ar
-                        ? (r.participantCount ?? r.joinedCount).toLocaleString("ar-SA")
+                        ? (r.participantCount ?? r.joinedCount).toLocaleString("ar-SA-u-nu-latn")
                         : String(r.participantCount ?? r.joinedCount)
                     }
                     icon={<Users className="h-3 w-3" />}
@@ -193,8 +193,8 @@ export function LiveMonitorClient({
                   <Stat
                     label={tV("present")}
                     value={`${
-                      ar ? r.joinedCount.toLocaleString("ar-SA") : r.joinedCount
-                    }/${ar ? r.enrolledCount.toLocaleString("ar-SA") : r.enrolledCount}`}
+                      ar ? r.joinedCount.toLocaleString("ar-SA-u-nu-latn") : r.joinedCount
+                    }/${ar ? r.enrolledCount.toLocaleString("ar-SA-u-nu-latn") : r.enrolledCount}`}
                   />
                 </div>
 
@@ -266,11 +266,11 @@ export function LiveMonitorClient({
                   </div>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Badge variant="default" className="num">
-                      {ar ? r.attendanceCount.toLocaleString("ar-SA") : r.attendanceCount}/
-                      {ar ? r.enrolledCount.toLocaleString("ar-SA") : r.enrolledCount}
+                      {ar ? r.attendanceCount.toLocaleString("ar-SA-u-nu-latn") : r.attendanceCount}/
+                      {ar ? r.enrolledCount.toLocaleString("ar-SA-u-nu-latn") : r.enrolledCount}
                     </Badge>
                     <span className="num">
-                      {new Date(r.endedAt).toLocaleString(ar ? "ar-SA" : "en-GB", {
+                      {new Date(r.endedAt).toLocaleString(ar ? "ar-SA-u-nu-latn" : "en-GB", {
                         dateStyle: "short",
                         timeStyle: "short",
                         timeZone: "Asia/Riyadh",

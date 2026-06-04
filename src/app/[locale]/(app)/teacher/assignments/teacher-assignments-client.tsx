@@ -105,7 +105,7 @@ export function TeacherAssignmentsClient({
                           <>
                             {" · "}
                             <span className="num">
-                              {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-US")}
+                              {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA-u-nu-latn" : "en-US")}
                             </span>
                           </>
                         )}

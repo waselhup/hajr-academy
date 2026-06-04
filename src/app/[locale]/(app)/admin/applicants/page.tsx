@@ -61,7 +61,7 @@ export default async function AdminApplicantsPage({
     loadError = true;
   }
 
-  const dateFmt = new Intl.DateTimeFormat(isAr ? "ar-SA" : "en-GB", {
+  const dateFmt = new Intl.DateTimeFormat(isAr ? "ar-SA-u-nu-latn" : "en-GB", {
     day: "numeric",
     month: "short",
   });

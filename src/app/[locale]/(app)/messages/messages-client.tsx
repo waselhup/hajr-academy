@@ -765,7 +765,7 @@ export function MessagesClient({
 /* ── helpers ────────────────────────────────────────────── */
 
 function fmtClock(iso: string, isAr: boolean): string {
-  return new Date(iso).toLocaleTimeString(isAr ? "ar-SA" : "en-US", {
+  return new Date(iso).toLocaleTimeString(isAr ? "ar-SA-u-nu-latn" : "en-US", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -782,7 +782,7 @@ function dayLabel(iso: string, isAr: boolean, t: (k: string) => string): string 
   yest.setDate(today.getDate() - 1);
   if (d.toDateString() === today.toDateString()) return t("dateToday");
   if (d.toDateString() === yest.toDateString()) return t("dateYesterday");
-  return d.toLocaleDateString(isAr ? "ar-SA" : "en-US", {
+  return d.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-US", {
     day: "numeric",
     month: "long",
   });

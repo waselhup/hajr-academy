@@ -177,7 +177,7 @@ function AssignmentCard({
                 <>
                   {" · "}
                   <span className={cn("num", a.overdue && "text-red-600 font-medium")}>
-                    {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA" : "en-GB")}
+                    {new Date(a.dueDate).toLocaleDateString(ar ? "ar-SA-u-nu-latn" : "en-GB")}
                   </span>
                 </>
               )}

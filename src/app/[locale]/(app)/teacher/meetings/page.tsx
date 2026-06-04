@@ -127,7 +127,7 @@ function MeetingRow({
         <div>
           <p className="font-medium text-hajr-text">{title}</p>
           <p className="text-xs text-hajr-muted">
-            {new Date(scheduledAt).toLocaleString(isAr ? "ar-SA" : "en-US")}
+            {new Date(scheduledAt).toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")}
           </p>
         </div>
         <div className="flex items-center gap-2">

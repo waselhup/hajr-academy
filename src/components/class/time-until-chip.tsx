@@ -38,15 +38,15 @@ export function TimeUntilChip({ startAt, className, liveLabel }: Props) {
 
   let label: string;
   if (mins < 60) {
-    const n = isAr ? mins.toLocaleString("ar-EG") : String(mins);
+    const n = isAr ? mins.toLocaleString("ar-EG-u-nu-latn") : String(mins);
     label = isAr ? `يبدأ بعد ${n} دقيقة` : `Starts in ${n} min`;
   } else if (mins < 60 * 24) {
     const hrs = Math.round(mins / 60);
-    const n = isAr ? hrs.toLocaleString("ar-EG") : String(hrs);
+    const n = isAr ? hrs.toLocaleString("ar-EG-u-nu-latn") : String(hrs);
     label = isAr ? `يبدأ بعد ${n} ساعة` : `Starts in ${n} hr`;
   } else {
     const days = Math.round(mins / (60 * 24));
-    const n = isAr ? days.toLocaleString("ar-EG") : String(days);
+    const n = isAr ? days.toLocaleString("ar-EG-u-nu-latn") : String(days);
     label = isAr ? `يبدأ بعد ${n} يوم` : `Starts in ${n} day${days === 1 ? "" : "s"}`;
   }
 

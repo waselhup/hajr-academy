@@ -49,7 +49,7 @@ export default async function AdminSpeakingClubDetailPage({
           {isAr ? event.titleAr : event.titleEn}
         </h1>
         <p className="text-sm text-muted-foreground">
-          {event.scheduledAt.toLocaleString(isAr ? "ar-SA" : "en-US")} ·{" "}
+          {event.scheduledAt.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")} ·{" "}
           {event.durationMin}m
         </p>
       </div>

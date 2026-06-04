@@ -119,7 +119,7 @@ export function MyRecordingsClient() {
         {rows.map((r) => {
           const displayTitle = isAr && r.titleAr ? r.titleAr : r.title;
           const displayDesc = isAr && r.descriptionAr ? r.descriptionAr : r.description;
-          const dateStr = new Date(r.createdAt).toLocaleDateString(isAr ? "ar-SA" : "en-GB");
+          const dateStr = new Date(r.createdAt).toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB");
           return (
             <Card key={r.id} className="overflow-hidden">
               <CardContent className="space-y-3 p-4">

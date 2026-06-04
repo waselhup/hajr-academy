@@ -273,7 +273,7 @@ export default async function TeacherStudentDetailPage({
                         {locale === "ar" ? s.class.nameAr ?? s.class.name : s.class.name}
                       </p>
                       <p className="text-xs text-muted-foreground num">
-                        {s.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
+                        {s.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US")}
                       </p>
                     </div>
                     <Button asChild size="sm" variant="outline">
@@ -310,7 +310,7 @@ export default async function TeacherStudentDetailPage({
                           {locale === "ar" ? a.session.class.nameAr ?? a.session.class.name : a.session.class.name}
                         </p>
                         <p className="text-xs text-muted-foreground num">
-                          {a.session.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
+                          {a.session.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US")}
                         </p>
                       </div>
                       <Badge variant={(ATTENDANCE_COLORS[a.status] as any) ?? "secondary"}>
@@ -344,7 +344,7 @@ export default async function TeacherStudentDetailPage({
                           {locale === "ar" ? s.assignment.titleAr ?? s.assignment.title : s.assignment.title}
                         </p>
                         <p className="text-xs text-muted-foreground num">
-                          {s.submittedAt.toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
+                          {s.submittedAt.toLocaleDateString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US")}
                         </p>
                       </div>
                       <div className="text-end">

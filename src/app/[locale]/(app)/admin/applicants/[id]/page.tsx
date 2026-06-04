@@ -71,7 +71,7 @@ export default async function AdminApplicantDetailPage({
       : applicant.appliedProgram.nameEn
     : null;
 
-  const dateFmt = new Intl.DateTimeFormat(isAr ? "ar-SA" : "en-GB", {
+  const dateFmt = new Intl.DateTimeFormat(isAr ? "ar-SA-u-nu-latn" : "en-GB", {
     day: "numeric",
     month: "short",
     hour: "2-digit",

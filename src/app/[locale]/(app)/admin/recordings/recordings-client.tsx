@@ -162,7 +162,7 @@ export function RecordingsClient({ rows: initial }: { rows: RecordingRow[] }) {
               <TableBody>
                 {filtered.map((r) => {
                   const dateStr = new Date(r.scheduledDate).toLocaleDateString(
-                    isAr ? "ar-SA" : "en-GB"
+                    isAr ? "ar-SA-u-nu-latn" : "en-GB"
                   );
                   const dur =
                     r.startedAt && r.endedAt

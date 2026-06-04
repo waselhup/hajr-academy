@@ -66,7 +66,10 @@
     font-family: var(--font-en), Inter, sans-serif;
   }
 
-  html[lang="ar"] body {
+  /* Arabic body font keys off dir, not lang: <html lang> is pinned to en-GB so
+     native date/number inputs render Western digits, so we can no longer match
+     html[lang="ar"]. dir="rtl" still tracks the Arabic locale. */
+  html[dir="rtl"] body {
     font-family: var(--font-ar), "IBM Plex Sans Arabic", Cairo, sans-serif;
   }
 

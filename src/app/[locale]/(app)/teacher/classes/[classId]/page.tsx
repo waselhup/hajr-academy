@@ -216,7 +216,7 @@ export default async function TeacherClassDetailPage({
                     >
                       <div>
                         <p className="num text-xs text-muted-foreground">
-                          {s.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA" : "en-US")}
+                          {s.scheduledDate.toLocaleString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US")}
                         </p>
                         <Badge
                           variant={s.status === "COMPLETED" ? "success" : "default"}

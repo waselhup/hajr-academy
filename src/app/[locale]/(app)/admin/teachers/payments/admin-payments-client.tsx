@@ -167,7 +167,7 @@ export function AdminPaymentsClient({
   };
 
   const fmt = (n: number) =>
-    new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US", {
+    new Intl.NumberFormat(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
       maximumFractionDigits: 2,
     }).format(n);
 
@@ -328,7 +328,7 @@ export function AdminPaymentsClient({
                           </TableCell>
                         )}
                         <TableCell className="num text-xs">
-                          {new Date(r.date).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
+                          {new Date(r.date).toLocaleDateString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US")}
                         </TableCell>
                         <TableCell className="text-xs">
                           {r.className}

@@ -137,7 +137,7 @@ export function StudentClassesClient({
 
                   {date && (
                     <p className="rounded-md bg-muted/40 p-2 text-xs text-muted-foreground num">
-                      {date.toLocaleString(ar ? "ar-SA" : "en-GB", {
+                      {date.toLocaleString(ar ? "ar-SA-u-nu-latn" : "en-GB", {
                         weekday: "short",
                         day: "numeric",
                         month: "short",

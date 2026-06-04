@@ -78,7 +78,7 @@ export default async function AdminSpeakingClubPage({
                       {isAr ? e.titleAr : e.titleEn}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {e.scheduledAt.toLocaleString(isAr ? "ar-SA" : "en-US")}
+                      {e.scheduledAt.toLocaleString(isAr ? "ar-SA-u-nu-latn" : "en-US")}
                       {e.hostTeacher ? ` · ${e.hostTeacher.user.name}` : ""}
                     </div>
                   </div>

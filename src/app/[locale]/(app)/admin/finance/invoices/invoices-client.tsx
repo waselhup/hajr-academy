@@ -49,7 +49,7 @@ export function AdminInvoicesClient({ invoices }: { invoices: InvoiceRow[] }) {
     .map((i) => i.id);
 
   const money = (n: number) =>
-    new Intl.NumberFormat(isAr ? "ar-SA" : "en-US", {
+    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(n);

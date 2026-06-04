@@ -1,14 +1,16 @@
 "use client";
 
 import * as React from "react";
-import { useLocale } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // Native date/time/number controls format their placeholder + digits from a
-// locale. Without an explicit `lang` they fall back to the browser/OS locale —
-// which rendered Arabic (e.g. "دش/زهش/سوي", "٦٠") even in the English UI. We
-// default `lang` to the active app locale for these types so the field always
-// matches the chosen language. An explicit `lang` prop still wins.
+// `lang`. The owner's rule: NUMBERS are always Western digits (0-9) and DATES
+// always show a clean Western format (dd/mm/yyyy) — REGARDLESS of UI language.
+// So for these types we pin `lang` to a Western-digit locale (en-GB) ALWAYS,
+// even when the UI is Arabic. This makes the native number spinner show 0-9 and
+// the date picker show dd/mm/yyyy in both locales. Labels/dir/styling stay as-is
+// (Arabic pages remain RTL). An explicit `lang` prop still wins.
+const WESTERN_INPUT_LANG = "en-GB"; // Latin digits + dd/mm/yyyy date format
 const LOCALE_SENSITIVE_TYPES = new Set([
   "date",
   "datetime-local",
@@ -20,9 +22,8 @@ const LOCALE_SENSITIVE_TYPES = new Set([
 
 const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
   ({ className, type, lang, ...props }, ref) => {
-    const locale = useLocale();
     const resolvedLang =
-      lang ?? (type && LOCALE_SENSITIVE_TYPES.has(type) ? locale : undefined);
+      lang ?? (type && LOCALE_SENSITIVE_TYPES.has(type) ? WESTERN_INPUT_LANG : undefined);
     return (
       <input
         type={type}

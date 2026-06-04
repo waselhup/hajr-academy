@@ -102,7 +102,7 @@ export default async function StudentClassesPage({
       teacherName:
         locale === "ar" && l.teacher.user.nameAr ? l.teacher.user.nameAr : l.teacher.user.name,
       scheduleDays: [] as string[],
-      timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", {
+      timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
         hour: "2-digit",
         minute: "2-digit",
       }),

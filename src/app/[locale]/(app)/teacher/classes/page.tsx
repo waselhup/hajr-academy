@@ -93,7 +93,7 @@ export default async function TeacherClassesPage({
       cohortCode: l.id.slice(0, 8).toUpperCase(),
       programName: locale === "ar" ? "خصوصي" : "Private",
       scheduleDays: [] as string[],
-      timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA" : "en-US", {
+      timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
         hour: "2-digit",
         minute: "2-digit",
       }),
