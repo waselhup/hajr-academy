@@ -576,7 +576,16 @@
     "availabilityDays": "Available days",
     "availabilityHours": "Available hours",
     "preview": "Preview",
-    "previewTitle": "Teacher details"
+    "previewTitle": "Teacher details",
+    "salaryBaseUsd": "Base salary (USD)",
+    "hourlyRateUsd": "Hourly rate (USD)",
+    "filterBySpec": "Filter by specialization",
+    "spec_ALL": "All",
+    "spec_STEP": "STEP",
+    "spec_IELTS": "IELTS",
+    "spec_UNIVERSITY_PREP": "University prep",
+    "spec_GENERAL": "General",
+    "spec_BUSINESS": "Business"
   },
   "Parents": {
     "title": "Parents",

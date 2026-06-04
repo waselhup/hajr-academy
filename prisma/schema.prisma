@@ -65,6 +65,10 @@ model TeacherProfile {
   gender          Gender?
   salaryBase      Decimal  @default(0) @db.Decimal(10, 2)
   hourlyRate      Decimal  @default(0) @db.Decimal(10, 2)
+  // Owner batch 2 — F1: manual USD equivalents shown alongside SAR. Nullable;
+  // null = not entered (NOT a live FX rate — admin types these by hand).
+  salaryBaseUsd   Decimal? @db.Decimal(10, 2)
+  hourlyRateUsd   Decimal? @db.Decimal(10, 2)
   zoomHostEmail   String?
   rating          Decimal? @db.Decimal(3, 2)
   totalStudents   Int      @default(0)

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,6 +125,9 @@ export function ClassFormDialog({
           </Field>
           <Field label={t("Classes.timeSlot")} error={errors.timeSlot?.message}>
             <Input type="time" dir="ltr" {...register("timeSlot")} />
+            <span className="mt-1 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />GMT+3 · Asia/Riyadh
+            </span>
           </Field>
           <Field label={t("Classes.duration")}><Input type="number" {...register("durationMinutes")} /></Field>
           <Field label={t("Classes.maxStudents")}><Input type="number" {...register("maxStudents")} /></Field>

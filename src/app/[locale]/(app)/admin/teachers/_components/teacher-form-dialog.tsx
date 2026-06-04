@@ -31,6 +31,8 @@ const schema = z.object({
   specializations: z.array(z.enum(SPEC)).default([]),
   salaryBase: z.coerce.number().nonnegative().default(0),
   hourlyRate: z.coerce.number().nonnegative().default(0),
+  salaryBaseUsd: z.coerce.number().nonnegative().optional(),
+  hourlyRateUsd: z.coerce.number().nonnegative().optional(),
   zoomHostEmail: z.union([z.string().email(), z.literal("")]).optional(),
   ageGroup: z.string().optional(),
   availabilityDays: z.array(z.enum(DAYS)).default([]),
@@ -53,6 +55,8 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           specializations: existing.profile?.specializations ?? [],
           salaryBase: Number(existing.profile?.salaryBase ?? 0),
           hourlyRate: Number(existing.profile?.hourlyRate ?? 0),
+          salaryBaseUsd: existing.profile?.salaryBaseUsd != null ? Number(existing.profile.salaryBaseUsd) : undefined,
+          hourlyRateUsd: existing.profile?.hourlyRateUsd != null ? Number(existing.profile.hourlyRateUsd) : undefined,
           zoomHostEmail: existing.profile?.zoomHostEmail ?? "",
           ageGroup: existing.profile?.ageGroup ?? "",
           availabilityDays: existing.profile?.availabilityDays ?? [],
@@ -74,7 +78,12 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
 
   const onSubmit = (data: FormData) => {
     startTransition(async () => {
-      const payload = { ...data, zoomHostEmail: data.zoomHostEmail || null };
+      const payload = {
+        ...data,
+        zoomHostEmail: data.zoomHostEmail || null,
+        salaryBaseUsd: Number.isFinite(data.salaryBaseUsd as number) ? data.salaryBaseUsd : null,
+        hourlyRateUsd: Number.isFinite(data.hourlyRateUsd as number) ? data.hourlyRateUsd : null,
+      };
       const res = mode === "create"
         ? await createTeacherAction(payload as any)
         : await updateTeacherAction({ id: existing.id, ...payload } as any);
@@ -102,7 +111,9 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
             <Input dir="ltr" placeholder="05XXXXXXXX" {...register("phone")} />
           </Field>
           <Field label={t("Teachers.salaryBase")}><Input type="number" step="50" {...register("salaryBase")} /></Field>
+          <Field label={t("Teachers.salaryBaseUsd")}><Input type="number" step="50" dir="ltr" placeholder="USD" {...register("salaryBaseUsd")} /></Field>
           <Field label={t("AdminPay.rateLabel")}><Input type="number" step="5" {...register("hourlyRate")} /></Field>
+          <Field label={t("Teachers.hourlyRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("hourlyRateUsd")} /></Field>
           <Field label={t("Teachers.zoomHostEmail")}><Input type="email" {...register("zoomHostEmail")} /></Field>
           <div className="sm:col-span-2">
             <Label>{t("Teachers.specializations")}</Label>

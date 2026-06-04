@@ -7,6 +7,12 @@ export function fmtSAR(n: number | string, locale: "ar" | "en" = "ar"): string {
   return locale === "ar" ? `${formatted} ر.س` : `SAR ${formatted}`;
 }
 
+export function fmtUSD(n: number | string, locale: "ar" | "en" = "ar"): string {
+  const num = Number(n);
+  const formatted = num.toLocaleString("en-US", { maximumFractionDigits: 2 });
+  return locale === "ar" ? `${formatted} $` : `$${formatted}`;
+}
+
 export function fmtRiyadh(d: Date | string, pattern = "yyyy-MM-dd HH:mm"): string {
   return formatInTimeZone(new Date(d), "Asia/Riyadh", pattern);
 }

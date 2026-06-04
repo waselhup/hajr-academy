@@ -21,6 +21,8 @@ const createSchema = z.object({
   specializations: z.array(z.enum(SPEC_VALUES)).default([]),
   salaryBase: z.number().nonnegative().default(0),
   hourlyRate: z.number().nonnegative().default(0),
+  salaryBaseUsd: z.number().nonnegative().optional().nullable(),
+  hourlyRateUsd: z.number().nonnegative().optional().nullable(),
   zoomHostEmail: z.string().email().optional().nullable(),
   ageGroup: z.string().optional().nullable(),
   availabilityDays: z.array(z.enum(DAY_VALUES)).default([]),
@@ -58,6 +60,8 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
           specializations: parsed.data.specializations,
           salaryBase: parsed.data.salaryBase,
           hourlyRate: parsed.data.hourlyRate,
+          salaryBaseUsd: parsed.data.salaryBaseUsd ?? null,
+          hourlyRateUsd: parsed.data.hourlyRateUsd ?? null,
           zoomHostEmail: parsed.data.zoomHostEmail ?? null,
           ageGroup: parsed.data.ageGroup ?? null,
           availabilityDays: parsed.data.availabilityDays,
@@ -91,6 +95,8 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   if (patch.specializations) profilePatch.specializations = patch.specializations;
   if (patch.salaryBase !== undefined) profilePatch.salaryBase = patch.salaryBase;
   if (patch.hourlyRate !== undefined) profilePatch.hourlyRate = patch.hourlyRate;
+  if (patch.salaryBaseUsd !== undefined) profilePatch.salaryBaseUsd = patch.salaryBaseUsd;
+  if (patch.hourlyRateUsd !== undefined) profilePatch.hourlyRateUsd = patch.hourlyRateUsd;
   if (patch.zoomHostEmail !== undefined) profilePatch.zoomHostEmail = patch.zoomHostEmail;
   if (patch.ageGroup !== undefined) profilePatch.ageGroup = patch.ageGroup;
   if (patch.availabilityDays !== undefined) profilePatch.availabilityDays = patch.availabilityDays;

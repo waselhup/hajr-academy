@@ -576,7 +576,16 @@
     "availabilityDays": "الأيام المتاحة",
     "availabilityHours": "الساعات المتاحة",
     "preview": "معاينة",
-    "previewTitle": "تفاصيل المعلم"
+    "previewTitle": "تفاصيل المعلم",
+    "salaryBaseUsd": "الراتب الأساسي (دولار)",
+    "hourlyRateUsd": "الأجر بالساعة (دولار)",
+    "filterBySpec": "تصفية حسب التخصص",
+    "spec_ALL": "الكل",
+    "spec_STEP": "اختبار STEP",
+    "spec_IELTS": "آيلتس",
+    "spec_UNIVERSITY_PREP": "التحضير الجامعي",
+    "spec_GENERAL": "عام",
+    "spec_BUSINESS": "الأعمال"
   },
   "Parents": {
     "title": "أولياء الأمور",

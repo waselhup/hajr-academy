@@ -9,13 +9,14 @@ const PAGE_SIZE = 20;
 export default async function AdminTeachersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; status?: string; page?: string }>;
+  searchParams: Promise<{ q?: string; status?: string; page?: string; spec?: string }>;
 }) {
   await requireRole("ADMIN", "SUPER_ADMIN");
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const q = (sp.q ?? "").trim();
   const status = sp.status;
+  const spec = sp.spec;
 
   const where: any = { role: "TEACHER" };
   if (q) {
@@ -27,6 +28,7 @@ export default async function AdminTeachersPage({
   }
   if (status === "active") where.isActive = true;
   if (status === "inactive") where.isActive = false;
+  if (spec) where.teacherProfile = { is: { specializations: { has: spec } } };
 
   let total = 0;
   let data: any[] = [];
@@ -58,6 +60,8 @@ export default async function AdminTeachersPage({
             specializations: u.teacherProfile.specializations,
             salaryBase: u.teacherProfile.salaryBase.toString(),
             hourlyRate: u.teacherProfile.hourlyRate.toString(),
+            salaryBaseUsd: u.teacherProfile.salaryBaseUsd?.toString() ?? null,
+            hourlyRateUsd: u.teacherProfile.hourlyRateUsd?.toString() ?? null,
             zoomHostEmail: u.teacherProfile.zoomHostEmail,
             ageGroup: u.teacherProfile.ageGroup,
             availabilityDays: u.teacherProfile.availabilityDays,

@@ -17,6 +17,7 @@ export default async function AdminClassesPage({
     day?: string;
     page?: string;
     tab?: string;
+    range?: string;
   }>;
 }) {
   await requireRole("ADMIN", "SUPER_ADMIN");
@@ -24,6 +25,15 @@ export default async function AdminClassesPage({
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const q = (sp.q ?? "").trim();
   const initialTab = sp.tab === "attendance" ? "attendance" : "classes";
+
+  // Attendance range window (default: last 30 days)
+  const rangeParam =
+    sp.range === "week" || sp.range === "quarter" || sp.range === "year"
+      ? sp.range
+      : "month";
+  const RANGE_DAYS: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 };
+  const rangeDays = RANGE_DAYS[rangeParam];
+  const RANGE_TAKE: Record<string, number> = { week: 50, month: 60, quarter: 120, year: 365 };
 
   const where: any = {};
   if (q) {
@@ -67,11 +77,11 @@ export default async function AdminClassesPage({
         where: { active: true },
         include: { user: { select: { name: true, nameAr: true } } },
       }),
-      // Last 30 days of sessions with attendance counts
+      // Sessions within the selected attendance range, with attendance counts
       prisma.classSession.findMany({
         where: {
           scheduledDate: {
-            gte: new Date(Date.now() - 30 * 86400_000),
+            gte: new Date(Date.now() - rangeDays * 86400_000),
           },
           status: { in: ["COMPLETED", "LIVE"] },
         },
@@ -91,7 +101,7 @@ export default async function AdminClassesPage({
           },
         },
         orderBy: { scheduledDate: "desc" },
-        take: 30,
+        take: RANGE_TAKE[rangeParam],
       }),
     ]);
     total = _total;
@@ -167,6 +177,7 @@ export default async function AdminClassesPage({
         nameAr: t.user.nameAr,
       }))}
       attendanceSummary={attendanceSummary}
+      attendanceRange={rangeParam}
     />
   );
 }

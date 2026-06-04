@@ -130,11 +130,24 @@ export function EventCreateForm({ teachers, locale }: Props) {
       </div>
       <div>
         <Label>{isAr ? "الحد الأدنى للمستوى (CEFR)" : "Min level (CEFR)"}</Label>
-        <Input
-          placeholder="A2 / B1 / B2 / C1"
+        <select
+          className="w-full border border-hajr-border rounded-md p-2 min-h-[44px] bg-white"
           value={form.minLevel}
           onChange={(e) => setForm({ ...form, minLevel: e.target.value })}
-        />
+        >
+          <option value="">{isAr ? "كل المستويات" : "All levels"}</option>
+          <option value="A1">{isAr ? "مبتدئ A1" : "Beginner A1"}</option>
+          <option value="A2">{isAr ? "ابتدائي A2" : "Elementary A2"}</option>
+          <option value="B1">{isAr ? "متوسط B1" : "Intermediate B1"}</option>
+          <option value="B2">{isAr ? "فوق المتوسط B2" : "Upper-Intermediate B2"}</option>
+          <option value="C1">{isAr ? "متقدم C1" : "Advanced C1"}</option>
+          <option value="C2">{isAr ? "إتقان C2" : "Mastery C2"}</option>
+        </select>
+        <p className="text-xs text-hajr-muted mt-1">
+          {isAr
+            ? "يحدد أدنى مستوى يمكنه الانضمام."
+            : "Sets the minimum level allowed to join."}
+        </p>
       </div>
       <div>
         <Label>{isAr ? "المدرّب المضيف" : "Host teacher"}</Label>

@@ -23,7 +23,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { TeacherFormDialog } from "./teacher-form-dialog";
 import { deleteTeacherAction, toggleTeacherActiveAction } from "../../_actions/teachers";
-import { fmtSAR } from "@/lib/format";
+import { fmtSAR, fmtUSD } from "@/lib/format";
+
+const SPEC_VALUES = ["STEP", "IELTS", "UNIVERSITY_PREP", "GENERAL", "BUSINESS"] as const;
 
 type Row = {
   id: string; name: string; nameAr: string | null; email: string; phone: string | null;
@@ -34,6 +36,8 @@ type Row = {
     specializations: string[];
     salaryBase: string;
     hourlyRate?: string;
+    salaryBaseUsd?: string | null;
+    hourlyRateUsd?: string | null;
     zoomHostEmail: string | null;
     ageGroup: string | null;
     availabilityDays: string[];
@@ -66,6 +70,14 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
     }, 300);
   }
 
+  const activeSpec = sp.get("spec");
+  function setSpec(v: string | null) {
+    const p = new URLSearchParams(sp.toString());
+    if (v) p.set("spec", v); else p.delete("spec");
+    p.delete("page");
+    router.push(`${pathname}?${p.toString()}`);
+  }
+
   const pages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
@@ -82,10 +94,37 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
         </Button>
       </div>
 
-      <Card className="p-3">
-        <div className="relative w-64">
+      <Card className="space-y-3 p-3">
+        <div className="relative w-64 max-w-full">
           <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input defaultValue={sp.get("q") ?? ""} placeholder={t("Common.search")} className="ps-9" onChange={(e) => debouncedQ(e.target.value)} />
+        </div>
+        <div className="space-y-1.5">
+          <div className="text-xs font-medium text-muted-foreground">{t("Teachers.filterBySpec")}</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => setSpec(null)}
+              aria-pressed={!activeSpec}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${!activeSpec ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
+            >
+              {t("Teachers.spec_ALL")}
+            </button>
+            {SPEC_VALUES.map((s) => {
+              const active = activeSpec === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setSpec(active ? null : s)}
+                  aria-pressed={active}
+                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground hover:bg-muted"}`}
+                >
+                  {t(("Teachers.spec_" + s) as any)}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </Card>
 
@@ -126,9 +165,13 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
                     {r.profile?.specializations.map((s) => <Badge key={s} variant="info">{s}</Badge>)}
                   </div>
                 </TableCell>
-                <TableCell className="num">{r.profile ? fmtSAR(r.profile.salaryBase, locale as "ar" | "en") : "—"}</TableCell>
+                <TableCell className="num">
+                  {r.profile ? fmtSAR(r.profile.salaryBase, locale as "ar" | "en") : "—"}
+                  {r.profile?.salaryBaseUsd ? <span className="block text-xs text-muted-foreground">{fmtUSD(r.profile.salaryBaseUsd, locale as "ar" | "en")}</span> : null}
+                </TableCell>
                 <TableCell className="num">
                   {r.profile?.hourlyRate ? fmtSAR(r.profile.hourlyRate, locale as "ar" | "en") : "—"}
+                  {r.profile?.hourlyRateUsd ? <span className="block text-xs text-muted-foreground">{fmtUSD(r.profile.hourlyRateUsd, locale as "ar" | "en")}</span> : null}
                 </TableCell>
                 <TableCell>
                   {r.profile?.rating ? (
@@ -251,9 +294,11 @@ function TeacherPreviewDialog({ row, onClose }: { row: Row; onClose: () => void 
           <div className="grid grid-cols-2 gap-3">
             <Row2 label={t("Teachers.salaryBase")}>
               <span className="num">{p ? fmtSAR(p.salaryBase, locale as "ar" | "en") : "—"}</span>
+              {p?.salaryBaseUsd ? <span className="block text-xs text-muted-foreground num">{fmtUSD(p.salaryBaseUsd, locale as "ar" | "en")}</span> : null}
             </Row2>
             <Row2 label={t("AdminPay.rateLabel")}>
               <span className="num">{p?.hourlyRate ? fmtSAR(p.hourlyRate, locale as "ar" | "en") : "—"}</span>
+              {p?.hourlyRateUsd ? <span className="block text-xs text-muted-foreground num">{fmtUSD(p.hourlyRateUsd, locale as "ar" | "en")}</span> : null}
             </Row2>
             <Row2 label={t("Teachers.rating")}>
               {p?.rating ? (

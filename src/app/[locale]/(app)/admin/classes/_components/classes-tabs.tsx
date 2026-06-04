@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ClipboardCheck, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ export function ClassesTabs({
   programs,
   teachers,
   attendanceSummary,
+  attendanceRange,
 }: {
   initialTab: "classes" | "attendance";
   classRows: any[];
@@ -42,6 +44,7 @@ export function ClassesTabs({
   programs: any[];
   teachers: any[];
   attendanceSummary: AttendanceSummaryRow[];
+  attendanceRange: string;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -81,7 +84,7 @@ export function ClassesTabs({
         </TabsContent>
 
         <TabsContent value="attendance" className="mt-4">
-          <AttendanceTab rows={attendanceSummary} locale={locale} />
+          <AttendanceTab rows={attendanceSummary} locale={locale} range={attendanceRange} />
         </TabsContent>
       </Tabs>
     </div>
@@ -91,11 +94,37 @@ export function ClassesTabs({
 function AttendanceTab({
   rows,
   locale,
+  range,
 }: {
   rows: AttendanceSummaryRow[];
   locale: string;
+  range: string;
 }) {
   const ar = locale === "ar";
+  const router = useRouter();
+  const sp = useSearchParams();
+  const pathname = usePathname();
+
+  const RANGES: { value: string; label: string }[] = [
+    { value: "week", label: ar ? "أسبوع" : "Week" },
+    { value: "month", label: ar ? "شهر" : "Month" },
+    { value: "quarter", label: ar ? "٣ أشهر" : "3 Months" },
+    { value: "year", label: ar ? "سنة" : "Year" },
+  ];
+  const setRange = (value: string) => {
+    const p = new URLSearchParams(sp.toString());
+    p.set("tab", "attendance");
+    p.set("range", value);
+    router.replace(`${pathname}?${p.toString()}`, { scroll: false });
+  };
+  const SUBTITLE: Record<string, string> = {
+    week: ar ? "آخر ٧ أيام" : "Last 7 days",
+    month: ar ? "آخر ٣٠ يوماً" : "Last 30 days",
+    quarter: ar ? "آخر ٣ أشهر" : "Last 3 months",
+    year: ar ? "آخر سنة" : "Last year",
+  };
+  const subtitle = (SUBTITLE[range] ?? SUBTITLE.month) + (ar ? " من الجلسات." : " of sessions.");
+
   const fmtN = (n: number) => {
     try {
       return ar ? Number(n).toLocaleString("ar-SA") : String(n);
@@ -121,21 +150,41 @@ function AttendanceTab({
     }
   };
 
+  const rangeToggle = (
+    <div className="flex flex-wrap gap-2">
+      {RANGES.map((r) => (
+        <Button
+          key={r.value}
+          type="button"
+          size="sm"
+          variant={range === r.value ? "default" : "outline"}
+          onClick={() => setRange(r.value)}
+        >
+          {r.label}
+        </Button>
+      ))}
+    </div>
+  );
+
   if (rows.length === 0) {
     return (
-      <Card>
-        <CardContent className="p-8 text-center text-sm text-muted-foreground">
-          {ar ? "لا توجد جلسات حديثة." : "No recent sessions."}
-        </CardContent>
-      </Card>
+      <div className="space-y-3">
+        {rangeToggle}
+        <Card>
+          <CardContent className="p-8 text-center text-sm text-muted-foreground">
+            {ar ? "لا توجد جلسات حديثة." : "No recent sessions."}
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   return (
     <div className="space-y-3">
+      {rangeToggle}
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <Calendar className="h-4 w-4" />
-        {ar ? "آخر ٣٠ يوماً من الجلسات." : "Last 30 days of sessions."}
+        {subtitle}
       </div>
       <div className="space-y-2">
         {rows.map((r) => {
