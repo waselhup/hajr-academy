@@ -31,7 +31,7 @@ export default async function CheckoutSuccessPage({
           <Clock className="mt-0.5 h-5 w-5 shrink-0 text-hajr-deep-navy" />
           <p className="text-sm text-hajr-body">
             {isAr
-              ? "خلال ٢٤ ساعة سَتصلك معلومات الدخول إلى المنصّة عبر الجوال أو البريد الإلكتروني."
+              ? "خلال 24 ساعة سَتصلك معلومات الدخول إلى المنصّة عبر الجوال أو البريد الإلكتروني."
               : "Within 24 hours, your platform login details will arrive via phone or email."}
           </p>
         </div>

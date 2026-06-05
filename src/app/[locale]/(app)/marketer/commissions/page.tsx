@@ -79,7 +79,7 @@ export default async function MarketerCommissionsPage({
                     <div className="text-right">
                       <div className="font-bold text-hajr-text">{fmtSar(c.amount.toString())} SAR</div>
                       <div className="text-xs text-hajr-muted">
-                        {(Number(c.rateApplied) * 100).toFixed(0)}% · {c.createdAt.toLocaleDateString(isAr ? "ar" : "en")}
+                        {(Number(c.rateApplied) * 100).toFixed(0)}% · {c.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                       </div>
                     </div>
                   </li>

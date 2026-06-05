@@ -23,7 +23,7 @@ export function LinkChildClient() {
   async function submit() {
     const clean = code.trim().toUpperCase();
     if (clean.length < 6) {
-      toast.error(isAr ? "أدخل رمز الدعوة المكوّن من ٦ خانات" : "Enter the 6-character code");
+      toast.error(isAr ? "أدخل رمز الدعوة المكوّن من 6 خانات" : "Enter the 6-character code");
       return;
     }
     setBusy(true);

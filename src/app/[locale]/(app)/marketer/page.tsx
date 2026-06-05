@@ -122,7 +122,7 @@ export default async function MarketerDashboardPage({
                     <span className="text-hajr-text">{studentName}</span>
                   </div>
                   <span className="text-xs text-hajr-muted">
-                    {r.createdAt.toLocaleDateString(isAr ? "ar" : "en")}
+                    {r.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                   </span>
                 </li>
               );

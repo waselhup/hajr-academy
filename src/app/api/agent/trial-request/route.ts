@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       message: "Trial request submitted successfully",
-      messageAr: "تم استلام طلبك بنجاح! سيتواصل معك فريقنا خلال ٢٤ ساعة.",
+      messageAr: "تم استلام طلبك بنجاح! سيتواصل معك فريقنا خلال 24 ساعة.",
       id: trial.id,
     });
   } catch (err) {

@@ -75,7 +75,7 @@ export function CheckoutForm({
       </h1>
       <p className="mt-1 text-sm text-hajr-muted">
         {isAr
-          ? "أدخل بيانات الطالب لإتمام الطلب. سيتواصل معك فريق هجر خلال ٢٤ ساعة."
+          ? "أدخل بيانات الطالب لإتمام الطلب. سيتواصل معك فريق هجر خلال 24 ساعة."
           : "Enter the student details to complete your order. The Hajr team will contact you within 24 hours."}
       </p>
 

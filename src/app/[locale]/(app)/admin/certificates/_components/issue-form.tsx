@@ -153,7 +153,7 @@ export function IssueForm({ students, locale }: Props) {
         />
       </div>
       <div>
-        <Label>{isAr ? "الدرجة (٠-١٠٠)" : "Score (0-100)"}</Label>
+        <Label>{isAr ? "الدرجة (0-100)" : "Score (0-100)"}</Label>
         <Input
           type="number"
           min={0}

@@ -68,7 +68,7 @@ export default async function MarketerReferralsPage({
                       </span>
                     </td>
                     <td className="px-4 py-3 text-xs text-hajr-muted">
-                      {r.createdAt.toLocaleDateString(isAr ? "ar" : "en")}
+                      {r.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                     </td>
                   </tr>
                 );

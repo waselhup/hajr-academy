@@ -96,7 +96,7 @@ export default async function AdminMarketerDetailPage({
                         : r.student.user.name
                       : r.contactEmail || "—"}
                   </div>
-                  <div className="text-xs text-hajr-muted">{r.createdAt.toLocaleDateString(isAr ? "ar" : "en")}</div>
+                  <div className="text-xs text-hajr-muted">{r.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}</div>
                 </div>
                 <span className={`text-xs ${r.converted ? "text-hajr-success" : "text-hajr-warning"}`}>
                   {r.converted ? (isAr ? "محوّل ✓" : "Converted ✓") : isAr ? "قيد الانتظار" : "Pending"}
@@ -118,7 +118,7 @@ export default async function AdminMarketerDetailPage({
                 <div>
                   <div className="text-hajr-text">{c.invoice.invoiceNumber}</div>
                   <div className="text-xs text-hajr-muted">
-                    {c.createdAt.toLocaleDateString(isAr ? "ar" : "en")} · {t(`status_${c.status}`)}
+                    {c.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")} · {t(`status_${c.status}`)}
                   </div>
                 </div>
                 <span className="font-medium text-hajr-text">{fmt(c.amount.toString())} SAR</span>

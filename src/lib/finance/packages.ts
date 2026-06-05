@@ -28,7 +28,7 @@ export const PACKAGES: Record<
     nameEn: "Essential Package",
     pricePerMonth: 250,
     sessionsPerMonth: 8,
-    featuresAr: ["٨ حصص جماعية شهرياً", "مواد تعليمية أساسية"],
+    featuresAr: ["8 حصص جماعية شهرياً", "مواد تعليمية أساسية"],
     featuresEn: ["8 group sessions / month", "Basic materials"],
     labAccess: false,
   },
@@ -39,7 +39,7 @@ export const PACKAGES: Record<
     pricePerMonth: 300,
     sessionsPerMonth: 12,
     featuresAr: [
-      "١٢ حصة جماعية شهرياً",
+      "12 حصة جماعية شهرياً",
       "الوصول إلى مختبر اللغة",
       "مواد ممارسة وتدريب",
     ],
@@ -57,7 +57,7 @@ export const PACKAGES: Record<
     pricePerMonth: 800,
     sessionsPerMonth: 16,
     featuresAr: [
-      "١٦ حصة فردية شهرياً",
+      "16 حصة فردية شهرياً",
       "الوصول إلى مختبر اللغة",
       "دعم ذو أولوية",
     ],
@@ -76,7 +76,7 @@ export const PACKAGES: Record<
     pricePerMonth: 600,
     sessionsPerMonth: 16,
     featuresAr: [
-      "١٦ حصة مكثفة شهرياً",
+      "16 حصة مكثفة شهرياً",
       "اختبارات تجريبية بأسلوب ستيب",
       "ملاحظات الخبراء",
     ],

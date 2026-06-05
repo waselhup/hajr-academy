@@ -83,7 +83,7 @@ export default async function AdminMarketersPage({
       {/* Leaderboard */}
       {topByEarned.length > 0 && (
         <section className="rounded-2xl bg-hajr-deep-navy p-5 text-white shadow-card">
-          <h2 className="mb-3 text-base font-semibold">{isAr ? "🏆 الأفضل أداءً (٩٠ يوم)" : "🏆 Top performers (90d)"}</h2>
+          <h2 className="mb-3 text-base font-semibold">{isAr ? "🏆 الأفضل أداءً (90 يوم)" : "🏆 Top performers (90d)"}</h2>
           <ol className="space-y-2">
             {topByEarned.map((m, i) => (
               <li key={m.id} className="flex items-center justify-between rounded-lg bg-white/5 px-3 py-2">
@@ -147,7 +147,7 @@ export default async function AdminMarketersPage({
                   <td className="px-4 py-3 text-hajr-text">{m._count.referrals}</td>
                   <td className="px-4 py-3 font-medium text-hajr-text">{fmt(m.totalEarned.toString())} SAR</td>
                   <td className="px-4 py-3 text-xs text-hajr-muted">
-                    {m.createdAt.toLocaleDateString(isAr ? "ar" : "en")}
+                    {m.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                   </td>
                   <td className="px-4 py-3 text-end">
                     <Link

@@ -85,9 +85,9 @@ async function runTick(): Promise<TickResult> {
     await notifyMany(recipients, {
       type: "CLASS_STARTING",
       title: `Reminder: ${s.class.name} in 24 hours`,
-      titleAr: `تذكير: ${s.class.nameAr ?? s.class.name} بعد ٢٤ ساعة`,
+      titleAr: `تذكير: ${s.class.nameAr ?? s.class.name} بعد 24 ساعة`,
       body: `Your class "${s.class.name}" starts in 24 hours.`,
-      bodyAr: `حصتك "${s.class.nameAr ?? s.class.name}" تبدأ خلال ٢٤ ساعة.`,
+      bodyAr: `حصتك "${s.class.nameAr ?? s.class.name}" تبدأ خلال 24 ساعة.`,
       channels: ["inApp", "email"],
       refType: "ClassSession",
       refId: s.id,

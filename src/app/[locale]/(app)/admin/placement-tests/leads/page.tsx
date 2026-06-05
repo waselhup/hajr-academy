@@ -30,7 +30,7 @@ export default async function AdminPlacementLeadsPage({
         </h1>
         <p className="text-sm text-hajr-muted">
           {isAr
-            ? "كل سطر يمثّل ضيفاً أكمل اختبار تحديد المستوى. تواصل معه ضمن ٢٤ ساعة."
+            ? "كل سطر يمثّل ضيفاً أكمل اختبار تحديد المستوى. تواصل معه ضمن 24 ساعة."
             : "Each row is a guest who completed a placement test. Reach out within 24 hours."}
         </p>
       </div>
@@ -55,7 +55,7 @@ export default async function AdminPlacementLeadsPage({
                 <td className="px-3 py-2 text-xs">{l.phone || "—"}</td>
                 <td className="px-3 py-2 max-w-md whitespace-pre-wrap text-xs text-hajr-muted">{l.message}</td>
                 <td className="px-3 py-2 text-xs text-hajr-muted">
-                  {l.createdAt.toLocaleDateString(isAr ? "ar" : "en")}
+                  {l.createdAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                 </td>
                 <td className="px-3 py-2">
                   <span

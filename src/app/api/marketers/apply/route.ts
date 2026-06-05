@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
     await sendEmail({
       to: email,
       subject: "Hajr Academy — Marketer application received / طلب مسوّق تم استلامه",
-      html: `<p>Hello ${name},</p><p>We received your marketer application. Our team will review it within 48 hours.</p><p>مرحباً ${name}، تم استلام طلبك للانضمام كمسوّق. سنراجعه خلال ٤٨ ساعة.</p>`,
+      html: `<p>Hello ${name},</p><p>We received your marketer application. Our team will review it within 48 hours.</p><p>مرحباً ${name}، تم استلام طلبك للانضمام كمسوّق. سنراجعه خلال 48 ساعة.</p>`,
       text: `Hello ${name}, we received your marketer application.`,
     }).catch(() => {});
 

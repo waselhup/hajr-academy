@@ -109,7 +109,7 @@ export default async function AdminPlacementTestsPage({
                   )}
                 </td>
                 <td className="px-3 py-2 text-xs text-hajr-muted">
-                  {a.startedAt.toLocaleDateString(isAr ? "ar" : "en")}
+                  {a.startedAt.toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                 </td>
               </tr>
             ))}

@@ -122,7 +122,7 @@ export function CommissionsAdminClient({ status, locale, commissions }: Props) {
                   {fmt(c.amount)} SAR <span className="text-xs text-hajr-muted">({(c.rate * 100).toFixed(0)}%)</span>
                 </td>
                 <td className="px-3 py-3 text-xs text-hajr-muted">
-                  {new Date(c.createdAt).toLocaleDateString(isAr ? "ar" : "en")}
+                  {new Date(c.createdAt).toLocaleDateString(isAr ? "ar-SA-u-nu-latn" : "en-GB")}
                 </td>
                 <td className="px-3 py-3 text-end">
                   {status === "PENDING" && (

@@ -108,7 +108,7 @@ function AttendanceTab({
   const RANGES: { value: string; label: string }[] = [
     { value: "week", label: ar ? "أسبوع" : "Week" },
     { value: "month", label: ar ? "شهر" : "Month" },
-    { value: "quarter", label: ar ? "٣ أشهر" : "3 Months" },
+    { value: "quarter", label: ar ? "3 أشهر" : "3 Months" },
     { value: "year", label: ar ? "سنة" : "Year" },
   ];
   const setRange = (value: string) => {
@@ -118,9 +118,9 @@ function AttendanceTab({
     router.replace(`${pathname}?${p.toString()}`, { scroll: false });
   };
   const SUBTITLE: Record<string, string> = {
-    week: ar ? "آخر ٧ أيام" : "Last 7 days",
-    month: ar ? "آخر ٣٠ يوماً" : "Last 30 days",
-    quarter: ar ? "آخر ٣ أشهر" : "Last 3 months",
+    week: ar ? "آخر 7 أيام" : "Last 7 days",
+    month: ar ? "آخر 30 يوماً" : "Last 30 days",
+    quarter: ar ? "آخر 3 أشهر" : "Last 3 months",
     year: ar ? "آخر سنة" : "Last year",
   };
   const subtitle = (SUBTITLE[range] ?? SUBTITLE.month) + (ar ? " من الجلسات." : " of sessions.");
