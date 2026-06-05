@@ -2540,3 +2540,80 @@ model PasswordResetToken {
   @@index([userId])
   @@index([expiresAt])
 }
+
+// ─────────────────────── PUBLIC FEEDBACK SURVEY ───────────────────────
+//
+// A shareable, NO-AUTH testimonial/feedback form (/survey). Anyone with the
+// link — typically a student or parent — rates their experience and a teacher
+// (free-typed name, so it works for any teacher on or off platform) and may
+// optionally leave a written testimonial, a recorded VOICE message, and/or a
+// recorded VIDEO. Media lives in the private `survey-media` bucket; only the
+// storage PATH is persisted here and admins fetch a short-lived signed URL.
+//
+// PDPL: name/contact are OPTIONAL and never required to submit. Raw IP is
+// never stored — only a short SHA-256 hash (ipHash) for light abuse triage.
+// `consentTestimonial` records explicit permission to use the feedback (incl.
+// any recording) in Hajr marketing; submitting WITHOUT consent is allowed.
+model FeedbackSurveyResponse {
+  id String @id @default(uuid())
+
+  // Who is giving feedback, and about whom.
+  respondentType  SurveyRespondentType
+  teacherName     String // free text — any teacher, on-platform or not
+  studentName     String? // optional free text
+  programOrClass  String? // optional free text
+
+  // Short written questions.
+  ratingOverall     Int // 1–5, REQUIRED
+  qualityRating     Int? // 1–5 teaching quality
+  commsRating       Int? // 1–5 communication
+  improved          SurveyImproved? // did the student improve
+  recommendRating   Int? // 1–5 would recommend
+  likedMost         String? @db.Text
+  improveSuggestion String? @db.Text
+
+  // Rich feedback (all optional). Media URLs hold the private storage PATH.
+  textTestimonial String?            @db.Text
+  voiceUrl        String? // survey-media path (audio)
+  videoUrl        String? // survey-media path (video)
+  mediaKind       SurveyMediaKind? // dominant media kind present, for filtering
+
+  // Optional respondent contact (PDPL: never required).
+  respondentName    String?
+  respondentContact String? // phone or email, free text
+
+  // Consent + housekeeping.
+  consentTestimonial Boolean      @default(false) // use feedback/media in marketing
+  consentContact     Boolean      @default(false) // may contact me
+  locale             String       @default("ar") // ar | en — locale used to submit
+  ipHash             String? // short SHA-256 of IP (abuse triage only)
+  status             SurveyStatus @default(NEW) // admin triage
+  createdAt          DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([respondentType, createdAt])
+  @@index([ratingOverall])
+}
+
+enum SurveyRespondentType {
+  STUDENT
+  PARENT
+}
+
+enum SurveyImproved {
+  YES
+  SOME
+  NO
+}
+
+enum SurveyMediaKind {
+  AUDIO
+  VIDEO
+}
+
+enum SurveyStatus {
+  NEW
+  REVIEWED
+  FEATURED
+  ARCHIVED
+}

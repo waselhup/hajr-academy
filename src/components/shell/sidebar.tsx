@@ -64,6 +64,7 @@ import {
   Gauge,
   Trophy,
   Star,
+  MessageSquareHeart,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HajrLogo } from "@/components/brand/logo";
@@ -165,6 +166,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.messages", href: "/messages", icon: MessageSquare },
       { key: "Nav.adminChats", href: "/admin/communications/chats", icon: MessagesSquare },
       { key: "Nav.contactRequests", href: "/admin/communications/contacts", icon: Inbox },
+      { key: "Nav.feedback", href: "/admin/feedback", icon: MessageSquareHeart },
       { key: "Nav.commsTemplates", href: "/admin/communications/templates", icon: FileText },
       { key: "Nav.commsLogs", href: "/admin/communications/logs", icon: ScrollText },
       { key: "Nav.commsHub", href: "/admin/communications", icon: BarChart3 },
