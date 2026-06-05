@@ -2495,10 +2495,10 @@
     "step3": "Camera",
     "step4": "Latency",
     "introBlurb": "Let's make sure your device and network are ready before class.",
-    "introList1": "Download ≥ 5 Mbps",
+    "introList1": "Download ≥ 3 Mbps",
     "introList2": "Microphone working (speak for 3 seconds)",
     "introList3": "Camera working (visual confirmation)",
-    "introList4": "Latency under 200 ms",
+    "introList4": "Latency 450 ms or below",
     "startCheck": "Start check",
     "running": "Running...",
     "runSpeed": "Run speed test",
@@ -2756,11 +2756,21 @@
         "label": "What's your weekly availability?",
         "hint": "Days and time ranges that work for you."
       },
+      "availabilityGmt3": {
+        "label": "Availability (hours, GMT+3)",
+        "hint": "Tick the days you can teach and give a clear time range. Times are GMT+3 (Asia/Riyadh)."
+      },
       "creative": {
         "label": "Anything else you'd like us to know?",
         "hint": "Express yourself freely — this field is optional."
       }
     },
+    "gmt3Label": "GMT+3 · Asia/Riyadh",
+    "availDays": "Days you're free",
+    "availFrom": "From",
+    "availTo": "To",
+    "availNote": "Note (optional)",
+    "availNoteHint": "e.g. flexible after 6:00 PM, or 4:00 PM – 9:00 PM",
     "filterGender": "Gender",
     "filterAnyGender": "Any gender",
     "genderMale": "Male",

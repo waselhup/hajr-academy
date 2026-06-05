@@ -29,7 +29,11 @@ export const VOICE_MAX_BYTES = 10 * 1024 * 1024; // 10 MB — a 60s webm/opus cl
  * defaults but the teacher may express freely in the open field. Kept here so
  * the apply form (render) and the admin review (labels) never drift.
  */
-export type SurveyQuestionKind = "long" | "short";
+// "gmt3" renders as a structured, timezone-explicit availability picker (day
+// checkboxes + from/to time) that the apply form serialises into a single clean
+// Western-digit string. Admin review + the teacher's read-only view treat it
+// like any other answer (label + text), so it surfaces everywhere for free.
+export type SurveyQuestionKind = "long" | "short" | "gmt3";
 export interface SurveyQuestion {
   id: string;
   kind: SurveyQuestionKind;
@@ -39,10 +43,17 @@ export interface SurveyQuestion {
   required: boolean;
 }
 
+/** Reserved answersJson key for the structured GMT+3 availability string. */
+export const AVAILABILITY_GMT3_KEY = "availabilityGmt3";
+
 export const SURVEY_QUESTIONS: SurveyQuestion[] = [
   { id: "philosophy", kind: "long", labelKey: "Openings.survey.philosophy.label", hintKey: "Openings.survey.philosophy.hint", required: true },
   { id: "activity", kind: "long", labelKey: "Openings.survey.activity.label", hintKey: "Openings.survey.activity.hint", required: true },
   { id: "availability", kind: "short", labelKey: "Openings.survey.availability.label", hintKey: "Openings.survey.availability.hint", required: true },
+  // Structured, timezone-explicit availability (additive; optional — never blocks
+  // submit). Stored in answersJson[AVAILABILITY_GMT3_KEY] alongside the free-text
+  // "availability" answer above, which is intentionally kept.
+  { id: AVAILABILITY_GMT3_KEY, kind: "gmt3", labelKey: "Openings.survey.availabilityGmt3.label", hintKey: "Openings.survey.availabilityGmt3.hint", required: false },
   { id: "creative", kind: "long", labelKey: "Openings.survey.creative.label", hintKey: "Openings.survey.creative.hint", required: false },
 ];
 

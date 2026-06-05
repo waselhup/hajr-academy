@@ -9,15 +9,28 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Mic, Square, RotateCcw, Loader2, Info } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { TimeField } from "@/components/ui/western-fields";
+import { Mic, Square, RotateCcw, Loader2, Info, Clock } from "lucide-react";
 
 export interface ApplyQuestion {
   id: string;
-  kind: "long" | "short";
+  kind: "long" | "short" | "gmt3";
   label: string;
   hint?: string;
   required: boolean;
 }
+
+/** Day order used by the GMT+3 availability picker (mirrors the class form). */
+const AVAIL_DAYS = [
+  "SUNDAY",
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+] as const;
 
 interface Props {
   openingId: string;
@@ -230,39 +243,53 @@ export function ApplyForm({ openingId, locale, questions, maxSeconds }: Props) {
       </div>
 
       {/* Survey questions */}
-      {questions.map((q) => (
-        <div key={q.id} className="space-y-1.5">
-          <Label htmlFor={`q-${q.id}`}>
-            {q.label}
-            {q.required && <span className="text-hajr-rose"> *</span>}
-          </Label>
-          {q.kind === "long" ? (
-            <Textarea
-              id={`q-${q.id}`}
-              rows={4}
-              required={q.required}
-              value={answers[q.id] ?? ""}
-              onChange={(e) =>
-                setAnswers((a) => ({ ...a, [q.id]: e.target.value }))
-              }
-              placeholder={q.hint}
+      {questions.map((q) => {
+        // Structured, timezone-explicit availability picker (own card so the
+        // GMT+3 label + day/time controls read clearly). Optional by design.
+        if (q.kind === "gmt3") {
+          return (
+            <GmtAvailabilityField
+              key={q.id}
+              label={q.label}
+              hint={q.hint}
+              onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))}
             />
-          ) : (
-            <Input
-              id={`q-${q.id}`}
-              required={q.required}
-              value={answers[q.id] ?? ""}
-              onChange={(e) =>
-                setAnswers((a) => ({ ...a, [q.id]: e.target.value }))
-              }
-              placeholder={q.hint}
-            />
-          )}
-          {q.hint && (
-            <p className="text-xs text-muted-foreground">{q.hint}</p>
-          )}
-        </div>
-      ))}
+          );
+        }
+        return (
+          <div key={q.id} className="space-y-1.5">
+            <Label htmlFor={`q-${q.id}`}>
+              {q.label}
+              {q.required && <span className="text-hajr-rose"> *</span>}
+            </Label>
+            {q.kind === "long" ? (
+              <Textarea
+                id={`q-${q.id}`}
+                rows={4}
+                required={q.required}
+                value={answers[q.id] ?? ""}
+                onChange={(e) =>
+                  setAnswers((a) => ({ ...a, [q.id]: e.target.value }))
+                }
+                placeholder={q.hint}
+              />
+            ) : (
+              <Input
+                id={`q-${q.id}`}
+                required={q.required}
+                value={answers[q.id] ?? ""}
+                onChange={(e) =>
+                  setAnswers((a) => ({ ...a, [q.id]: e.target.value }))
+                }
+                placeholder={q.hint}
+              />
+            )}
+            {q.hint && (
+              <p className="text-xs text-muted-foreground">{q.hint}</p>
+            )}
+          </div>
+        );
+      })}
 
       {/* Voice intro (optional) */}
       <Card className="border-hajr-rose/30 bg-hajr-rose/5">
@@ -357,5 +384,139 @@ export function ApplyForm({ openingId, locale, questions, maxSeconds }: Props) {
         )}
       </Button>
     </form>
+  );
+}
+
+/**
+ * Structured GMT+3 availability picker. Teachers tick the days they're free and
+ * give a from–to time (24-hour, Western digits via TimeField), plus an optional
+ * note. It serialises everything into ONE clean string that flows into the
+ * application's answersJson, so the admin review + the teacher's own read-only
+ * view render it like any other answer — no schema change, no extra plumbing.
+ * Entirely OPTIONAL: an empty picker emits "" and never blocks submit.
+ */
+function GmtAvailabilityField({
+  label,
+  hint,
+  onChange,
+}: {
+  label: string;
+  hint?: string;
+  onChange: (v: string) => void;
+}) {
+  const t = useTranslations();
+  const [days, setDays] = useState<string[]>([]);
+  const [from, setFrom] = useState("");
+  const [to, setTo] = useState("");
+  const [note, setNote] = useState("");
+
+  // Re-serialise whenever any part changes. Kept human-readable and explicitly
+  // timezone-tagged so there is zero ambiguity for the admin reading it later.
+  const serialise = useCallback(
+    (nextDays: string[], nextFrom: string, nextTo: string, nextNote: string) => {
+      const dayNames = AVAIL_DAYS.filter((d) => nextDays.includes(d)).map((d) =>
+        t(`Days.${d}` as never)
+      );
+      const parts: string[] = [];
+      if (dayNames.length) parts.push(dayNames.join(", "));
+      if (nextFrom && nextTo) parts.push(`${nextFrom}–${nextTo}`);
+      else if (nextFrom) parts.push(`${t("Openings.availFrom")} ${nextFrom}`);
+      else if (nextTo) parts.push(`${t("Openings.availTo")} ${nextTo}`);
+      const trimmedNote = nextNote.trim();
+      if (trimmedNote) parts.push(trimmedNote);
+      // Only tag with the timezone when the teacher actually entered something.
+      if (parts.length === 0) return "";
+      return `${parts.join(" · ")} (${t("Openings.gmt3Label")})`;
+    },
+    [t]
+  );
+
+  const update = (
+    next: Partial<{ days: string[]; from: string; to: string; note: string }>
+  ) => {
+    const d = next.days ?? days;
+    const f = next.from ?? from;
+    const tt = next.to ?? to;
+    const n = next.note ?? note;
+    if (next.days) setDays(d);
+    if (next.from !== undefined) setFrom(f);
+    if (next.to !== undefined) setTo(tt);
+    if (next.note !== undefined) setNote(n);
+    onChange(serialise(d, f, tt, n));
+  };
+
+  const toggleDay = (d: string) =>
+    update({ days: days.includes(d) ? days.filter((x) => x !== d) : [...days, d] });
+
+  return (
+    <Card className="border-hajr-rose/30 bg-hajr-rose/5">
+      <CardContent className="space-y-3 p-4">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-semibold text-hajr-deep-navy">{label}</span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+              <Clock className="h-3 w-3" />
+              {t("Openings.gmt3Label")}
+            </span>
+          </div>
+          {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+        </div>
+
+        {/* Days */}
+        <div className="space-y-1.5">
+          <Label className="text-xs uppercase text-muted-foreground">
+            {t("Openings.availDays")}
+          </Label>
+          <div className="flex flex-wrap gap-3">
+            {AVAIL_DAYS.map((d) => (
+              <label key={d} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={days.includes(d)}
+                  onCheckedChange={() => toggleDay(d)}
+                />
+                {t(`Days.${d}` as never)}
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* From / To time (24-hour, Western digits) */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="avail-from" className="text-xs uppercase text-muted-foreground">
+              {t("Openings.availFrom")}
+            </Label>
+            <TimeField
+              id="avail-from"
+              value={from}
+              onChange={(e) => update({ from: e.target.value })}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="avail-to" className="text-xs uppercase text-muted-foreground">
+              {t("Openings.availTo")}
+            </Label>
+            <TimeField
+              id="avail-to"
+              value={to}
+              onChange={(e) => update({ to: e.target.value })}
+            />
+          </div>
+        </div>
+
+        {/* Optional free note */}
+        <div className="space-y-1.5">
+          <Label htmlFor="avail-note" className="text-xs uppercase text-muted-foreground">
+            {t("Openings.availNote")}
+          </Label>
+          <Input
+            id="avail-note"
+            value={note}
+            onChange={(e) => update({ note: e.target.value })}
+            placeholder={t("Openings.availNoteHint")}
+          />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
