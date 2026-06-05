@@ -44,6 +44,7 @@ model User {
   messagesReceived        Message[]                 @relation("MessagesReceived")
   notifications           Notification[]
   notificationPreferences NotificationPreference?
+  passwordResetTokens     PasswordResetToken[]
   auditLogs               AuditLog[]
   agentConversations      AgentConversation[]
   calendarEvents          CalendarEvent[]           @relation("UserCalendarEvents")
@@ -2522,4 +2523,20 @@ model TargetedRecordingViewer {
 
   @@unique([recordingId, userId])
   @@index([userId, viewedAt])
+}
+
+// Password reset: a single-use, time-limited token. Only the SHA-256 hash of
+// the token is stored; the raw token travels in the emailed reset link. Lookup
+// is by hash, so a DB read never reveals a usable token.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
 }
