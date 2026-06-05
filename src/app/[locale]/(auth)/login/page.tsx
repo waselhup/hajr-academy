@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { LoginForm } from "./login-form";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 
 export default async function LoginPage() {
   const t = await getTranslations("Auth");

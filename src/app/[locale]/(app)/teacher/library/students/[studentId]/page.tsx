@@ -20,8 +20,37 @@ export default async function TeacherLibraryStudentPage({
   params: Promise<{ locale: string; studentId: string }>;
 }) {
   const { locale, studentId } = await params;
-  await requireRole("TEACHER", "ADMIN", "SUPER_ADMIN");
+  const session = await requireRole("TEACHER", "ADMIN", "SUPER_ADMIN");
   const t = await getTranslations("Library");
+
+  // PII guard: a plain TEACHER may only view a student enrolled in one of their
+  // own classes. ADMIN/SUPER_ADMIN keep full visibility. Mirrors the guard on
+  // teacher/students/[studentId].
+  const role = session.user.role;
+  if (role === "TEACHER") {
+    const teacherProfile = await prisma.teacherProfile.findUnique({
+      where: { userId: session.user.id },
+      select: { id: true },
+    });
+    const owns = teacherProfile
+      ? await prisma.enrollment.findFirst({
+          where: { studentId, class: { teacherId: teacherProfile.id } },
+          select: { id: true },
+        })
+      : null;
+    if (!owns) {
+      return (
+        <div className="space-y-4">
+          <h1 className="text-2xl font-bold text-destructive">
+            {locale === "ar" ? "لا تملك صلاحية الوصول" : "You don't have access"}
+          </h1>
+          <Button asChild variant="outline">
+            <Link href={`/${locale}/teacher/students`}>{t("backToStudents")}</Link>
+          </Button>
+        </div>
+      );
+    }
+  }
 
   let student: {
     id: string;

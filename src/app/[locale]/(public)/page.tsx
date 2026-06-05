@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { getTranslations, getLocale } from "next-intl/server";
 import { HajrLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
@@ -408,22 +408,28 @@ export default async function LandingPage() {
   );
 }
 
+// Social handles the academy is active on. Add a `href` to make an icon a real
+// link; entries without one render as non-interactive placeholders (never dead
+// "#" links that scroll-to-top). Owner can fill these in as accounts go live.
+const SOCIAL_LINKS: { Icon: any; label: string; href?: string }[] = [
+  { Icon: Twitter,       label: "Twitter / X" },
+  { Icon: Instagram,     label: "Instagram" },
+  { Icon: MessageCircle, label: "WhatsApp" },
+  { Icon: Music2,        label: "TikTok" },
+  { Icon: Ghost,         label: "Snapchat" },
+];
+
 function SocialIconRow() {
-  // TODO: client to provide actual handles for Twitter/X, Instagram, WhatsApp,
-  // TikTok, Snapchat. Until then, placeholders link to "#".
-  const items = [
-    { Icon: Twitter,       label: "Twitter / X" },
-    { Icon: Instagram,     label: "Instagram" },
-    { Icon: MessageCircle, label: "WhatsApp" },
-    { Icon: Music2,        label: "TikTok" },
-    { Icon: Ghost,         label: "Snapchat" },
-  ];
+  const live = SOCIAL_LINKS.filter((s) => s.href);
+  if (live.length === 0) return null;
   return (
     <li className="!mt-0 flex gap-2">
-      {items.map(({ Icon, label }) => (
+      {live.map(({ Icon, label, href }) => (
         <a
           key={label}
-          href="#"
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
           aria-label={label}
           title={label}
           className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-white/70 transition-colors hover:bg-white/15 hover:text-white"
@@ -480,11 +486,18 @@ function FooterCol({ title, children }: { title: string; children: React.ReactNo
 }
 
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
+  const cls = "text-sm text-white/55 transition-colors hover:text-white";
+  // In-page hash anchors (#programs) and external links must not be locale-
+  // prefixed — render them with a plain <a>. Only real internal paths use the
+  // locale-aware Link so /en stays /en and /ar stays /ar.
+  const isInternalPath = href.startsWith("/");
   return (
     <li>
-      <Link href={href} className="text-sm text-white/55 transition-colors hover:text-white">
-        {children}
-      </Link>
+      {isInternalPath ? (
+        <Link href={href} className={cls}>{children}</Link>
+      ) : (
+        <a href={href} className={cls}>{children}</a>
+      )}
     </li>
   );
 }

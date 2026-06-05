@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { Suspense, useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -17,16 +18,53 @@ const SUBJECTS = [
 ] as const;
 
 /**
- * Public contact form — posts to /api/contact (no auth).
- * Used both on the landing page #contact section and the /contact page.
+ * Public contact form — posts to /api/contact (no auth). Used both on the
+ * landing page #contact section and the /contact page. Wrapped in <Suspense>
+ * because the inner form reads
+ * URL query params (useSearchParams) to prefill context from the CTA that
+ * linked here — without the boundary, Next would bail the whole page out of
+ * static rendering. Renders identically with or without params.
  */
 export function ContactForm() {
+  return (
+    <Suspense fallback={<ContactFormInner prefill={{ subject: "GENERAL", message: "" }} />}>
+      <ContactFormWithParams />
+    </Suspense>
+  );
+}
+
+function ContactFormWithParams() {
+  const isAr = useLocale() === "ar";
+  const sp = useSearchParams();
+
+  // Prefill from the CTA that linked here so leads carry context:
+  //   /contact?subject=PROGRAMS   → pre-select that subject
+  //   /contact?teacher=<slug>     → note which teacher prompted a trial request
+  const subjParam = (sp.get("subject") || "").toUpperCase();
+  const subject = (SUBJECTS as readonly string[]).includes(subjParam)
+    ? (subjParam as (typeof SUBJECTS)[number])
+    : "GENERAL";
+  const teacherParam = sp.get("teacher")?.trim();
+  const message = teacherParam
+    ? isAr
+      ? `أرغب بحجز حصة تجريبية مجانية مع المعلّم: ${teacherParam}.\n\n`
+      : `I'd like to book a free trial class with teacher: ${teacherParam}.\n\n`
+    : "";
+
+  return <ContactFormInner prefill={{ subject, message }} />;
+}
+
+function ContactFormInner({
+  prefill,
+}: {
+  prefill: { subject: (typeof SUBJECTS)[number]; message: string };
+}) {
   const t = useTranslations("Contact");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [subject, setSubject] = useState<(typeof SUBJECTS)[number]>("GENERAL");
-  const [message, setMessage] = useState("");
+  const [subject, setSubject] = useState<(typeof SUBJECTS)[number]>(prefill.subject);
+  const [message, setMessage] = useState(prefill.message);
   const [status, setStatus] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 

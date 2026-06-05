@@ -5,7 +5,7 @@
  * sign-in/register CTAs), plus the WhatsApp FAB. Server component — no
  * client state needed except the AnnouncementBar.
  */
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { HajrLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/shell/language-toggle";
