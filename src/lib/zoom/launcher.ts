@@ -142,6 +142,47 @@ export async function startClassAsTeacher(
 }
 
 /**
+ * Teacher AD-HOC start flow — open a class room on demand with no scheduled
+ * session. Same synchronous-popup contract as startClassAsTeacher: reserve the
+ * popup inside the click handler, then we redirect it to Zoom's host start URL.
+ *
+ * Hits POST /api/teacher/classes/[classId]/start-now, which creates (or reuses)
+ * a live session for the class. Returns the same shape as the scheduled start.
+ */
+export async function startClassNow(
+  classId: string,
+  popup: Window | null,
+  fallback: { label: string; action: string },
+): Promise<StartClassResponse> {
+  let res: Response;
+  try {
+    res = await fetch(`/api/teacher/classes/${classId}/start-now`, {
+      method: "POST",
+    });
+  } catch (e) {
+    closePopup(popup);
+    throw e;
+  }
+  let body: any = {};
+  try {
+    body = await res.json();
+  } catch {
+    body = {};
+  }
+  if (!res.ok || !body.ok) {
+    closePopup(popup);
+    throw new Error(body.error || `START_NOW_${res.status}`);
+  }
+  const url = body.zoomStartUrl || body.zoomJoinUrl;
+  if (!url) {
+    closePopup(popup);
+    throw new Error("NO_ZOOM_URL");
+  }
+  redirectPopup(popup, url, fallback);
+  return body as StartClassResponse;
+}
+
+/**
  * Student / admin join flow. Same popup-reserve pattern.
  */
 export async function joinClassAsParticipant(

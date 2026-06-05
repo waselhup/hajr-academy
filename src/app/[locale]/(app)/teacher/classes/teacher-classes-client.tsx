@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UpcomingSessionCard } from "@/components/video/upcoming-session-card";
-import { Users, ClipboardCheck, ArrowRight } from "lucide-react";
+import { StartClassNowButton } from "@/components/video/start-class-now-button";
+import { Users, ArrowRight } from "lucide-react";
 
 const DAY_AR: Record<string, string> = {
   SUNDAY: "الأحد",
@@ -129,6 +130,15 @@ export function TeacherClassesClient({
                       hasMeeting: c.nextSession.hasMeeting,
                     }}
                   />
+                ) : c.kind === "GROUP" ? (
+                  // No scheduled session — let the teacher open the room any
+                  // time to prepare or run an ad-hoc class and share the link.
+                  <div className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      {locale === "ar" ? "لا توجد جلسات قادمة." : "No upcoming sessions."}
+                    </p>
+                    <StartClassNowButton classId={c.id} />
+                  </div>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     {locale === "ar" ? "لا توجد جلسات قادمة." : "No upcoming sessions."}

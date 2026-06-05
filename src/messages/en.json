@@ -767,6 +767,7 @@
     "mobileTitle": "Open the class in the Zoom app",
     "mobileBody": "On phones and tablets, the Zoom app gives you full camera, microphone, and screen-share support — much better than the browser. Tap the button below to join.",
     "startClass": "Start Class",
+    "startClassNow": "Start Class Now",
     "startingClass": "Starting class...",
     "classStarted": "Class started 🎉 Your students are being notified.",
     "joinClass": "Join Class",
