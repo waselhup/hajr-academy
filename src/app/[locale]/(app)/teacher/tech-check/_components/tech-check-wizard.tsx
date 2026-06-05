@@ -16,6 +16,9 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react";
+// Display-only thresholds for colouring the results table — imported from the
+// shared source of truth so the table can never drift from the server verdict.
+import { TECH_CHECK_PASS as PASS } from "@/lib/teacher/tech-check-score";
 
 type Step = "intro" | "speed" | "mic" | "camera" | "latency" | "summary";
 
@@ -29,13 +32,6 @@ type Result = {
 };
 
 type SaveRes = { ok: boolean; passed?: boolean; score?: number; failures?: string[] };
-
-const PASS = {
-  downloadMbps: 5,
-  uploadMbps: 1,
-  latencyMs: 200,
-  audioPeakDb: -30,
-};
 
 export function TechCheckWizard({
   returnTo,
@@ -445,7 +441,7 @@ function ResultsTable({ result }: { result: Result }) {
     <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
       <Item label="Download" value={`${result.downloadMbps} Mbps`} ok={result.downloadMbps >= PASS.downloadMbps} />
       <Item label="Upload" value={`${result.uploadMbps} Mbps`} ok={result.uploadMbps >= PASS.uploadMbps} />
-      <Item label="Latency" value={`${result.latencyMs} ms`} ok={result.latencyMs > 0 && result.latencyMs < PASS.latencyMs} />
+      <Item label="Latency" value={`${result.latencyMs} ms`} ok={result.latencyMs > 0 && result.latencyMs <= PASS.latencyMs} />
       <Item label="Audio peak" value={`${result.audioPeakDb} dB`} ok={result.audioPeakDb > PASS.audioPeakDb} />
       <Item label="Camera" value={result.cameraOk ? "OK" : "—"} ok={result.cameraOk} />
       <Item label="Mic" value={result.micOk ? "OK" : "—"} ok={result.micOk} />
