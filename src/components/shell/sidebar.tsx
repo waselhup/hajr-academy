@@ -48,7 +48,6 @@ import {
   Sparkles,
   CalendarCheck,
   PiggyBank,
-  Languages,
   Bell,
   CreditCard,
   ScrollText,
@@ -190,7 +189,10 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.ratingsHub", href: "/admin/ratings", icon: Star },
       { key: "Nav.tickets", href: "/admin/tickets", icon: LifeBuoy },
       { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
-      { key: "Nav.qaI18n", href: "/admin/qa/i18n", icon: Languages, superAdminOnly: true },
+      // Nav.qaI18n (i18n parity check) hidden from the menu per owner request —
+      // internal QA tool, not needed in the dashboard. The page at /admin/qa/i18n
+      // stays reachable by URL so this slot can flip back on without route churn.
+      // { key: "Nav.qaI18n", href: "/admin/qa/i18n", icon: Languages, superAdminOnly: true },
       { key: "Nav.qaNotifications", href: "/admin/qa/notifications", icon: Bell, superAdminOnly: true },
       { key: "Nav.qaAuditLog", href: "/admin/qa/audit-log", icon: ShieldAlert, superAdminOnly: true },
       { key: "Nav.auditLog", href: "/admin/audit-log", icon: ShieldCheck, superAdminOnly: true },
