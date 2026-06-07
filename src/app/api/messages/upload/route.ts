@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { logAudit } from "@/lib/audit";
 import { createSupabaseServiceClient } from "@/lib/supabase";
+import {
+  detectRecordedMedia,
+  extForMime,
+  RECORDED_MEDIA_MIMES,
+  type RecordingKind,
+} from "@/lib/media/recording-mime";
 
 export const dynamic = "force-dynamic";
 
@@ -16,30 +22,18 @@ const MAGIC_BYTES: Record<string, number[]> = {
   "application/pdf": [0x25, 0x50, 0x44, 0x46],
 };
 
-// WebM / Matroska share the EBML header (1A 45 DF A3); the recorder tells us
-// whether it captured audio or video via the `kind` form field.
-const WEBM_MAGIC = [0x1a, 0x45, 0xdf, 0xa3];
-
-const EXT_MAP: Record<string, string> = {
+const IMG_DOC_EXT: Record<string, string> = {
   "image/png": "png",
   "image/jpeg": "jpg",
   "image/webp": "webp",
   "application/pdf": "pdf",
-  "audio/webm": "webm",
-  "video/webm": "webm",
 };
-
-const MEDIA_MIMES = new Set(["audio/webm", "video/webm"]);
 
 function detectMime(buffer: Uint8Array): string | null {
   for (const [mime, bytes] of Object.entries(MAGIC_BYTES)) {
     if (bytes.every((b, i) => buffer[i] === b)) return mime;
   }
   return null;
-}
-
-function isWebm(buffer: Uint8Array): boolean {
-  return WEBM_MAGIC.every((b, i) => buffer[i] === b);
 }
 
 /**
@@ -67,10 +61,11 @@ export async function POST(req: NextRequest) {
 
     const buffer = new Uint8Array(await file.arrayBuffer());
 
-    // Detect: images/docs by magic bytes; webm recordings by EBML header + hint.
+    // Detect: images/docs by magic bytes; recorded audio/video (webm | mp4 | ogg)
+    // by container header + the recorder's AUDIO|VIDEO hint.
     let mime = detectMime(buffer);
-    if (!mime && isWebm(buffer) && (kindHint === "AUDIO" || kindHint === "VIDEO")) {
-      mime = kindHint === "VIDEO" ? "video/webm" : "audio/webm";
+    if (!mime && (kindHint === "AUDIO" || kindHint === "VIDEO")) {
+      mime = detectRecordedMedia(buffer, kindHint as RecordingKind);
     }
     if (!mime) {
       return NextResponse.json(
@@ -80,7 +75,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Recorded media gets a higher ceiling than images/docs.
-    const isMedia = MEDIA_MIMES.has(mime);
+    const isMedia = RECORDED_MEDIA_MIMES.has(mime);
     const cap = isMedia ? MAX_MEDIA_BYTES : MAX_BYTES;
     if (file.size > cap) {
       return NextResponse.json(
@@ -96,7 +91,7 @@ export async function POST(req: NextRequest) {
       if (Number.isFinite(d) && d >= 0) durationSec = d;
     }
 
-    const ext = EXT_MAP[mime];
+    const ext = IMG_DOC_EXT[mime] ?? extForMime(mime);
     const path = `${session.user.id}/${crypto.randomUUID()}.${ext}`;
     const supabase = createSupabaseServiceClient();
 

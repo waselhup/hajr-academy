@@ -6,6 +6,7 @@
   },
   "Common": {
     "loading": "جارٍ التحميل...",
+    "openSidebar": "فتح القائمة",
     "save": "حفظ",
     "cancel": "إلغاء",
     "delete": "حذف",
@@ -100,6 +101,9 @@
     "parent": "ولي أمر",
     "successPartner": "شريك نجاح",
     "fullName": "الاسم الكامل",
+    "firstName": "الاسم الأول",
+    "middleName": "اسم الأب",
+    "lastName": "اسم العائلة",
     "fullNameAr": "الاسم بالعربية",
     "confirmPassword": "تأكيد كلمة المرور",
     "haveAccount": "لديك حساب؟",

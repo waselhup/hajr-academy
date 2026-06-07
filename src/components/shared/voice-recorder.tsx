@@ -8,19 +8,41 @@
  *
  * It is intentionally self-contained so it can be dropped next to any composer
  * (e.g. the chat composer) without coupling to assignment-specific logic. On a
- * confirmed take it calls `onCaptured(blob, durationSec)`; the caller decides
- * how to upload/attach it.
+ * confirmed take it calls `onCaptured(blob, durationSec, mimeType)`; the caller
+ * decides how to upload/attach it.
  *
  * - Graceful mic/camera-denied fallback (toast + inline notice).
  * - Live camera preview while recording video.
  * - Auto-stop at `maxSeconds`.
  * - RTL-safe (logical `me-*` spacing, no left/right hardcoding).
+ *
+ * Codec negotiation: NOT every browser records WebM. Chrome/Firefox emit
+ * video/webm; Safari (desktop + iOS) only records video/mp4. We pick the first
+ * MediaRecorder.isTypeSupported() candidate and report the REAL container mime
+ * to the caller via onCaptured, so the upload labels + validates the bytes that
+ * were actually captured (the old code hardcoded video/webm, so Safari takes
+ * were mislabelled and the server rejected them — the "Unsupported file type" /
+ * camera-doesn't-open class of bug).
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Mic, Video, Square, RotateCcw, Info, Send, Loader2 } from "lucide-react";
+import { baseContainerMime, mimeCandidates } from "@/lib/media/recording-mime";
+
+/**
+ * First MediaRecorder mime the browser actually supports for this mode, with a
+ * graceful empty-string fallback (lets the browser choose its own default).
+ */
+function pickSupportedMime(mode: "voice" | "video"): string {
+  if (typeof MediaRecorder !== "undefined" && typeof MediaRecorder.isTypeSupported === "function") {
+    for (const c of mimeCandidates(mode)) {
+      if (MediaRecorder.isTypeSupported(c)) return c;
+    }
+  }
+  return "";
+}
 
 export function VoiceRecorder({
   mode = "voice",
@@ -35,7 +57,12 @@ export function VoiceRecorder({
   disabled?: boolean;
   /** Show a spinner on the confirm button while the parent uploads. */
   busy?: boolean;
-  onCaptured: (blob: Blob, durationSec: number) => void | Promise<void>;
+  /**
+   * Confirmed take. `mimeType` is the REAL container the browser produced
+   * (e.g. "video/webm" or "video/mp4") so the caller can pick the right
+   * extension + let the server validate the matching magic bytes.
+   */
+  onCaptured: (blob: Blob, durationSec: number, mimeType: string) => void | Promise<void>;
   /** Optional: invoked when the user backs out before confirming a take. */
   onCancel?: () => void;
 }) {
@@ -48,6 +75,8 @@ export function VoiceRecorder({
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const blobRef = useRef<Blob | null>(null);
+  // Real container mime of the confirmed take (set on MediaRecorder stop).
+  const mimeRef = useRef<string>(mode === "video" ? "video/webm" : "audio/webm");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const elapsedRef = useRef(0);
   const liveVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -74,6 +103,21 @@ export function VoiceRecorder({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Attach the live camera stream to the <video> once it mounts. The live
+  // preview element is only rendered while `recording` is true, so it does NOT
+  // exist yet inside start() — wiring srcObject there silently no-ops and the
+  // user sees a black/absent preview ("the camera doesn't open"). Doing it in an
+  // effect keyed on `recording` guarantees the element is present first.
+  useEffect(() => {
+    if (mode !== "video" || !recording) return;
+    const el = liveVideoRef.current;
+    const stream = streamRef.current;
+    if (!el || !stream) return;
+    el.srcObject = stream;
+    el.muted = true;
+    el.play().catch(() => {});
+  }, [recording, mode]);
+
   const start = useCallback(async () => {
     setError(false);
     if (
@@ -96,21 +140,24 @@ export function VoiceRecorder({
         mode === "video" ? { video: true, audio: true } : { audio: true };
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+      // The live preview <video> is wired up by the `recording`-keyed effect
+      // below (the element isn't mounted until setRecording(true) flushes).
 
-      if (mode === "video" && liveVideoRef.current) {
-        liveVideoRef.current.srcObject = stream;
-        liveVideoRef.current.muted = true;
-        await liveVideoRef.current.play().catch(() => {});
-      }
-
-      const mime = mode === "video" ? "video/webm" : "audio/webm";
-      const mr = new MediaRecorder(stream);
+      // Negotiate a container the browser can actually record (Safari ≠ WebM).
+      const chosen = pickSupportedMime(mode);
+      const mr = chosen
+        ? new MediaRecorder(stream, { mimeType: chosen })
+        : new MediaRecorder(stream);
       chunksRef.current = [];
       mr.ondataavailable = (e) => {
         if (e.data.size > 0) chunksRef.current.push(e.data);
       };
       mr.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: mime });
+        // Prefer what the recorder reports it actually produced; fall back to
+        // our chosen candidate, then to the mode's webm default.
+        const real = baseContainerMime(mr.mimeType || chosen, mode);
+        mimeRef.current = real;
+        const blob = new Blob(chunksRef.current, { type: real });
         blobRef.current = blob;
         setPreviewUrl(URL.createObjectURL(blob));
         streamRef.current?.getTracks().forEach((tr) => tr.stop());
@@ -144,7 +191,7 @@ export function VoiceRecorder({
 
   const useTake = useCallback(async () => {
     if (blobRef.current) {
-      await onCaptured(blobRef.current, elapsedRef.current);
+      await onCaptured(blobRef.current, elapsedRef.current, mimeRef.current);
       reset();
     }
   }, [onCaptured, reset]);

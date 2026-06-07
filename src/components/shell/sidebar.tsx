@@ -67,6 +67,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { HajrLogo } from "@/components/brand/logo";
+import { sidebarStore } from "./sidebar-store";
+import { useSidebarCollapsed } from "./use-sidebar-store";
 import type { Role } from "@prisma/client";
 
 export type NavItem = {
@@ -465,7 +467,11 @@ function isGroupActive(pathname: string, group: NavGroup, allFlat: NavItem[]): b
 const LS_PREFIX = "hajr.nav.";
 
 export function Sidebar({ role }: { role: Role }) {
-  const [collapsed, setCollapsed] = useState(false);
+  // Collapse state is shared via sidebarStore so the floating re-open handle
+  // (rendered in the app layout) can show whenever the sidebar is collapsed,
+  // and so the choice persists across navigations/reloads.
+  const collapsed = useSidebarCollapsed();
+  const toggle = () => sidebarStore.toggleCollapsed();
   const isAdminish = role === "SUPER_ADMIN" || role === "ADMIN";
   const grouped = groupsForRole(role);
 
@@ -475,7 +481,7 @@ export function Sidebar({ role }: { role: Role }) {
         kind="admin"
         role={role}
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
+        onToggleCollapse={toggle}
       />
     );
   }
@@ -486,19 +492,13 @@ export function Sidebar({ role }: { role: Role }) {
         kind="role"
         role={role}
         collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed((c) => !c)}
+        onToggleCollapse={toggle}
       />
     );
   }
 
   // Marketer (and any future flat role) — flat list.
-  return (
-    <FlatSidebar
-      role={role}
-      collapsed={collapsed}
-      onToggle={() => setCollapsed((c) => !c)}
-    />
-  );
+  return <FlatSidebar role={role} collapsed={collapsed} onToggle={toggle} />;
 }
 
 function FlatSidebar({

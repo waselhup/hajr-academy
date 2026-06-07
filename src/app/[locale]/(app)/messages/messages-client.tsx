@@ -345,11 +345,25 @@ export function MessagesClient({
   }
 
   /* ── in-browser recording upload (reuses the chat upload route) ── */
-  async function uploadRecording(blob: Blob, durationSec: number, mode: "voice" | "video") {
+  async function uploadRecording(
+    blob: Blob,
+    durationSec: number,
+    mode: "voice" | "video",
+    mimeType?: string,
+  ) {
     setUploading(true);
     try {
       const fd = new FormData();
-      const ext = "webm";
+      // Use the REAL container the recorder produced (Safari = mp4, others = webm)
+      // so the filename extension + server magic-byte check agree on the bytes.
+      const realMime = (mimeType || blob.type || "").toLowerCase();
+      const ext = realMime.includes("mp4")
+        ? mode === "video"
+          ? "mp4"
+          : "m4a"
+        : realMime.includes("ogg")
+        ? "ogg"
+        : "webm";
       const kind = mode === "video" ? "VIDEO" : "AUDIO";
       fd.append("file", blob, `${mode}.${ext}`);
       fd.append("kind", kind);
@@ -616,7 +630,7 @@ export function MessagesClient({
                       mode={recorderMode}
                       maxSeconds={3 * 60}
                       busy={uploading}
-                      onCaptured={(blob, sec) => uploadRecording(blob, sec, recorderMode)}
+                      onCaptured={(blob, sec, mime) => uploadRecording(blob, sec, recorderMode, mime)}
                       onCancel={() => setRecorderMode(null)}
                     />
                   </div>

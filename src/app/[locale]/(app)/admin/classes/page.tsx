@@ -1,6 +1,6 @@
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { ClassesTabs, type AttendanceSummaryRow } from "./_components/classes-tabs";
+import { ClassesTabs } from "./_components/classes-tabs";
 
 export const dynamic = "force-dynamic";
 const PAGE_SIZE = 20;
@@ -16,24 +16,12 @@ export default async function AdminClassesPage({
     gender?: string;
     day?: string;
     page?: string;
-    tab?: string;
-    range?: string;
   }>;
 }) {
   await requireRole("ADMIN", "SUPER_ADMIN");
   const sp = await searchParams;
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const q = (sp.q ?? "").trim();
-  const initialTab = sp.tab === "attendance" ? "attendance" : "classes";
-
-  // Attendance range window (default: last 30 days)
-  const rangeParam =
-    sp.range === "week" || sp.range === "quarter" || sp.range === "year"
-      ? sp.range
-      : "month";
-  const RANGE_DAYS: Record<string, number> = { week: 7, month: 30, quarter: 90, year: 365 };
-  const rangeDays = RANGE_DAYS[rangeParam];
-  const RANGE_TAKE: Record<string, number> = { week: 50, month: 60, quarter: 120, year: 365 };
 
   const where: any = {};
   if (q) {
@@ -53,10 +41,9 @@ export default async function AdminClassesPage({
   let classRows: any[] = [];
   let programs: any[] = [];
   let teachers: any[] = [];
-  let attendanceSummary: AttendanceSummaryRow[] = [];
 
   try {
-    const [_total, rows, _programs, _teachers, _attRows] = await Promise.all([
+    const [_total, rows, _programs, _teachers] = await Promise.all([
       prisma.class.count({ where }),
       prisma.class.findMany({
         where,
@@ -76,32 +63,6 @@ export default async function AdminClassesPage({
       prisma.teacherProfile.findMany({
         where: { active: true },
         include: { user: { select: { name: true, nameAr: true } } },
-      }),
-      // Sessions within the selected attendance range, with attendance counts
-      prisma.classSession.findMany({
-        where: {
-          scheduledDate: {
-            gte: new Date(Date.now() - rangeDays * 86400_000),
-          },
-          status: { in: ["COMPLETED", "LIVE"] },
-        },
-        include: {
-          class: {
-            select: {
-              id: true,
-              name: true,
-              nameAr: true,
-              cohortCode: true,
-              _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
-            },
-          },
-          _count: { select: { attendances: true } },
-          attendances: {
-            select: { status: true },
-          },
-        },
-        orderBy: { scheduledDate: "desc" },
-        take: RANGE_TAKE[rangeParam],
       }),
     ]);
     total = _total;
@@ -134,32 +95,12 @@ export default async function AdminClassesPage({
         nameAr: c.teacher.user.nameAr,
       },
     }));
-
-    attendanceSummary = _attRows.map((s) => {
-      const present = s.attendances.filter((a) => a.status === "PRESENT").length;
-      const late = s.attendances.filter((a) => a.status === "LATE").length;
-      const absent = s.attendances.filter((a) => a.status === "ABSENT").length;
-      return {
-        sessionId: s.id,
-        classId: s.class.id,
-        className: s.class.nameAr ?? s.class.name,
-        cohortCode: s.class.cohortCode,
-        scheduledDate: s.scheduledDate.toISOString(),
-        enrolled: s.class._count.enrollments,
-        present,
-        late,
-        absent,
-        marked: s._count.attendances,
-        status: s.status as string,
-      };
-    });
   } catch (e) {
     console.error("[admin-classes] DB query failed:", e);
   }
 
   return (
     <ClassesTabs
-      initialTab={initialTab}
       classRows={classRows}
       total={total}
       page={page}
@@ -176,8 +117,6 @@ export default async function AdminClassesPage({
         name: t.user.name,
         nameAr: t.user.nameAr,
       }))}
-      attendanceSummary={attendanceSummary}
-      attendanceRange={rangeParam}
     />
   );
 }

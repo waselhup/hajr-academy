@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/shell/sidebar";
+import { SidebarReopenHandle } from "@/components/shell/sidebar-reopen-handle";
 import { Topbar } from "@/components/shell/topbar";
 import { MobileBottomNav } from "@/components/shell/mobile-bottom-nav";
 import { SessionProvider } from "@/components/providers/session-provider";
@@ -28,6 +29,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <SessionProvider session={session}>
       <div className="flex min-h-screen bg-brand-ivory">
         <Sidebar role={session.user.role} />
+        {/* Persistent re-open affordance — visible on every page/shell when the
+            sidebar is collapsed (desktop) or hidden (mobile). See F7. */}
+        <SidebarReopenHandle />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar
             userId={session.user.id}

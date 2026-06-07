@@ -14,12 +14,22 @@ interface Holiday {
   title: string;
 }
 
+// 2026 (1447 AH) Saudi public holidays. The Islamic (lunar) dates were CORRECTED
+// on 2026-06-07: the previous values were shifted ~1 month late (they were the
+// 2025 dates). Verified against timeanddate.com & officeholidays.com for KSA:
+//   • Ramadan 1, 1447  → 18 Feb 2026
+//   • Eid al-Fitr        → 20 Mar 2026  (was wrongly 19 Apr)
+//   • Day of Arafah      → 26 May 2026  (was wrongly 26 Jun)
+//   • Eid al-Adha        → 27 May 2026  (was wrongly 27 Jun — the "Eid on 26/27 Jun" bug)
+// Fixed-Gregorian dates (Founding Day 22 Feb, National Day 23 Sep) were already
+// correct. Lunar dates stay tagged "(تقديري / est.)" — final dates depend on the
+// official Saudi moon sighting and should be reconfirmed nearer the time.
 const HOLIDAYS: Holiday[] = [
+  { date: "2026-02-18", titleAr: "بداية رمضان (تقديري)",  title: "Ramadan begins (est.)" },
   { date: "2026-02-22", titleAr: "يوم التأسيس",           title: "Founding Day" },
-  { date: "2026-03-20", titleAr: "بداية رمضان (تقديري)",  title: "Ramadan begins (est.)" },
-  { date: "2026-04-19", titleAr: "عيد الفطر (تقديري)",    title: "Eid al-Fitr (est.)" },
-  { date: "2026-06-26", titleAr: "يوم عرفة (تقديري)",     title: "Day of Arafah (est.)" },
-  { date: "2026-06-27", titleAr: "عيد الأضحى (تقديري)",   title: "Eid al-Adha (est.)" },
+  { date: "2026-03-20", titleAr: "عيد الفطر (تقديري)",    title: "Eid al-Fitr (est.)" },
+  { date: "2026-05-26", titleAr: "يوم عرفة (تقديري)",     title: "Day of Arafah (est.)" },
+  { date: "2026-05-27", titleAr: "عيد الأضحى (تقديري)",   title: "Eid al-Adha (est.)" },
   { date: "2026-09-23", titleAr: "اليوم الوطني",          title: "National Day" },
   { date: "2027-02-22", titleAr: "يوم التأسيس",           title: "Founding Day" },
   { date: "2027-09-23", titleAr: "اليوم الوطني",          title: "National Day" },

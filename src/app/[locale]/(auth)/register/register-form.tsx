@@ -15,7 +15,11 @@ import { Label } from "@/components/ui/label";
 
 const schema = z
   .object({
-    name: z.string().min(2),
+    // Name is collected as three required parts and composed into `name` on
+    // submit (the backend still expects a single `name`). Each part required.
+    firstName: z.string().trim().min(1),
+    middleName: z.string().trim().min(1),
+    lastName: z.string().trim().min(1),
     nameAr: z.string().optional(),
     email: z.string().email(),
     phone: z.string().regex(/^(\+966|0)?5\d{8}$/, "Invalid Saudi phone"),
@@ -68,6 +72,11 @@ export function RegisterForm() {
 
   const onSubmit = (data: FormData) => {
     setServerError(null);
+    // Compose the three required parts into the single `name` the backend stores.
+    const name = [data.firstName, data.middleName, data.lastName]
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .join(" ");
     startTransition(async () => {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -75,7 +84,7 @@ export function RegisterForm() {
         body: JSON.stringify({
           email: data.email,
           password: data.password,
-          name: data.name,
+          name,
           nameAr: data.nameAr,
           phone: data.phone,
           role: data.role,
@@ -143,10 +152,34 @@ export function RegisterForm() {
           </Link>
         </div>
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="name">{t("Auth.fullName")}</Label>
-        <Input id="name" {...register("name")} />
-        {errors.name && <p className="text-xs text-destructive">{t("Validation.required")}</p>}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="firstName">
+            {t("Auth.firstName")} <span className="text-destructive">*</span>
+          </Label>
+          <Input id="firstName" autoComplete="given-name" {...register("firstName")} />
+          {errors.firstName && (
+            <p className="text-xs text-destructive">{t("Validation.required")}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="middleName">
+            {t("Auth.middleName")} <span className="text-destructive">*</span>
+          </Label>
+          <Input id="middleName" autoComplete="additional-name" {...register("middleName")} />
+          {errors.middleName && (
+            <p className="text-xs text-destructive">{t("Validation.required")}</p>
+          )}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="lastName">
+            {t("Auth.lastName")} <span className="text-destructive">*</span>
+          </Label>
+          <Input id="lastName" autoComplete="family-name" {...register("lastName")} />
+          {errors.lastName && (
+            <p className="text-xs text-destructive">{t("Validation.required")}</p>
+          )}
+        </div>
       </div>
       <div className="space-y-2">
         <Label htmlFor="nameAr">{t("Auth.fullNameAr")}</Label>
@@ -158,8 +191,10 @@ export function RegisterForm() {
         {errors.email && <p className="text-xs text-destructive">{t("Validation.emailInvalid")}</p>}
       </div>
       <div className="space-y-2">
-        <Label htmlFor="phone">{t("Common.phone")}</Label>
-        <Input id="phone" type="tel" placeholder="05XXXXXXXX" dir="ltr" {...register("phone")} />
+        <Label htmlFor="phone">
+          {t("Common.phone")} <span className="text-destructive">*</span>
+        </Label>
+        <Input id="phone" type="tel" inputMode="tel" placeholder="05XXXXXXXX" dir="ltr" {...register("phone")} />
         {errors.phone && <p className="text-xs text-destructive">{t("Validation.phoneInvalid")}</p>}
       </div>
       <div className="space-y-2">

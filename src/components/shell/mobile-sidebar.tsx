@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 // Locale-aware Link + usePathname (next-intl) keep navigation inside the
 // current locale; raw next/link would bounce the user back to the default.
 import { Link, usePathname } from "@/i18n/routing";
@@ -18,6 +18,7 @@ import {
   type NavItem,
   type NavGroup,
 } from "./sidebar";
+import { useMobileOpenPulse } from "./use-sidebar-store";
 
 const LS_PREFIX = "hajr.nav.";
 
@@ -27,6 +28,18 @@ export function MobileSidebar({ role }: { role: Role }) {
   const t = useTranslations();
   const isAdminish = role === "SUPER_ADMIN" || role === "ADMIN";
   const grouped = groupsForRole(role);
+
+  // The floating re-open handle (app layout) opens this drawer on phones, where
+  // the desktop sidebar is hidden. We watch the store's pulse counter: each
+  // increment is a fresh open request. Ignore the initial 0 so we don't auto-open.
+  const mobileOpenPulse = useMobileOpenPulse();
+  const lastPulse = useRef(0);
+  useEffect(() => {
+    if (mobileOpenPulse > lastPulse.current) {
+      lastPulse.current = mobileOpenPulse;
+      setOpen(true);
+    }
+  }, [mobileOpenPulse]);
 
   return (
     <>

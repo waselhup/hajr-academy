@@ -6,6 +6,7 @@
   },
   "Common": {
     "loading": "Loading...",
+    "openSidebar": "Open menu",
     "save": "Save",
     "cancel": "Cancel",
     "delete": "Delete",
@@ -100,6 +101,9 @@
     "parent": "Parent",
     "successPartner": "Success Partner",
     "fullName": "Full name",
+    "firstName": "First name",
+    "middleName": "Middle name",
+    "lastName": "Last name",
     "fullNameAr": "Name (Arabic)",
     "confirmPassword": "Confirm password",
     "haveAccount": "Already have an account?",
