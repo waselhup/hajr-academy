@@ -4,6 +4,16 @@
     "fullName": "أكاديمية هجر A°",
     "tagline": "تعلّم بثقة"
   },
+  "Avatar": {
+    "photo": "الصورة الشخصية",
+    "uploadPhoto": "رفع صورة",
+    "changePhoto": "تغيير الصورة",
+    "removePhoto": "إزالة",
+    "photoHint": "JPG أو PNG أو WebP — حتى 5 ميجابايت.",
+    "photoUploaded": "تم تحديث الصورة",
+    "photoRemoved": "تمت إزالة الصورة",
+    "photoError": "تعذّر رفع الصورة"
+  },
   "Common": {
     "loading": "جارٍ التحميل...",
     "openSidebar": "فتح القائمة",
@@ -1873,6 +1883,7 @@
     "nextClassNone": "لا توجد حصص قادمة 🌱",
     "nextClassExplore": "تصفّح فصولي",
     "teachersTitle": "معلميّ",
+    "cardTeacher": "المعلم",
     "teachersMessage": "رسالة",
     "teachersViewAll": "عرض الكل",
     "teachersEmpty": "لم يتم تعيين معلمين بعد.",

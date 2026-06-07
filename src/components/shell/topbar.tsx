@@ -37,11 +37,13 @@ export function Topbar({
   name,
   email,
   role,
+  avatar,
 }: {
   userId: string;
   name: string;
   email: string;
   role: Role;
+  avatar?: string | null;
 }) {
   const t = useTranslations();
   const initials = name
@@ -94,7 +96,7 @@ export function Topbar({
           <DropdownMenuTrigger asChild>
             <button className="flex items-center gap-2 rounded-full p-1 transition-colors hover:bg-hajr-gray-100">
               <Avatar className="h-9 w-9 ring-2 ring-hajr-gray-200">
-                <AvatarImage src="" />
+                {avatar ? <AvatarImage src={avatar} alt={name} /> : null}
                 <AvatarFallback className="bg-hajr-navy text-sm font-semibold text-white">
                   {initials}
                 </AvatarFallback>

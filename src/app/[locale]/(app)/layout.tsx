@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { Sidebar } from "@/components/shell/sidebar";
 import { SidebarReopenHandle } from "@/components/shell/sidebar-reopen-handle";
 import { Topbar } from "@/components/shell/topbar";
@@ -25,6 +26,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isAdmin =
     session.user.role === "SUPER_ADMIN" || session.user.role === "ADMIN";
 
+  // The JWT session does not carry a fresh avatar (the session callback omits
+  // `image`), so read it from the DB here. This also means it updates as soon
+  // as the user uploads/removes a photo and router.refresh() re-renders.
+  const me = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { avatar: true },
+  });
+
   return (
     <SessionProvider session={session}>
       <div className="flex min-h-screen bg-brand-ivory">
@@ -38,6 +47,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             name={session.user.name ?? "User"}
             email={session.user.email ?? ""}
             role={session.user.role}
+            avatar={me?.avatar ?? null}
           />
           <main className="flex-1 p-4 pb-24 sm:p-6 sm:pb-6 lg:p-8 lg:pb-8">{children}</main>
         </div>

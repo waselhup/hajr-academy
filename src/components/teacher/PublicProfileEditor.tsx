@@ -1,10 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { sanitizeNumeric } from "@/lib/western-format";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Camera, Loader2 } from "lucide-react";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
 interface InitialState {
   bio: string;
@@ -17,10 +16,6 @@ interface InitialState {
   name: string;
 }
 
-function initials(name: string): string {
-  return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
-}
-
 export function PublicProfileEditor({ initial }: { initial: InitialState }) {
   const t = useTranslations("TeacherProfile");
   const [bio, setBio] = useState(initial.bio);
@@ -29,33 +24,8 @@ export function PublicProfileEditor({ initial }: { initial: InitialState }) {
   const [yearsExp, setYearsExp] = useState(initial.yearsExp);
   const [specText, setSpecText] = useState(initial.specializations.join(", "));
   const [publicSlug, setPublicSlug] = useState(initial.publicSlug);
-  const [avatar, setAvatar] = useState<string | null>(initial.avatar);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const photoRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
-
-  async function uploadPhoto(file: File) {
-    setUploadingPhoto(true);
-    setMsg(null);
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await fetch("/api/teacher/avatar", { method: "POST", body: fd });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data.avatar) {
-        setAvatar(data.avatar as string);
-        setMsg({ ok: true, text: t("photoUploaded") });
-      } else {
-        setMsg({ ok: false, text: data.error ?? t("photoError") });
-      }
-    } catch {
-      setMsg({ ok: false, text: t("photoError") });
-    } finally {
-      setUploadingPhoto(false);
-      if (photoRef.current) photoRef.current.value = "";
-    }
-  }
 
   async function save() {
     setSaving(true);
@@ -99,40 +69,8 @@ export function PublicProfileEditor({ initial }: { initial: InitialState }) {
 
   return (
     <div className="space-y-5 rounded-xl border border-hajr-border bg-white p-6 shadow-sm">
-      {/* Profile photo (F6) */}
-      <div className="flex items-center gap-4">
-        <Avatar className="h-20 w-20 ring-4 ring-brand-rose/20">
-          {avatar ? <AvatarImage src={avatar} alt={initial.name} /> : null}
-          <AvatarFallback className="bg-brand-navy text-xl text-white">
-            {initials(initial.name || "?")}
-          </AvatarFallback>
-        </Avatar>
-        <div>
-          <p className="mb-1 text-sm font-medium text-hajr-text">{t("photo")}</p>
-          <input
-            ref={photoRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,image/gif"
-            className="hidden"
-            disabled={uploadingPhoto}
-            onChange={(e) => e.target.files?.[0] && uploadPhoto(e.target.files[0])}
-          />
-          <button
-            type="button"
-            disabled={uploadingPhoto}
-            onClick={() => photoRef.current?.click()}
-            className="inline-flex h-10 items-center rounded-lg border border-hajr-border bg-white px-4 text-sm font-medium text-hajr-text hover:bg-hajr-ivory disabled:opacity-60"
-          >
-            {uploadingPhoto ? (
-              <Loader2 className="me-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Camera className="me-2 h-4 w-4" />
-            )}
-            {avatar ? t("changePhoto") : t("uploadPhoto")}
-          </button>
-          <p className="mt-1 text-xs text-hajr-muted">{t("photoHint")}</p>
-        </div>
-      </div>
+      {/* Profile photo — shared control (any role); posts to /api/profile/avatar */}
+      <AvatarUpload name={initial.name || "?"} initialAvatar={initial.avatar} />
 
       <Field label={t("fieldBio")}>
         <textarea

@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Loader2, Save, KeyRound, User as UserIcon } from "lucide-react";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 import { updateProfileAction, changePasswordAction } from "./_actions";
 
 export type ProfileData = {
@@ -133,6 +134,9 @@ export function ProfileClient({ initial }: { initial: ProfileData }) {
           <CardTitle className="text-base">{t("editable")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Profile photo — shared control (any role) */}
+          <AvatarUpload name={initial.name || initial.email} initialAvatar={initial.avatar} />
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="prof-name">{t("name")}</Label>

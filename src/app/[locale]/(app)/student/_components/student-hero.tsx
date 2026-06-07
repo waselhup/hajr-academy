@@ -55,6 +55,8 @@ export interface DashboardData {
     className: string;
     cohortCode: string;
     teacherName: string;
+    teacherUserId: string;
+    teacherAvatar: string | null;
     scheduledStartAt: string;
     durationMinutes: number;
     isLive: boolean;
@@ -199,7 +201,13 @@ export function StudentHero({
       </Card>
 
       {/* ── Next Class ────────────────────────────────────────── */}
-      <NextClassCard locale={locale} data={data.nextClass} />
+      <NextClassCard
+        locale={locale}
+        data={data.nextClass}
+        onMessage={openChat}
+        messaging={isPending}
+        busyTeacher={busyTeacher}
+      />
 
       {/* ── Teachers + Activity (side-by-side on lg) ──────────── */}
       <div className="grid gap-4 lg:grid-cols-2">
@@ -347,9 +355,15 @@ function HeroStat({ label, value }: { label: string; value: string }) {
 function NextClassCard({
   locale,
   data,
+  onMessage,
+  messaging,
+  busyTeacher,
 }: {
   locale: string;
   data: DashboardData["nextClass"];
+  onMessage: (teacherUserId: string) => void;
+  messaging: boolean;
+  busyTeacher: string | null;
 }) {
   const t = useTranslations("StudentDashboard");
   const ar = locale === "ar";
@@ -404,13 +418,32 @@ function NextClassCard({
           )}
         </div>
 
-        <div className="space-y-1 text-sm">
-          <p className="text-muted-foreground">
-            {dateStr}
-          </p>
-          <p className="text-muted-foreground">
-            👤 {data.teacherName}
-          </p>
+        <p className="text-sm text-muted-foreground">{dateStr}</p>
+
+        {/* Teacher card — photo + name + Message (matches the my-teachers row) */}
+        <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2.5">
+          <Avatar className="h-10 w-10">
+            {data.teacherAvatar ? (
+              <AvatarImage src={data.teacherAvatar} alt={data.teacherName} />
+            ) : null}
+            <AvatarFallback className="bg-brand-navy text-xs text-white">
+              {initials(data.teacherName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] text-muted-foreground">{t("cardTeacher")}</p>
+            <p className="truncate text-sm font-medium">{data.teacherName}</p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="h-9 shrink-0"
+            disabled={busyTeacher === data.teacherUserId || messaging}
+            onClick={() => onMessage(data.teacherUserId)}
+          >
+            <MessageSquare className="me-1 h-3.5 w-3.5" />
+            {t("teachersMessage")}
+          </Button>
         </div>
 
         <div className="flex flex-wrap gap-2 pt-1">

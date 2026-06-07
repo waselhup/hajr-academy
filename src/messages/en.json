@@ -4,6 +4,16 @@
     "fullName": "HAJR A° Academy",
     "tagline": "Learn with Confidence"
   },
+  "Avatar": {
+    "photo": "Profile photo",
+    "uploadPhoto": "Upload photo",
+    "changePhoto": "Change photo",
+    "removePhoto": "Remove",
+    "photoHint": "JPG, PNG or WebP — up to 5 MB.",
+    "photoUploaded": "Photo updated",
+    "photoRemoved": "Photo removed",
+    "photoError": "Could not upload the photo"
+  },
   "Common": {
     "loading": "Loading...",
     "openSidebar": "Open menu",
@@ -1873,6 +1883,7 @@
     "nextClassNone": "No upcoming classes 🌱",
     "nextClassExplore": "Browse my classes",
     "teachersTitle": "My Teachers",
+    "cardTeacher": "Teacher",
     "teachersMessage": "Message",
     "teachersViewAll": "View all",
     "teachersEmpty": "No teachers assigned yet.",

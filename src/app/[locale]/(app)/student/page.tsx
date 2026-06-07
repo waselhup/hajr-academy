@@ -100,7 +100,7 @@ export default async function StudentDashboardPage({
                   nameAr: true,
                   cohortCode: true,
                   durationMinutes: true,
-                  teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+                  teacher: { include: { user: { select: { id: true, name: true, nameAr: true, avatar: true } } } },
                 },
               },
             },
@@ -273,6 +273,8 @@ export default async function StudentDashboardPage({
               locale === "ar"
                 ? nextSession.class.teacher.user.nameAr ?? nextSession.class.teacher.user.name
                 : nextSession.class.teacher.user.name,
+            teacherUserId: nextSession.class.teacher.user.id,
+            teacherAvatar: nextSession.class.teacher.user.avatar ?? null,
             scheduledStartAt: nextSession.scheduledDate.toISOString(),
             durationMinutes: nextSession.class.durationMinutes,
             isLive,

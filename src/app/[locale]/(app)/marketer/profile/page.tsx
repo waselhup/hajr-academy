@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { getMarketerScope } from "@/lib/marketer/scope";
 import { ProfileBankForm } from "@/components/marketer/profile-bank-form";
+import { AvatarUpload } from "@/components/shared/AvatarUpload";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,13 @@ export default async function MarketerProfilePage({
   return (
     <div className="mx-auto max-w-2xl space-y-6 p-4 md:p-6">
       <h1 className="text-2xl font-bold text-hajr-text">{t("marketerProfile")}</h1>
+
+      <section className="rounded-2xl border border-hajr-border bg-white p-5 shadow-card">
+        <AvatarUpload
+          name={(isAr ? scope.user.nameAr || scope.user.name : scope.user.name) || scope.user.email}
+          initialAvatar={scope.user.avatar ?? null}
+        />
+      </section>
 
       <section className="rounded-2xl border border-hajr-border bg-white p-5 shadow-card">
         <h2 className="mb-3 text-base font-semibold text-hajr-text">
