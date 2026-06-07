@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +43,17 @@ export type ProfileData = {
     programCode: string;
   } | null;
 };
+
+function initialsOf(name: string): string {
+  return (
+    name
+      .split(" ")
+      .map((p) => p[0])
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "?"
+  );
+}
 
 export function ProfileClient({ initial }: { initial: ProfileData }) {
   const t = useTranslations("StudentProfile");
@@ -103,9 +115,14 @@ export function ProfileClient({ initial }: { initial: ProfileData }) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-hajr-deep-navy/10 text-hajr-deep-navy">
-              <UserIcon className="h-7 w-7" />
-            </div>
+            <Avatar className="h-16 w-16 shrink-0">
+              {initial.avatar ? (
+                <AvatarImage src={initial.avatar} alt={initial.name} />
+              ) : null}
+              <AvatarFallback className="bg-hajr-deep-navy/10 text-hajr-deep-navy">
+                {initialsOf(initial.name || initial.email)}
+              </AvatarFallback>
+            </Avatar>
             <div className="min-w-0 flex-1 space-y-1">
               <div className="truncate text-lg font-semibold">
                 {initial.name || "—"}
