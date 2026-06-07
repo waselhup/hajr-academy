@@ -21,6 +21,7 @@ export default async function AdminSchoolsPage() {
       contactEmail: s.contactEmail,
       contactPhone: s.contactPhone,
       city: s.city,
+      partnerType: s.partnerType ?? "SCHOOL",
       contractStart: s.contractStart.toISOString().slice(0, 10),
       contractEnd: s.contractEnd.toISOString().slice(0, 10),
       monthlyFeeSar: s.monthlyFeeSar.toString(),

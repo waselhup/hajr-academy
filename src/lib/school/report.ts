@@ -224,7 +224,7 @@ export function renderSchoolReportHtml(data: SchoolReportData): Buffer {
       </table>
     </div>
     <div class="foot">
-      <strong>HAJR A° English Academy</strong> — تقرير سرّي خاص بالمدرسة الشريكة · Confidential partner-school report.
+      <strong>HAJR A° English Academy</strong> — تقرير سرّي خاص بشريك النجاح · Confidential Success Partner report.
     </div>
   </div>
 </body>

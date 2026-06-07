@@ -72,6 +72,7 @@ export default async function AdminSchoolDetailPage({
         <h1 className="text-2xl font-bold">
           {isAr ? school.nameAr : school.nameEn}
         </h1>
+        <Badge variant="outline">{t(`type_${school.partnerType ?? "SCHOOL"}`)}</Badge>
         <Badge variant={school.active ? "success" : "danger"}>
           {school.active ? t("active") : t("inactive")}
         </Badge>

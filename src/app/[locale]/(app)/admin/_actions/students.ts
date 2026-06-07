@@ -167,6 +167,13 @@ export async function getStudentPreviewAction(studentProfileId: string): Promise
       include: {
         user: { select: { name: true, nameAr: true, email: true, phone: true } },
         school: { select: { nameEn: true, nameAr: true } },
+        // Most-recent subscription carrying a promo code (D4 — show on preview).
+        subscriptions: {
+          where: { promoCodeId: { not: null } },
+          select: { promoCode: { select: { code: true } } },
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
         invoices: {
           select: {
             invoiceNumber: true,
@@ -219,6 +226,7 @@ export async function getStudentPreviewAction(studentProfileId: string): Promise
         guardianPhone: profile.guardianPhone,
         residenceAddress: profile.residenceAddress,
         englishTeacherName: profile.englishTeacherName,
+        promoCode: profile.subscriptions[0]?.promoCode?.code ?? null,
         invoices: profile.invoices.map((inv) => ({
           invoiceNumber: inv.invoiceNumber,
           month: inv.month,

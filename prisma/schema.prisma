@@ -1018,12 +1018,18 @@ model PromoCode {
   descriptionAr String?
   createdBy     String?
 
+  // Success Partner (organization) this promo belongs to (batch 4B — additive,
+  // optional). Lets the admin tie a promo to a charity / school / marketer.
+  partnerSchoolId String?
+  partnerSchool   PartnerSchool? @relation(fields: [partnerSchoolId], references: [id])
+
   subscriptions Subscription[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([code, isActive])
+  @@index([partnerSchoolId])
 }
 
 model SalaryPayment {
@@ -1068,6 +1074,16 @@ model TeacherEarning {
   @@index([status, createdAt])
 }
 
+/// PartnerType — the kind of "Success Partner" (شريك النجاح). Owner batch 4B:
+/// the "School Partner" concept is reframed as a broader "Success Partner"
+/// covering charities, schools, and individual marketers. Additive + nullable;
+/// the underlying model/table names stay (display-only rename).
+enum PartnerType {
+  CHARITY
+  SCHOOL
+  INDIVIDUAL
+}
+
 model PartnerSchool {
   id            String   @id @default(uuid())
   nameEn        String
@@ -1083,10 +1099,13 @@ model PartnerSchool {
   studentCap    Int
   active        Boolean  @default(true)
   notes         String?
+  // Success Partner kind (batch 4B — additive). Existing rows are schools.
+  partnerType   PartnerType? @default(SCHOOL)
   createdAt     DateTime @default(now())
 
-  students  StudentProfile[]
-  contracts SchoolContract[]
+  students   StudentProfile[]
+  contracts  SchoolContract[]
+  promoCodes PromoCode[]
 }
 
 // ─────────────────────── PHASE 9 — PARENT + SCHOOL ───────────────────────
@@ -1752,6 +1771,9 @@ model MarketerProfile {
   bankName       String?
   bankHolder     String?
   notes          String?        @db.Text
+  // Success Partner kind (batch 4B — additive). A marketer account is, by
+  // default, an INDIVIDUAL success partner.
+  partnerType    PartnerType?   @default(INDIVIDUAL)
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 

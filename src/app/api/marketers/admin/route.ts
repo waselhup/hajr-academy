@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/rbac";
 import { audit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 
 export const dynamic = "force-dynamic";
+
+/**
+ * A readable one-time password: an uppercase prefix + digits, e.g. "HAJR-7K3M92".
+ * Generated only at approval time and shown ONCE to the approving admin so they
+ * can hand it to the partner manually. We never store the plaintext.
+ */
+function makeTempPassword(): string {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous 0/O/1/I
+  let s = "";
+  for (let i = 0; i < 8; i++) {
+    s += alphabet[Math.floor(Math.random() * alphabet.length)];
+  }
+  return `Hajr-${s}`;
+}
 
 export async function POST(req: NextRequest) {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
@@ -18,11 +33,22 @@ export async function POST(req: NextRequest) {
   if (!m) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (action === "APPROVE") {
+    // Generate a fresh temporary password at approval time, store its hash, and
+    // return it ONCE to the approving admin to deliver manually (WhatsApp/email).
+    // The system never sends it automatically and never persists the plaintext.
+    const tempPassword = makeTempPassword();
+    const passwordHash = await bcrypt.hash(tempPassword, 10);
     await prisma.$transaction([
       prisma.marketerProfile.update({ where: { id }, data: { status: "ACTIVE" } }),
-      prisma.user.update({ where: { id: m.userId }, data: { isActive: true } }),
+      prisma.user.update({
+        where: { id: m.userId },
+        data: { isActive: true, passwordHash },
+      }),
     ]);
-    await audit.mutation(session.user.id, "MARKETER_APPROVED", "MarketerProfile", id, {});
+    await audit.mutation(session.user.id, "MARKETER_APPROVED", "MarketerProfile", id, {
+      email: m.user.email,
+      credentialsIssued: true, // never log the password itself
+    });
     await notify({
       userId: m.userId,
       type: "MARKETER_UPDATE",
@@ -38,7 +64,11 @@ export async function POST(req: NextRequest) {
       refType: "MarketerProfile",
       refId: id,
     });
-    return NextResponse.json({ ok: true });
+    // Credentials returned to the admin UI only — shown in a one-time panel.
+    return NextResponse.json({
+      ok: true,
+      credentials: { username: m.user.email, tempPassword },
+    });
   }
 
   if (action === "SUSPEND") {

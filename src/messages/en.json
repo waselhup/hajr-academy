@@ -137,7 +137,7 @@
     "lab": "English Lab",
     "stepBank": "STEP Bank",
     "step": "STEP Test",
-    "schools": "Partner Schools",
+    "schools": "Success Partners",
     "live": "Live Monitor",
     "auditLog": "Audit Log",
     "settings": "Settings",
@@ -310,7 +310,22 @@
     "marketerCommissionsTitle": "My Commissions",
     "marketerProfile": "My Profile",
     "adminMarketers": "Marketers",
-    "adminCommissions": "Commissions"
+    "adminCommissions": "Commissions",
+    "partnerType": "Partner type",
+    "type_CHARITY": "Charity",
+    "type_SCHOOL": "School",
+    "type_INDIVIDUAL": "Individual",
+    "approve": "Approve",
+    "approving": "Approving…",
+    "credentialsTitle": "Account created — credentials to share",
+    "credentialsIntro": "Send these to the partner manually (WhatsApp / email). They are shown once.",
+    "credentialUsername": "Username (email)",
+    "credentialPassword": "Temporary password",
+    "credentialCopy": "Copy",
+    "credentialCopied": "Copied ✓",
+    "credentialCopyBoth": "Copy both",
+    "credentialChangeNote": "Ask them to change the password after first login.",
+    "credentialDone": "Done"
   },
   "Placement": {
     "pageTitle": "Test Your Level Free",
@@ -552,7 +567,9 @@
     "subscription": "Subscription",
     "residence": "Residence & guardian",
     "amount": "Amount",
-    "sar": "SAR"
+    "sar": "SAR",
+    "promoCode": "Promo code",
+    "noPromo": "No promo code used"
   },
   "Teachers": {
     "title": "Teachers",
@@ -667,19 +684,19 @@
     "emptyBody": "Contact us to enroll."
   },
   "Schools": {
-    "title": "Partner Schools",
-    "addNew": "Add Partner School",
-    "edit": "Edit School",
+    "title": "Success Partners",
+    "addNew": "Add Success Partner",
+    "edit": "Edit Success Partner",
     "contractStart": "Contract start",
     "contractEnd": "Contract end",
     "monthlyFee": "Monthly fee",
     "studentCap": "Student cap",
     "contact": "Contact",
     "renewalSoon": "Renewal soon",
-    "createSuccess": "School created",
-    "updateSuccess": "School updated",
+    "createSuccess": "Success Partner created",
+    "updateSuccess": "Success Partner updated",
     "viewDetails": "View Details",
-    "schoolInfo": "School Information",
+    "schoolInfo": "Partner Information",
     "crNumber": "CR Number",
     "studentsCount": "Students",
     "email": "Email",
@@ -704,9 +721,13 @@
     "generateReport": "Generate Report",
     "reportHint": "Generate a combined attendance, progress, and financial report.",
     "enrolledStudents": "Enrolled Students",
-    "noStudents": "No students from this school yet.",
+    "noStudents": "No students from this partner yet.",
     "name": "Name",
-    "grade": "Grade"
+    "grade": "Grade",
+    "partnerType": "Partner type",
+    "type_CHARITY": "Charity",
+    "type_SCHOOL": "School",
+    "type_INDIVIDUAL": "Individual"
   },
   "Schedule": {
     "title": "Weekly Schedule",
@@ -1358,7 +1379,13 @@
     "churned": "Churned",
     "save": "Save",
     "saving": "Saving…",
-    "testMode": "Test mode — payments are simulated until Moyasar live keys are configured."
+    "testMode": "Test mode — payments are simulated until Moyasar live keys are configured.",
+    "organization": "Organization",
+    "organizationNone": "None (not tied to a partner)",
+    "promoTypeHintFixed": "Charity & school partners give a percentage discount. Only an individual partner can give a fixed amount.",
+    "organizationType_CHARITY": "Charity",
+    "organizationType_SCHOOL": "School",
+    "organizationType_INDIVIDUAL": "Individual"
   },
   "ParentPortal": {
     "welcome": "Welcome",

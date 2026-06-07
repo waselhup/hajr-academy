@@ -79,7 +79,20 @@ export default async function AdminStudentsPage({
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
-        include: { studentProfile: { include: { school: { select: { nameEn: true, nameAr: true } } } } },
+        include: {
+          studentProfile: {
+            include: {
+              school: { select: { nameEn: true, nameAr: true } },
+              // Most-recent subscription carrying a promo code (D3 — promo column).
+              subscriptions: {
+                where: { promoCodeId: { not: null } },
+                select: { promoCode: { select: { code: true } } },
+                orderBy: { createdAt: "desc" },
+                take: 1,
+              },
+            },
+          },
+        },
         orderBy: { [sortField]: sortDir } as any,
         skip,
         take: PAGE_SIZE,
@@ -121,6 +134,7 @@ export default async function AdminStudentsPage({
             guardianPhone: u.studentProfile.guardianPhone,
             residenceAddress: u.studentProfile.residenceAddress,
             englishTeacherName: u.studentProfile.englishTeacherName,
+            promoCode: u.studentProfile.subscriptions[0]?.promoCode?.code ?? null,
             profileId: u.studentProfile.id,
           }
         : null,

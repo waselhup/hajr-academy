@@ -27,11 +27,15 @@ import { fmtSAR } from "@/lib/format";
 
 const CITIES = ["Riyadh", "Jeddah", "Dammam", "Mecca", "Medina", "Khobar", "Tabuk", "Abha", "Hofuf", "Other"];
 
+type PartnerType = "CHARITY" | "SCHOOL" | "INDIVIDUAL";
+const PARTNER_TYPES: PartnerType[] = ["CHARITY", "SCHOOL", "INDIVIDUAL"];
+
 type Row = {
   id: string;
   nameEn: string; nameAr: string;
   contactName: string; contactEmail: string; contactPhone: string;
   city: string;
+  partnerType: PartnerType;
   contractStart: string; contractEnd: string;
   monthlyFeeSar: string;
   studentCap: number;
@@ -46,6 +50,7 @@ const schema = z.object({
   contactEmail: z.string().email(),
   contactPhone: z.string(),
   city: z.string(),
+  partnerType: z.enum(["CHARITY", "SCHOOL", "INDIVIDUAL"]),
   contractStart: z.string(),
   contractEnd: z.string(),
   monthlyFeeSar: z.coerce.number().nonnegative(),
@@ -76,6 +81,7 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
           <TableHeader>
             <TableRow>
               <TableHead>{t("Common.name")}</TableHead>
+              <TableHead>{t("Schools.partnerType")}</TableHead>
               <TableHead>{t("Schools.contact")}</TableHead>
               <TableHead>{t("Common.city")}</TableHead>
               <TableHead>{t("Schools.contractStart")} – {t("Schools.contractEnd")}</TableHead>
@@ -87,7 +93,7 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground p-12">{t("Common.noData")}</TableCell></TableRow>
+              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground p-12">{t("Common.noData")}</TableCell></TableRow>
             ) : rows.map((r) => {
               const daysToRenew = Math.floor((new Date(r.contractEnd).getTime() - Date.now()) / 86400000);
               const renewalSoon = daysToRenew < 60 && daysToRenew >= 0;
@@ -95,6 +101,9 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
                 <TableRow key={r.id}>
                   <TableCell>
                     <div className="font-medium">{locale === "ar" ? r.nameAr : r.nameEn}</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">{t(`Schools.type_${r.partnerType}`)}</Badge>
                   </TableCell>
                   <TableCell>
                     <div className="text-xs">
@@ -153,10 +162,11 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
           nameEn: existing.nameEn, nameAr: existing.nameAr,
           contactName: existing.contactName, contactEmail: existing.contactEmail, contactPhone: existing.contactPhone,
           city: existing.city,
+          partnerType: existing.partnerType ?? "SCHOOL",
           contractStart: existing.contractStart, contractEnd: existing.contractEnd,
           monthlyFeeSar: Number(existing.monthlyFeeSar), studentCap: existing.studentCap,
         }
-      : { city: "Hofuf", studentCap: 50, monthlyFeeSar: 15000 } as any,
+      : { city: "Hofuf", partnerType: "SCHOOL", studentCap: 50, monthlyFeeSar: 15000 } as any,
   });
 
   const onSubmit = (data: FormData) => {
@@ -188,6 +198,12 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
             <Select value={watch("city")} onValueChange={(v) => setValue("city", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>{CITIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+            </Select>
+          </Field>
+          <Field label={t("Schools.partnerType")} error={errors.partnerType?.message}>
+            <Select value={watch("partnerType")} onValueChange={(v) => setValue("partnerType", v as PartnerType)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>{PARTNER_TYPES.map((p) => <SelectItem key={p} value={p}>{t(`Schools.type_${p}`)}</SelectItem>)}</SelectContent>
             </Select>
           </Field>
           <Field label={t("Schools.contractStart")} error={errors.contractStart?.message}><DateField {...register("contractStart")} /></Field>

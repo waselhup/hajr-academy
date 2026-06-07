@@ -29,11 +29,41 @@ interface PromoRow {
   startsAt: string;
   expiresAt: string | null;
   timesUsed: number;
+  partnerSchoolId: string | null;
+  partnerNameEn: string | null;
+  partnerNameAr: string | null;
 }
 
-const TYPES = ["PERCENTAGE", "FIXED_AMOUNT", "FREE_MONTHS"];
+type PartnerType = "CHARITY" | "SCHOOL" | "INDIVIDUAL";
+interface Partner {
+  id: string;
+  nameEn: string;
+  nameAr: string;
+  partnerType: PartnerType;
+}
 
-export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
+const ALL_TYPES = ["PERCENTAGE", "FIXED_AMOUNT", "FREE_MONTHS"];
+
+/**
+ * Which discount types a promo may use, given the selected Success Partner:
+ *  - CHARITY / SCHOOL → percentage only (+ free months).
+ *  - INDIVIDUAL (or no partner) → percentage OR fixed amount (+ free months).
+ * FIXED_AMOUNT is the only type gated by partner kind.
+ */
+function allowedTypes(partner: Partner | undefined): string[] {
+  if (partner && partner.partnerType !== "INDIVIDUAL") {
+    return ALL_TYPES.filter((ty) => ty !== "FIXED_AMOUNT");
+  }
+  return ALL_TYPES;
+}
+
+export function AdminPromoCodesClient({
+  codes,
+  partners,
+}: {
+  codes: PromoRow[];
+  partners: Partner[];
+}) {
   const t = useTranslations("Finance");
   const locale = useLocale();
   const router = useRouter();
@@ -47,8 +77,12 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
     value: "",
     maxUses: "",
     expiresAt: "",
-    description: "",
+    partnerSchoolId: "",
   });
+
+  const selectedPartner = partners.find((p) => p.id === form.partnerSchoolId);
+  const typeOptions = allowedTypes(selectedPartner);
+  const partnerName = (p: Partner) => (isAr ? p.nameAr : p.nameEn);
 
   const date = (s: string | null) =>
     s ? new Date(s).toISOString().slice(0, 10) : "—";
@@ -69,7 +103,7 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
           value: Number(form.value),
           maxUses: form.maxUses ? Number(form.maxUses) : null,
           expiresAt: form.expiresAt || null,
-          description: form.description || null,
+          partnerSchoolId: form.partnerSchoolId || null,
         }),
       });
       const json = await res.json();
@@ -82,7 +116,7 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
           value: "",
           maxUses: "",
           expiresAt: "",
-          description: "",
+          partnerSchoolId: "",
         });
         router.refresh();
       } else {
@@ -124,6 +158,7 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
                 <TableHead>{t("code")}</TableHead>
                 <TableHead>{t("type")}</TableHead>
                 <TableHead>{t("value")}</TableHead>
+                <TableHead>{t("organization")}</TableHead>
                 <TableHead>{t("uses")}</TableHead>
                 <TableHead>{t("validUntil")}</TableHead>
                 <TableHead>{t("status")}</TableHead>
@@ -134,7 +169,7 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
               {codes.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={8}
                     className="p-6 text-center text-muted-foreground"
                   >
                     {t("noData")}
@@ -155,6 +190,11 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
                         : c.type === "FREE_MONTHS"
                           ? `${c.value} ${isAr ? "شهر" : "mo"}`
                           : `${c.value} ${isAr ? "ر.س" : "SAR"}`}
+                    </TableCell>
+                    <TableCell className="text-xs">
+                      {c.partnerSchoolId
+                        ? (isAr ? c.partnerNameAr : c.partnerNameEn) ?? "—"
+                        : "—"}
                     </TableCell>
                     <TableCell className="num">
                       {c.timesUsed}
@@ -216,9 +256,13 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
                   onChange={(e) => setForm({ ...form, type: e.target.value })}
                   className="mt-1 w-full rounded-md border p-2 text-sm"
                 >
-                  {TYPES.map((ty) => (
+                  {typeOptions.map((ty) => (
                     <option key={ty} value={ty}>
-                      {ty}
+                      {ty === "PERCENTAGE"
+                        ? t("percentage")
+                        : ty === "FIXED_AMOUNT"
+                          ? t("fixedAmount")
+                          : t("freeMonths")}
                     </option>
                   ))}
                 </select>
@@ -258,13 +302,34 @@ export function AdminPromoCodesClient({ codes }: { codes: PromoRow[] }) {
               </div>
             </div>
             <div>
-              <Label>{t("reason")}</Label>
-              <Input
-                value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
-              />
+              <Label>{t("organization")}</Label>
+              <select
+                value={form.partnerSchoolId}
+                onChange={(e) => {
+                  const partnerSchoolId = e.target.value;
+                  const next = partners.find((p) => p.id === partnerSchoolId);
+                  const allowed = allowedTypes(next);
+                  setForm((f) => ({
+                    ...f,
+                    partnerSchoolId,
+                    // If the new partner type forbids the current type, fall back.
+                    type: allowed.includes(f.type) ? f.type : "PERCENTAGE",
+                  }));
+                }}
+                className="mt-1 w-full rounded-md border p-2 text-sm"
+              >
+                <option value="">{t("organizationNone")}</option>
+                {partners.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {partnerName(p)} — {t(("organizationType_" + p.partnerType) as any)}
+                  </option>
+                ))}
+              </select>
+              {selectedPartner && selectedPartner.partnerType !== "INDIVIDUAL" && (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("promoTypeHintFixed")}
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>

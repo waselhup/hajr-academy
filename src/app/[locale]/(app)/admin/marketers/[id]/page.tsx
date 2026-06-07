@@ -56,6 +56,7 @@ export default async function AdminMarketerDetailPage({
           <h2 className="mb-3 text-base font-semibold text-hajr-text">{isAr ? "بيانات الحساب" : "Account"}</h2>
           <dl className="space-y-2 text-sm">
             <Row label={isAr ? "الكود" : "Code"} val={<span className="font-mono">{m.referralCode}</span>} />
+            <Row label={t("partnerType")} val={t(`type_${m.partnerType ?? "INDIVIDUAL"}`)} />
             <Row label={isAr ? "الحالة" : "Status"} val={t(`status_${m.status}`)} />
             <Row label={isAr ? "نسبة" : "Rate"} val={`${(Number(m.commissionRate) * 100).toFixed(0)}%`} />
             <Row label={isAr ? "اللاحقات الكلية" : "Total earned"} val={`${fmt(m.totalEarned.toString())} SAR`} />

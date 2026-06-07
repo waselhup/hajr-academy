@@ -58,6 +58,7 @@ type Row = {
     guardianPhone?: string | null;
     residenceAddress?: string | null;
     englishTeacherName?: string | null;
+    promoCode?: string | null;
     profileId?: string | null;
   } | null;
 };
@@ -85,6 +86,7 @@ type PreviewData = {
   guardianPhone: string | null;
   residenceAddress: string | null;
   englishTeacherName: string | null;
+  promoCode: string | null;
   invoices: {
     invoiceNumber: string;
     month: number;
@@ -335,6 +337,7 @@ export function StudentsClient({
                 <TableHead>{t("Common.level")}</TableHead>
                 <TableHead>{t("Common.gender")}</TableHead>
                 <TableHead>{t("Common.package")}</TableHead>
+                <TableHead>{t("Students.promoCode")}</TableHead>
                 <TableHead>{t("Common.status")}</TableHead>
                 <TableHead>{t("Common.created")}</TableHead>
                 <TableHead className="w-8" />
@@ -369,6 +372,13 @@ export function StudentsClient({
                   <TableCell>{r.profile?.gender ? t("Common." + r.profile.gender.toLowerCase() as any) : "—"}</TableCell>
                   <TableCell>
                     {r.profile?.activePackage ? <Badge variant="info">{t("Packages." + r.profile.activePackage as any)}</Badge> : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {r.profile?.promoCode ? (
+                      <Badge variant="outline" className="num font-mono">{r.profile.promoCode}</Badge>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={r.isActive ? "success" : "danger"}>{r.isActive ? t("Common.active") : t("Common.inactive")}</Badge>
@@ -453,6 +463,7 @@ export function StudentsClient({
                   <PreviewRow label={t("Common.package")} value={previewData.activePackage ? t(("Packages." + previewData.activePackage) as any) : null} />
                   <PreviewRow label={t("Students.packageStartedAt")} value={fmtDate(previewData.packageStartedAt)} />
                   <PreviewRow label={t("Students.packageExpiresAt")} value={fmtDate(previewData.packageExpiresAt)} />
+                  <PreviewRow label={t("Students.promoCode")} value={previewData.promoCode} />
                 </dl>
               </section>
 

@@ -99,6 +99,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Optional Success Partner link. If the promo is tied to a CHARITY or SCHOOL
+    // partner, only a percentage discount is allowed (server-enforced — the form
+    // hides FIXED_AMOUNT, but never trust the client). An INDIVIDUAL partner (or
+    // no partner) may use either percentage or a fixed amount.
+    let partnerSchoolId: string | null = null;
+    if (typeof body.partnerSchoolId === "string" && body.partnerSchoolId) {
+      const partner = await prisma.partnerSchool.findUnique({
+        where: { id: body.partnerSchoolId },
+        select: { id: true, partnerType: true },
+      });
+      if (!partner) {
+        return NextResponse.json(
+          { error: "Selected organization not found" },
+          { status: 400 }
+        );
+      }
+      partnerSchoolId = partner.id;
+      const isPercentOnly = partner.partnerType !== "INDIVIDUAL";
+      if (isPercentOnly && type === "FIXED_AMOUNT") {
+        return NextResponse.json(
+          {
+            error:
+              "Charity and school partners can only give a percentage discount.",
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     const existing = await prisma.promoCode.findUnique({ where: { code } });
     if (existing) {
       return NextResponse.json(
@@ -137,6 +166,7 @@ export async function POST(req: NextRequest) {
           typeof body.description === "string" ? body.description : null,
         descriptionAr:
           typeof body.descriptionAr === "string" ? body.descriptionAr : null,
+        partnerSchoolId,
         createdBy: session.user.id,
       },
     });
@@ -146,7 +176,7 @@ export async function POST(req: NextRequest) {
       action: "PROMO_CODE_CREATED",
       entity: "PromoCode",
       entityId: created.id,
-      metadata: { code, type, value },
+      metadata: { code, type, value, partnerSchoolId },
     });
 
     return NextResponse.json({ ok: true, id: created.id, code: created.code });
