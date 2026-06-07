@@ -310,7 +310,7 @@ export function CreateAssignmentDialog({
             <Label>{t("materialLabel")}</Label>
             <p className="text-xs text-muted-foreground">{t("materialHint")}</p>
             <AttachmentComposer
-              allowedKinds={["VIDEO", "AUDIO", "FILE"]}
+              allowedKinds={["VIDEO", "AUDIO", "FILE", "LINK"]}
               value={attachments}
               onChange={setAttachments}
               disabled={pending}

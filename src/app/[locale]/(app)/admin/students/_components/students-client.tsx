@@ -87,6 +87,18 @@ type PreviewData = {
   residenceAddress: string | null;
   englishTeacherName: string | null;
   promoCode: string | null;
+  evaluations: {
+    id: string;
+    skillLevel: string;
+    participation: number;
+    improvement: "IMPROVED" | "SAME" | "DECLINED";
+    note: string | null;
+    createdAt: string;
+    teacherName: string;
+    teacherNameAr: string | null;
+    className: string | null;
+    classNameAr: string | null;
+  }[];
   invoices: {
     invoiceNumber: string;
     month: number;
@@ -529,6 +541,36 @@ export function StudentsClient({
                       })}
                     </TableBody>
                   </Table>
+                )}
+              </section>
+
+              {/* Teacher evaluations (F3) */}
+              <section className="space-y-2">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("Evaluation.adminSectionTitle")}</h3>
+                {previewData.evaluations.length === 0 ? (
+                  <p className="text-muted-foreground">{t("Evaluation.none")}</p>
+                ) : (
+                  <ul className="space-y-2">
+                    {previewData.evaluations.map((e) => (
+                      <li key={e.id} className="rounded-md border bg-muted/30 p-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge variant="info">{e.skillLevel}</Badge>
+                          <span className="text-xs text-muted-foreground">
+                            {t("Evaluation.participation")}: <span className="num font-medium">{e.participation}/5</span>
+                          </span>
+                          <Badge variant={e.improvement === "IMPROVED" ? "success" : e.improvement === "DECLINED" ? "danger" : "outline"}>
+                            {t(("Evaluation.imp_" + e.improvement) as any)}
+                          </Badge>
+                          <span className="ms-auto num text-xs text-muted-foreground">{fmtDate(e.createdAt)}</span>
+                        </div>
+                        {e.note && <p className="mt-2 text-sm">{e.note}</p>}
+                        <p className="mt-1.5 text-xs text-muted-foreground">
+                          {t("Evaluation.by")} {locale === "ar" && e.teacherNameAr ? e.teacherNameAr : e.teacherName}
+                          {e.className ? ` · ${locale === "ar" && e.classNameAr ? e.classNameAr : e.className}` : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
                 )}
               </section>
             </div>

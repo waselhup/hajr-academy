@@ -681,7 +681,8 @@
     "cardEnterClass": "Enter Class",
     "cardDetails": "Class Details",
     "emptyTitle": "No classes yet",
-    "emptyBody": "Contact us to enroll."
+    "emptyBody": "Contact us to enroll.",
+    "teacherLabel": "Teacher"
   },
   "Schools": {
     "title": "Success Partners",
@@ -1757,7 +1758,13 @@
     "selectAll": "Select all",
     "clearSelection": "Clear",
     "searchStudents": "Search students…",
-    "noStudentsMatch": "No students match your search."
+    "noStudentsMatch": "No students match your search.",
+    "addLink": "Add a link",
+    "linkUrl": "Link URL",
+    "linkPlaceholder": "https://… (YouTube, Drive, website)",
+    "linkAdd": "Add link",
+    "linkInvalid": "Enter a valid http(s) link",
+    "openLink": "Open link"
   },
   "ClassResources": {
     "tab": "Resources",
@@ -2026,7 +2033,13 @@
     "commaSeparated": "Comma-separated",
     "save": "Save",
     "saving": "Saving...",
-    "savedOk": "Saved"
+    "savedOk": "Saved",
+    "photo": "Profile photo",
+    "uploadPhoto": "Upload photo",
+    "changePhoto": "Change photo",
+    "photoHint": "JPG, PNG or WebP — up to 5 MB.",
+    "photoUploaded": "Photo updated",
+    "photoError": "Could not upload the photo"
   },
   "Readiness": {
     "pageTitle": "Teacher Readiness",
@@ -2051,7 +2064,22 @@
     "teacherSelfRating": "Teacher self-rating",
     "verifyTeacher": "Verify teacher",
     "unverifyTeacher": "Revoke verification",
-    "saveOnly": "Save without verifying"
+    "saveOnly": "Save without verifying",
+    "toolsLabel": "Which interactive tools do you know?",
+    "toolsHint": "Select all that apply.",
+    "toolsOther": "Other (specify)",
+    "toolsOtherPlaceholder": "e.g. Nearpod, Padlet…",
+    "toolsNone": "None specified",
+    "toolsSpecified": "Tools specified",
+    "tool_ZOOM": "Zoom",
+    "tool_WORDWALL": "Wordwall",
+    "tool_KAHOOT": "Kahoot",
+    "tool_BAMBOOZLE": "Bamboozle",
+    "tool_CANVA": "Canva",
+    "tool_MIRO": "Miro",
+    "tool_QUIZIZZ": "Quizizz",
+    "tool_GOOGLE_WORKSPACE": "Google Workspace",
+    "tool_WHITEBOARD": "Whiteboard tools"
   },
   "TeacherMeetings": {
     "adminPageTitle": "Teacher Meetings",
@@ -3041,5 +3069,30 @@
       "PINK": "Pink",
       "PURPLE": "Purple"
     }
+  },
+  "Evaluation": {
+    "tab": "Evaluation",
+    "title": "Teacher evaluations",
+    "newTitle": "Evaluate student",
+    "evaluateAction": "Evaluate",
+    "skillLevel": "Skill level (CEFR)",
+    "participation": "Participation",
+    "improvement": "Improvement",
+    "imp_IMPROVED": "Improved",
+    "imp_SAME": "Same",
+    "imp_DECLINED": "Declined",
+    "note": "Note (optional)",
+    "notePlaceholder": "Anything worth recording…",
+    "save": "Save evaluation",
+    "saving": "Saving…",
+    "savedOk": "Evaluation saved",
+    "saveFail": "Could not save the evaluation",
+    "past": "Past evaluations",
+    "none": "No evaluations yet.",
+    "by": "by",
+    "selectClass": "Class (optional)",
+    "noClass": "No specific class",
+    "adminSectionTitle": "Teacher evaluations",
+    "trend": "Trend"
   }
 }

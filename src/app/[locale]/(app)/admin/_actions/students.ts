@@ -189,6 +189,16 @@ export async function getStudentPreviewAction(studentProfileId: string): Promise
           orderBy: { issuedAt: "desc" },
           take: 24,
         },
+        // Teacher evaluations (batch 4C, F3) — admin sees each teacher's
+        // assessment + the trend over time.
+        evaluations: {
+          include: {
+            teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+            class: { select: { name: true, nameAr: true } },
+          },
+          orderBy: { createdAt: "desc" },
+          take: 50,
+        },
       },
     });
     if (!profile) return { ok: false, error: "NOT_FOUND" };
@@ -227,6 +237,18 @@ export async function getStudentPreviewAction(studentProfileId: string): Promise
         residenceAddress: profile.residenceAddress,
         englishTeacherName: profile.englishTeacherName,
         promoCode: profile.subscriptions[0]?.promoCode?.code ?? null,
+        evaluations: profile.evaluations.map((e) => ({
+          id: e.id,
+          skillLevel: e.skillLevel,
+          participation: e.participation,
+          improvement: e.improvement,
+          note: e.note,
+          createdAt: e.createdAt.toISOString(),
+          teacherName: e.teacher.user.name,
+          teacherNameAr: e.teacher.user.nameAr,
+          className: e.class?.name ?? null,
+          classNameAr: e.class?.nameAr ?? null,
+        })),
         invoices: profile.invoices.map((inv) => ({
           invoiceNumber: inv.invoiceNumber,
           month: inv.month,

@@ -36,7 +36,7 @@ export default async function StudentClassesPage({
         class: {
           include: {
             program: true,
-            teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+            teacher: { include: { user: { select: { name: true, nameAr: true, avatar: true } } } },
             _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
             sessions: {
               where: {
@@ -61,7 +61,7 @@ export default async function StudentClassesPage({
         ],
       },
       include: {
-        teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+        teacher: { include: { user: { select: { name: true, nameAr: true, avatar: true } } } },
       },
       orderBy: { scheduledAt: "asc" },
     }),
@@ -76,6 +76,7 @@ export default async function StudentClassesPage({
       programName: locale === "ar" ? c.program.nameAr : c.program.nameEn,
       teacherName:
         locale === "ar" && c.teacher.user.nameAr ? c.teacher.user.nameAr : c.teacher.user.name,
+      teacherAvatar: c.teacher.user.avatar ?? null,
       scheduleDays: c.scheduleDays as string[],
       timeSlot: c.timeSlot,
       durationMinutes: c.durationMinutes,
@@ -101,6 +102,7 @@ export default async function StudentClassesPage({
       programName: locale === "ar" ? "خصوصي" : "Private",
       teacherName:
         locale === "ar" && l.teacher.user.nameAr ? l.teacher.user.nameAr : l.teacher.user.name,
+      teacherAvatar: l.teacher.user.avatar ?? null,
       scheduleDays: [] as string[],
       timeSlot: l.scheduledAt.toLocaleTimeString(locale === "ar" ? "ar-SA-u-nu-latn" : "en-US", {
         hour: "2-digit",

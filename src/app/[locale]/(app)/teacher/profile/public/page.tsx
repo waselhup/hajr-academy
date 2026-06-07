@@ -56,6 +56,8 @@ export default async function TeacherPublicProfilePage({
           yearsExp: teacher.yearsExp ?? 0,
           specializations: teacher.specializations,
           publicSlug: teacher.publicSlug ?? "",
+          avatar: teacher.user.avatar ?? null,
+          name: locale === "ar" ? teacher.user.nameAr ?? teacher.user.name : teacher.user.name,
         }}
       />
 

@@ -681,7 +681,8 @@
     "cardEnterClass": "ادخل الحصة",
     "cardDetails": "تفاصيل الفصل",
     "emptyTitle": "لم تنضم لأي فصل بعد",
-    "emptyBody": "تواصل مع الأكاديمية للتسجيل."
+    "emptyBody": "تواصل مع الأكاديمية للتسجيل.",
+    "teacherLabel": "المعلّم"
   },
   "Schools": {
     "title": "شركاء النجاح",
@@ -1757,7 +1758,13 @@
     "selectAll": "تحديد الكل",
     "clearSelection": "مسح",
     "searchStudents": "ابحث عن طالب…",
-    "noStudentsMatch": "لا يوجد طلاب مطابقون لبحثك."
+    "noStudentsMatch": "لا يوجد طلاب مطابقون لبحثك.",
+    "addLink": "إضافة رابط",
+    "linkUrl": "رابط (URL)",
+    "linkPlaceholder": "https://… (يوتيوب، درايف، موقع)",
+    "linkAdd": "إضافة الرابط",
+    "linkInvalid": "أدخل رابط http(s) صحيح",
+    "openLink": "فتح الرابط"
   },
   "ClassResources": {
     "tab": "الموارد",
@@ -2026,7 +2033,13 @@
     "commaSeparated": "افصل بفواصل",
     "save": "حفظ",
     "saving": "جارٍ الحفظ...",
-    "savedOk": "تم الحفظ"
+    "savedOk": "تم الحفظ",
+    "photo": "الصورة الشخصية",
+    "uploadPhoto": "رفع صورة",
+    "changePhoto": "تغيير الصورة",
+    "photoHint": "JPG أو PNG أو WebP — حتى 5 ميجابايت.",
+    "photoUploaded": "تم تحديث الصورة",
+    "photoError": "تعذّر رفع الصورة"
   },
   "Readiness": {
     "pageTitle": "جاهزية المعلم",
@@ -2051,7 +2064,22 @@
     "teacherSelfRating": "تقييم المعلم لنفسه",
     "verifyTeacher": "اعتماد المعلم",
     "unverifyTeacher": "إلغاء الاعتماد",
-    "saveOnly": "حفظ بدون اعتماد"
+    "saveOnly": "حفظ بدون اعتماد",
+    "toolsLabel": "ما الأدوات التفاعلية التي تتقنها؟",
+    "toolsHint": "اختر كل ما ينطبق.",
+    "toolsOther": "أخرى (حدّد)",
+    "toolsOtherPlaceholder": "مثال: Nearpod، Padlet…",
+    "toolsNone": "لم تُحدَّد أدوات",
+    "toolsSpecified": "الأدوات المحدّدة",
+    "tool_ZOOM": "Zoom",
+    "tool_WORDWALL": "Wordwall",
+    "tool_KAHOOT": "Kahoot",
+    "tool_BAMBOOZLE": "Bamboozle",
+    "tool_CANVA": "Canva",
+    "tool_MIRO": "Miro",
+    "tool_QUIZIZZ": "Quizizz",
+    "tool_GOOGLE_WORKSPACE": "Google Workspace",
+    "tool_WHITEBOARD": "أدوات السبورة"
   },
   "TeacherMeetings": {
     "adminPageTitle": "اجتماعات المعلمين",
@@ -3041,5 +3069,30 @@
       "PINK": "وردي",
       "PURPLE": "بنفسجي"
     }
+  },
+  "Evaluation": {
+    "tab": "التقييم",
+    "title": "تقييمات المعلّم",
+    "newTitle": "تقييم الطالب",
+    "evaluateAction": "تقييم",
+    "skillLevel": "المستوى (CEFR)",
+    "participation": "المشاركة",
+    "improvement": "التحسّن",
+    "imp_IMPROVED": "تحسّن",
+    "imp_SAME": "ثابت",
+    "imp_DECLINED": "تراجع",
+    "note": "ملاحظة (اختياري)",
+    "notePlaceholder": "أي ملاحظة تستحق التدوين…",
+    "save": "حفظ التقييم",
+    "saving": "جارٍ الحفظ…",
+    "savedOk": "تم حفظ التقييم",
+    "saveFail": "تعذّر حفظ التقييم",
+    "past": "التقييمات السابقة",
+    "none": "لا توجد تقييمات بعد.",
+    "by": "بواسطة",
+    "selectClass": "الفصل (اختياري)",
+    "noClass": "بدون فصل محدّد",
+    "adminSectionTitle": "تقييمات المعلّمين",
+    "trend": "الاتجاه"
   }
 }

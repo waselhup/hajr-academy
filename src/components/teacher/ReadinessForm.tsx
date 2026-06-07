@@ -2,21 +2,23 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { KNOWN_TOOLS as TOOLS } from "@/lib/teacher/readiness-tools";
 
 interface State {
   zoomTested: boolean;
   digitalToolsOk: boolean;
   mockClassDone: boolean;
-  interactiveOk: boolean;
+  interactiveTools: string[];
+  interactiveToolsOther: string;
   classroomMgmt: boolean;
   selfRating: number | null;
 }
 
-const ITEMS: { key: keyof Omit<State, "selfRating">; tKey: string }[] = [
+// The plain boolean checklist items (the interactive-tools item is special).
+const ITEMS: { key: "zoomTested" | "digitalToolsOk" | "mockClassDone" | "classroomMgmt"; tKey: string }[] = [
   { key: "zoomTested", tKey: "item_zoom" },
   { key: "digitalToolsOk", tKey: "item_digital" },
   { key: "mockClassDone", tKey: "item_mock" },
-  { key: "interactiveOk", tKey: "item_interactive" },
   { key: "classroomMgmt", tKey: "item_classroom" },
 ];
 
@@ -26,8 +28,17 @@ export function ReadinessForm({ initial }: { initial: State }) {
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
 
-  function toggle(key: keyof Omit<State, "selfRating">) {
+  function toggle(key: "zoomTested" | "digitalToolsOk" | "mockClassDone" | "classroomMgmt") {
     setState((prev) => ({ ...prev, [key]: !prev[key] }));
+  }
+
+  function toggleTool(tool: string) {
+    setState((prev) => ({
+      ...prev,
+      interactiveTools: prev.interactiveTools.includes(tool)
+        ? prev.interactiveTools.filter((x) => x !== tool)
+        : [...prev.interactiveTools, tool],
+    }));
   }
 
   async function submit() {
@@ -60,6 +71,38 @@ export function ReadinessForm({ initial }: { initial: State }) {
           </li>
         ))}
       </ul>
+
+      {/* F4 — specific interactive tools (multi-select + other). */}
+      <div className="rounded-lg border border-hajr-border bg-hajr-ivory/40 p-4">
+        <p className="text-sm font-medium text-hajr-text">{t("toolsLabel")}</p>
+        <p className="mt-0.5 text-xs text-hajr-muted">{t("toolsHint")}</p>
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+          {TOOLS.map((tool) => (
+            <label
+              key={tool}
+              className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-hajr-border bg-white p-2.5 hover:bg-hajr-ivory"
+            >
+              <input
+                type="checkbox"
+                checked={state.interactiveTools.includes(tool)}
+                onChange={() => toggleTool(tool)}
+                className="h-4 w-4 rounded border-hajr-border accent-hajr-rose"
+              />
+              <span className="text-sm text-hajr-text">{t(`tool_${tool}`)}</span>
+            </label>
+          ))}
+        </div>
+        <div className="mt-3">
+          <label className="mb-1 block text-xs text-hajr-muted">{t("toolsOther")}</label>
+          <input
+            type="text"
+            value={state.interactiveToolsOther}
+            onChange={(e) => setState((prev) => ({ ...prev, interactiveToolsOther: e.target.value }))}
+            placeholder={t("toolsOtherPlaceholder")}
+            className="h-11 w-full rounded-lg border border-hajr-border bg-white px-3 text-sm text-hajr-text focus:border-hajr-rose focus:outline-none"
+          />
+        </div>
+      </div>
 
       <div className="border-t border-hajr-border pt-5">
         <p className="mb-2 text-sm font-medium text-hajr-text">{t("selfRating")}</p>

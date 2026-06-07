@@ -105,6 +105,7 @@ model TeacherProfile {
   programApplications TeacherApplication[]
   filledOpenings      ProgramOpening[]
   openingAudiences    OpeningAudienceMember[]
+  studentEvaluations  StudentEvaluation[]
 }
 
 model StudentProfile {
@@ -153,6 +154,7 @@ model StudentProfile {
   parentReports         ParentReport[]
   speakingClubRsvps     SpeakingClubRSVP[]
   certificates          Certificate[]
+  evaluations           StudentEvaluation[]
 }
 
 model ParentProfile {
@@ -227,6 +229,7 @@ model Class {
   assignments    Assignment[]
   calendarEvents CalendarEvent[]
   resources      ClassResource[]
+  evaluations    StudentEvaluation[]
 }
 
 // ─────────────────── PROGRAM OPENINGS (apply-to-teach) ───────────────────
@@ -470,6 +473,9 @@ enum AttachmentKind {
   AUDIO
   TEXT
   FILE
+  // External link (YouTube, Drive, website). For LINK the `url` column holds the
+  // external http(s) URL itself (not a storage path). Batch 4C — additive.
+  LINK
 }
 
 // Who an assignment is for. ALL_CLASS (default, backward-compatible) = every
@@ -1822,6 +1828,34 @@ model Commission {
   @@index([status, createdAt])
 }
 
+/// Improvement trend a teacher records when evaluating a student (batch 4C).
+enum Improvement {
+  IMPROVED
+  SAME
+  DECLINED
+}
+
+/// StudentEvaluation — a periodic, teacher-authored assessment of a student
+/// (batch 4C, F3). The skill rating reuses the platform's CEFR scale; a teacher
+/// may only evaluate students enrolled in their own classes (server-guarded).
+model StudentEvaluation {
+  id            String         @id @default(uuid())
+  studentId     String
+  student       StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId     String
+  teacher       TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  classId       String?
+  class         Class?         @relation(fields: [classId], references: [id], onDelete: SetNull)
+  skillLevel    CefrLevel
+  participation Int // 1–5
+  improvement   Improvement
+  note          String?        @db.Text
+  createdAt     DateTime       @default(now())
+
+  @@index([studentId, createdAt])
+  @@index([teacherId, createdAt])
+}
+
 model PlacementTest {
   id            String             @id @default(uuid())
   variant       PlacementVariant   @default(GENERAL_ENGLISH)
@@ -1976,6 +2010,10 @@ model TeacherReadiness {
   digitalToolsOk Boolean        @default(false)
   mockClassDone  Boolean        @default(false)
   interactiveOk  Boolean        @default(false)
+  // Specific interactive/digital tools the teacher knows (batch 4C, F4 —
+  // additive). `interactiveOk` is kept for back-compat; this names the tools.
+  interactiveToolsList  String[]
+  interactiveToolsOther String?
   classroomMgmt  Boolean        @default(false)
   selfRating     Int?
   adminVerified  Boolean        @default(false)

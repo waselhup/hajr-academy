@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Mail, Phone, BookOpen } from "lucide-react";
+import { EvaluationTab, type EvaluationVM } from "./evaluation-tab";
 
 export const dynamic = "force-dynamic";
 
@@ -160,6 +161,39 @@ export default async function TeacherStudentDetailPage({
     orderBy: { skill: "asc" },
   });
 
+  // Evaluations of this student (any teacher) + this teacher's classes for the
+  // optional class picker. The form's server action re-checks ownership.
+  const [evaluationRows, teacherClasses] = await Promise.all([
+    prisma.studentEvaluation.findMany({
+      where: { studentId },
+      include: {
+        teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+        class: { select: { name: true, nameAr: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+    prisma.class.findMany({
+      where: { teacherId: profile.id },
+      select: { id: true, name: true, nameAr: true },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
+  const evaluations: EvaluationVM[] = evaluationRows.map((e) => ({
+    id: e.id,
+    skillLevel: e.skillLevel,
+    participation: e.participation,
+    improvement: e.improvement,
+    note: e.note,
+    createdAt: e.createdAt.toISOString(),
+    teacherName: locale === "ar" ? e.teacher.user.nameAr ?? e.teacher.user.name : e.teacher.user.name,
+    className: e.class ? (locale === "ar" ? e.class.nameAr ?? e.class.name : e.class.name) : null,
+  }));
+  const classOptions = teacherClasses.map((c) => ({
+    id: c.id,
+    name: locale === "ar" ? c.nameAr ?? c.name : c.name,
+  }));
+
   const parentLink = student.parentLinks.find((l) => l.isPrimary) ?? student.parentLinks[0] ?? null;
   const parent = parentLink?.parent ?? null;
 
@@ -247,10 +281,11 @@ export default async function TeacherStudentDetailPage({
 
       {/* Tabs */}
       <Tabs defaultValue="attendance" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:inline-grid">
+        <TabsList className="grid w-full grid-cols-2 sm:w-auto sm:inline-grid sm:grid-cols-4">
           <TabsTrigger value="attendance">{t("TeacherStudents.attendanceTab")}</TabsTrigger>
           <TabsTrigger value="assignments">{t("TeacherStudents.assignmentsTab")}</TabsTrigger>
           <TabsTrigger value="lab">{t("TeacherStudents.labTab")}</TabsTrigger>
+          <TabsTrigger value="evaluation">{t("Evaluation.tab")}</TabsTrigger>
         </TabsList>
 
         {/* Attendance tab */}
@@ -398,6 +433,16 @@ export default async function TeacherStudentDetailPage({
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Evaluation tab (F3) */}
+        <TabsContent value="evaluation">
+          <EvaluationTab
+            studentId={studentId}
+            locale={locale}
+            classes={classOptions}
+            initialEvaluations={evaluations}
+          />
         </TabsContent>
       </Tabs>
     </div>

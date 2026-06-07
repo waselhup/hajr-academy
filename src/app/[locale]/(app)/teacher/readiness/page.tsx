@@ -71,7 +71,8 @@ export default async function TeacherReadinessPage() {
           zoomTested: r?.zoomTested ?? false,
           digitalToolsOk: r?.digitalToolsOk ?? false,
           mockClassDone: r?.mockClassDone ?? false,
-          interactiveOk: r?.interactiveOk ?? false,
+          interactiveTools: r?.interactiveToolsList ?? [],
+          interactiveToolsOther: r?.interactiveToolsOther ?? "",
           classroomMgmt: r?.classroomMgmt ?? false,
           selfRating: r?.selfRating ?? null,
         }}

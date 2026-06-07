@@ -38,6 +38,7 @@ export async function GET(req: NextRequest) {
   try {
     let path: string | null = null;
     let download = false;
+    let kind: string | null = null;
 
     if (type === "assignment") {
       const att = await prisma.assignmentAttachment.findUnique({
@@ -49,6 +50,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       path = att.url;
+      kind = att.kind;
       download = att.kind === "FILE";
     } else {
       const att = await prisma.submissionAttachment.findUnique({
@@ -60,10 +62,17 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
       path = att.url;
+      kind = att.kind;
       download = att.kind === "FILE";
     }
 
     if (!path) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    // LINK attachments store the external URL directly — no bucket, no signing.
+    // The access check above already gated this caller, so it's safe to return.
+    if (kind === "LINK") {
+      return NextResponse.json({ url: path });
+    }
 
     const supabase = createSupabaseServiceClient();
     const { data: signed, error } = await supabase.storage

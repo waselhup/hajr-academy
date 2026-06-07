@@ -49,7 +49,7 @@ export default async function AdminClassesPage({
         where,
         include: {
           program: true,
-          teacher: { include: { user: { select: { name: true, nameAr: true } } } },
+          teacher: { include: { user: { select: { name: true, nameAr: true, avatar: true } } } },
           _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
         },
         orderBy: { createdAt: "desc" },
@@ -93,6 +93,7 @@ export default async function AdminClassesPage({
         id: c.teacher.id,
         name: c.teacher.user.name,
         nameAr: c.teacher.user.nameAr,
+        avatar: c.teacher.user.avatar ?? null,
       },
     }));
   } catch (e) {

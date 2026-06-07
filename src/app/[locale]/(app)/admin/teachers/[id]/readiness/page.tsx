@@ -39,6 +39,30 @@ export default async function AdminTeacherReadinessPage({
         <p className="mt-1 text-sm text-hajr-muted">{teacher.user.email}</p>
       </div>
 
+      {/* F4 — interactive tools the teacher specified (read-only). */}
+      <div className="rounded-xl border border-hajr-border bg-white p-5 shadow-sm">
+        <p className="mb-2 text-sm font-medium text-hajr-text">{t("toolsSpecified")}</p>
+        {(r?.interactiveToolsList?.length ?? 0) === 0 && !r?.interactiveToolsOther ? (
+          <p className="text-sm text-hajr-muted">{t("toolsNone")}</p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {(r?.interactiveToolsList ?? []).map((tool) => (
+              <span
+                key={tool}
+                className="inline-flex items-center rounded-full border border-hajr-border bg-hajr-ivory px-3 py-1 text-xs font-medium text-hajr-text"
+              >
+                {t(`tool_${tool}`)}
+              </span>
+            ))}
+            {r?.interactiveToolsOther && (
+              <span className="inline-flex items-center rounded-full border border-hajr-border bg-hajr-ivory px-3 py-1 text-xs font-medium text-hajr-text">
+                {t("toolsOther")}: {r.interactiveToolsOther}
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       <AdminReadinessForm
         teacherId={teacher.id}
         initial={{

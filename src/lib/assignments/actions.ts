@@ -34,7 +34,17 @@ export interface AttachmentInput {
   durationSec?: number | null;
 }
 
-const VALID_KINDS: AttachmentKind[] = ["VIDEO", "AUDIO", "TEXT", "FILE"];
+const VALID_KINDS: AttachmentKind[] = ["VIDEO", "AUDIO", "TEXT", "FILE", "LINK"];
+
+/** True for a well-formed http(s) URL (mirrors the composer's client check). */
+function isHttpUrl(s: string): boolean {
+  try {
+    const u = new URL(s);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 /** Defensive server-side sanitize of the attachment list the client sends. */
 function sanitizeAttachments(raw: unknown): AttachmentInput[] {
@@ -46,12 +56,25 @@ function sanitizeAttachments(raw: unknown): AttachmentInput[] {
     const kind = x.kind as AttachmentKind;
     const path = typeof x.path === "string" ? x.path : "";
     if (!VALID_KINDS.includes(kind) || !path) continue;
+    // For LINK, `path` is the external URL itself — reject anything that isn't a
+    // proper http(s) URL so a non-link path can never masquerade as a link.
+    if (kind === "LINK" && (!isHttpUrl(path) || path.length > 2048)) continue;
     out.push({
       kind,
-      path,
-      fileName: typeof x.fileName === "string" ? x.fileName.slice(0, 160) : "attachment",
-      mimeType: typeof x.mimeType === "string" ? x.mimeType.slice(0, 120) : "application/octet-stream",
-      sizeBytes: Number.isFinite(Number(x.sizeBytes)) ? Number(x.sizeBytes) : 0,
+      path: kind === "LINK" ? path.trim() : path,
+      fileName:
+        typeof x.fileName === "string"
+          ? x.fileName.slice(0, 160)
+          : kind === "LINK"
+            ? path.slice(0, 160)
+            : "attachment",
+      mimeType:
+        kind === "LINK"
+          ? "text/uri-list"
+          : typeof x.mimeType === "string"
+            ? x.mimeType.slice(0, 120)
+            : "application/octet-stream",
+      sizeBytes: kind === "LINK" ? 0 : Number.isFinite(Number(x.sizeBytes)) ? Number(x.sizeBytes) : 0,
       durationSec: x.durationSec == null ? null : Number(x.durationSec),
     });
   }

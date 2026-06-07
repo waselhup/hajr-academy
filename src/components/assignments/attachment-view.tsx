@@ -19,9 +19,11 @@ import {
   Download,
   Loader2,
   Play,
+  LinkIcon,
+  ExternalLink,
 } from "lucide-react";
 
-export type AttachmentKind = "VIDEO" | "AUDIO" | "TEXT" | "FILE";
+export type AttachmentKind = "VIDEO" | "AUDIO" | "TEXT" | "FILE" | "LINK";
 
 export interface AttachmentVM {
   id: string;
@@ -49,6 +51,7 @@ function KindIcon({ kind }: { kind: AttachmentKind }) {
   const cls = "h-4 w-4 shrink-0";
   if (kind === "VIDEO") return <Film className={cls} />;
   if (kind === "AUDIO") return <Mic className={cls} />;
+  if (kind === "LINK") return <LinkIcon className={cls} />;
   if (kind === "FILE") return <FileText className={cls} />;
   return <FileText className={cls} />;
 }
@@ -100,6 +103,23 @@ export function AttachmentView({
       {dur ? ` · ${dur}` : ""}
     </span>
   );
+
+  // External link → open in a new tab. The endpoint returns the stored URL
+  // verbatim (after the same access check) — no signing, no inline embed.
+  if (attachment.kind === "LINK") {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/30 p-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <LinkIcon className="h-4 w-4 shrink-0 text-hajr-rose" />
+          <span className="truncate text-sm font-medium">{attachment.fileName}</span>
+        </div>
+        <Button size="sm" variant="outline" onClick={onDownload} disabled={loading}>
+          {loading ? <Loader2 className="me-2 h-4 w-4 animate-spin" /> : <ExternalLink className="me-2 h-4 w-4" />}
+          {t("openLink")}
+        </Button>
+      </div>
+    );
+  }
 
   // Inline players: lazily reveal the media element once the URL is fetched.
   if (attachment.kind === "VIDEO") {

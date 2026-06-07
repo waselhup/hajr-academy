@@ -6,6 +6,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Plus, MoreHorizontal, Pencil, Trash2, Search, Users, BookText } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +32,12 @@ type Row = {
   pricePerMonth: string;
   startDate: string; endDate: string | null;
   program: { id: string; code: string; name: string; nameAr: string };
-  teacher: { id: string; name: string; nameAr: string | null };
+  teacher: { id: string; name: string; nameAr: string | null; avatar: string | null };
 };
+
+function initials(name: string): string {
+  return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+}
 
 const STATUS_VARIANT: Record<string, "success" | "info" | "danger" | "warning"> = {
   ACTIVE: "success", DRAFT: "info", COMPLETED: "info", CANCELLED: "danger",
@@ -116,8 +121,18 @@ export function ClassesClient({
                 </TableCell>
                 <TableCell><Badge variant="info">{t("Programs." + r.program.code as any)}</Badge></TableCell>
                 <TableCell>
-                  <span className="inline-flex items-center gap-1">
-                    <span className="inline-block h-2 w-2 rounded-full" style={{ backgroundColor: teacherColor(r.teacher.id) }} />
+                  <span className="inline-flex items-center gap-2">
+                    <Avatar className="h-7 w-7">
+                      {r.teacher.avatar ? (
+                        <AvatarImage src={r.teacher.avatar} alt={r.teacher.name} />
+                      ) : null}
+                      <AvatarFallback
+                        className="text-[10px] text-white"
+                        style={{ backgroundColor: teacherColor(r.teacher.id) }}
+                      >
+                        {initials(r.teacher.name)}
+                      </AvatarFallback>
+                    </Avatar>
                     {locale === "ar" && r.teacher.nameAr ? r.teacher.nameAr : r.teacher.name}
                   </span>
                 </TableCell>

@@ -6,8 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Clock, Users, Play, GraduationCap } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Calendar, Clock, Users, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+function initials(name: string): string {
+  return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+}
 
 const DAY_AR: Record<string, string> = {
   SUNDAY: "الأحد",
@@ -26,6 +31,7 @@ export type StudentClassItem = {
   cohortCode: string;
   programName: string;
   teacherName: string;
+  teacherAvatar: string | null;
   scheduleDays: string[];
   timeSlot: string;
   durationMinutes: number;
@@ -107,10 +113,19 @@ export function StudentClassesClient({
                 </CardHeader>
 
                 <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2 text-sm">
-                    <GraduationCap className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-muted-foreground">{t("cardTeacher")}:</span>
-                    <span className="truncate font-medium">{c.teacherName}</span>
+                  <div className="flex items-center gap-2.5 text-sm">
+                    <Avatar className="h-9 w-9 ring-2 ring-brand-rose/15">
+                      {c.teacherAvatar ? (
+                        <AvatarImage src={c.teacherAvatar} alt={c.teacherName} />
+                      ) : null}
+                      <AvatarFallback className="bg-brand-navy text-xs text-white">
+                        {initials(c.teacherName)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0">
+                      <p className="text-[11px] text-muted-foreground">{t("cardTeacher")}</p>
+                      <p className="truncate font-medium">{c.teacherName}</p>
+                    </div>
                   </div>
 
                   {c.scheduleDays.length > 0 && (

@@ -29,10 +29,23 @@ import {
   FileText,
   Film,
   Info,
+  Link2,
+  Plus,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-export type AttachmentKind = "VIDEO" | "AUDIO" | "TEXT" | "FILE";
+export type AttachmentKind = "VIDEO" | "AUDIO" | "TEXT" | "FILE" | "LINK";
+
+/** True for a well-formed http(s) URL (mirrors the server-side check). */
+function isHttpUrl(s: string): boolean {
+  try {
+    const u = new URL(s.trim());
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export interface StagedAttachment {
   kind: AttachmentKind;
@@ -73,10 +86,36 @@ export function AttachmentComposer({
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [linkValue, setLinkValue] = useState("");
+  const [linkError, setLinkError] = useState(false);
 
   const canVideo = allowedKinds.includes("VIDEO");
   const canAudio = allowedKinds.includes("AUDIO");
   const canFile = allowedKinds.includes("FILE");
+  const canLink = allowedKinds.includes("LINK");
+
+  // Stage an external link (no upload — the URL itself is the stored value).
+  const addLink = useCallback(() => {
+    const url = linkValue.trim();
+    if (!isHttpUrl(url)) {
+      setLinkError(true);
+      return;
+    }
+    setLinkError(false);
+    onChange([
+      ...value,
+      {
+        kind: "LINK",
+        path: url,
+        fileName: url,
+        mimeType: "text/uri-list",
+        sizeBytes: 0,
+        durationSec: null,
+        localId: nextLocalId(),
+      },
+    ]);
+    setLinkValue("");
+  }, [linkValue, value, onChange]);
 
   // ── Upload helper (XHR for progress) ─────────────────────────────
   const uploadBlob = useCallback(
@@ -237,6 +276,48 @@ export function AttachmentComposer({
         </div>
       ) : null}
 
+      {/* External link */}
+      {canLink && (
+        <div className="space-y-1.5">
+          <div className="flex items-start gap-2">
+            <div className="relative flex-1">
+              <Link2 className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="url"
+                inputMode="url"
+                dir="ltr"
+                value={linkValue}
+                disabled={disabled || uploading}
+                placeholder={t("linkPlaceholder")}
+                aria-label={t("linkUrl")}
+                className="ps-9"
+                onChange={(e) => {
+                  setLinkValue(e.target.value);
+                  if (linkError) setLinkError(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addLink();
+                  }
+                }}
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={disabled || uploading || !linkValue.trim()}
+              onClick={addLink}
+            >
+              <Plus className="me-1.5 h-4 w-4" />
+              {t("linkAdd")}
+            </Button>
+          </div>
+          {linkError && <p className="text-xs text-destructive">{t("linkInvalid")}</p>}
+        </div>
+      )}
+
       {/* Upload progress */}
       {progress != null && (
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
@@ -257,11 +338,15 @@ export function AttachmentComposer({
                   <Film className="h-4 w-4 shrink-0 text-hajr-rose" />
                 ) : a.kind === "AUDIO" ? (
                   <Mic className="h-4 w-4 shrink-0 text-hajr-rose" />
+                ) : a.kind === "LINK" ? (
+                  <Link2 className="h-4 w-4 shrink-0 text-hajr-rose" />
                 ) : (
                   <FileText className="h-4 w-4 shrink-0 text-hajr-rose" />
                 )}
                 <span className="truncate">{a.fileName}</span>
-                <span className="num text-xs text-muted-foreground">{humanSize(a.sizeBytes)}</span>
+                {a.kind !== "LINK" && (
+                  <span className="num text-xs text-muted-foreground">{humanSize(a.sizeBytes)}</span>
+                )}
               </span>
               <Button
                 type="button"

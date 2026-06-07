@@ -9,6 +9,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { audit } from "@/lib/audit";
 import { notifyAdmins } from "@/lib/notify";
+import { KNOWN_TOOLS } from "@/lib/teacher/readiness-tools";
 
 export const dynamic = "force-dynamic";
 
@@ -36,6 +37,8 @@ export async function PATCH(req: NextRequest) {
     digitalToolsOk?: boolean;
     mockClassDone?: boolean;
     interactiveOk?: boolean;
+    interactiveTools?: unknown;
+    interactiveToolsOther?: unknown;
     classroomMgmt?: boolean;
     selfRating?: number;
   };
@@ -55,11 +58,23 @@ export async function PATCH(req: NextRequest) {
       ? body.selfRating
       : undefined;
 
+  // F4 — store only recognized tool keys; cap the "other" free-text.
+  const interactiveToolsList = Array.isArray(body.interactiveTools)
+    ? [...new Set(body.interactiveTools.filter((x): x is string => typeof x === "string" && (KNOWN_TOOLS as readonly string[]).includes(x)))]
+    : [];
+  const interactiveToolsOther =
+    typeof body.interactiveToolsOther === "string" && body.interactiveToolsOther.trim()
+      ? body.interactiveToolsOther.trim().slice(0, 200)
+      : null;
+
   const data = {
     zoomTested: Boolean(body.zoomTested),
     digitalToolsOk: Boolean(body.digitalToolsOk),
     mockClassDone: Boolean(body.mockClassDone),
-    interactiveOk: Boolean(body.interactiveOk),
+    // "interactive tools" is now satisfied when at least one tool is named.
+    interactiveOk: interactiveToolsList.length > 0 || interactiveToolsOther !== null,
+    interactiveToolsList,
+    interactiveToolsOther,
     classroomMgmt: Boolean(body.classroomMgmt),
     selfRating,
   };
