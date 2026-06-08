@@ -368,6 +368,10 @@ export function MessagesClient({
       fd.append("file", blob, `${mode}.${ext}`);
       fd.append("kind", kind);
       fd.append("durationSec", String(durationSec));
+      // Defense in depth: pass the REAL container mime the recorder produced so
+      // the server can trust a take it already previewed even if magic-byte
+      // sniffing of iOS fragmented-MP4 audio is inconclusive.
+      fd.append("declaredMime", realMime);
       const res = await fetch("/api/messages/upload", { method: "POST", body: fd });
       if (res.ok) {
         const data = await res.json();
@@ -375,9 +379,17 @@ export function MessagesClient({
         setRecorderMode(null);
       } else {
         const err = await res.json().catch(() => ({}));
+        console.error(
+          "[messages] recording upload rejected:",
+          res.status,
+          err.error ?? err,
+        );
         toast.error(err.error || t("uploadFailed"));
       }
-    } catch {
+    } catch (e) {
+      // Network/thrown error — keep the generic toast but log the real detail
+      // so these failures aren't opaque in the field.
+      console.error("[messages] recording upload failed:", e);
       toast.error(t("uploadFailed"));
     } finally {
       setUploading(false);
@@ -623,9 +635,11 @@ export function MessagesClient({
                   </div>
                 )}
 
-                {/* in-browser recorder panel (voice/video) */}
+                {/* in-browser recorder panel (voice/video) — capped + scrollable so a
+                    tall portrait camera preview can never push the composer send row
+                    off-screen on a narrow phone viewport. */}
                 {recorderMode && (
-                  <div className="border-t border-hajr-border bg-white px-4 py-3">
+                  <div className="max-h-[55vh] overflow-y-auto border-t border-hajr-border bg-white px-4 py-3">
                     <VoiceRecorder
                       mode={recorderMode}
                       maxSeconds={3 * 60}

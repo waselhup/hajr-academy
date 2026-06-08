@@ -55,17 +55,33 @@ export async function POST(req: NextRequest) {
     // Recorder hint: "AUDIO" | "VIDEO" disambiguates the shared webm header.
     const kindHint = (formData.get("kind") as string | null)?.toUpperCase() ?? null;
     const durationRaw = (formData.get("durationSec") as string | null) ?? null;
+    // The real container mime the recorder produced (and already previewed).
+    // Used ONLY as a fallback for the recorder path — see below.
+    const declaredMime = ((formData.get("declaredMime") as string | null) ?? "")
+      .split(";")[0]
+      .trim()
+      .toLowerCase();
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
+    const isRecording = kindHint === "AUDIO" || kindHint === "VIDEO";
     const buffer = new Uint8Array(await file.arrayBuffer());
 
     // Detect: images/docs by magic bytes; recorded audio/video (webm | mp4 | ogg)
     // by container header + the recorder's AUDIO|VIDEO hint.
     let mime = detectMime(buffer);
-    if (!mime && (kindHint === "AUDIO" || kindHint === "VIDEO")) {
+    if (!mime && isRecording) {
       mime = detectRecordedMedia(buffer, kindHint as RecordingKind);
+    }
+    // Defense in depth for the recorder path ONLY: iOS Safari fragmented-MP4
+    // audio doesn't always present a clean brand box where the sniffer looks.
+    // If sniffing came back null but the browser told us it's a recognised
+    // recorded-media container, trust that — the client captured + previewed it.
+    // This never applies to image/PDF uploads (no AUDIO/VIDEO hint), so those
+    // still must pass the strict magic-byte check.
+    if (!mime && isRecording && RECORDED_MEDIA_MIMES.has(declaredMime)) {
+      mime = declaredMime;
     }
     if (!mime) {
       return NextResponse.json(

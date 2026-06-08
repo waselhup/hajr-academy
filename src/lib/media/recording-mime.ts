@@ -13,15 +13,65 @@
 
 /** Magic-byte signatures keyed by the bare container mime. */
 const WEBM_MAGIC = [0x1a, 0x45, 0xdf, 0xa3]; // EBML header (WebM / Matroska)
-const FTYP = [0x66, 0x74, 0x79, 0x70]; // "ftyp" box at bytes 4-7 (MP4 / M4A)
 const OGG_MAGIC = [0x4f, 0x67, 0x67, 0x53]; // "OggS" at byte 0 (Ogg)
+
+/**
+ * ISO-BMFF (MP4-family) "brand" boxes whose presence near the head of the file
+ * identifies an MP4/M4A/fragmented-MP4 container:
+ *  - ftyp: the standard file-type box (plain MP4, leads at offset 4)
+ *  - styp: segment-type box (fragmented MP4 / iOS audio segments)
+ *  - moov: movie box (sometimes leads when no ftyp is emitted)
+ */
+const ISO_BMFF_BRANDS = new Set(["ftyp", "styp", "moov"]);
+/** Boxes we skip over while still scanning forward for a brand box. */
+const ISO_BMFF_SKIPPABLE = new Set(["moof", "mdat", "free", "skip", "wide", "sidx"]);
+
+function readBoxType(buf: Uint8Array, pos: number): string {
+  let s = "";
+  for (let i = 0; i < 4; i++) {
+    const c = buf[pos + i];
+    if (c === undefined) return "";
+    s += String.fromCharCode(c);
+  }
+  return s;
+}
 
 export function isWebmContainer(buf: Uint8Array): boolean {
   return WEBM_MAGIC.every((b, i) => buf[i] === b);
 }
+
+/**
+ * Tolerant MP4-family detection. Walks the first few top-level ISO-BMFF boxes —
+ * each box is a 4-byte big-endian size followed by a 4-char type at offset+4 —
+ * and returns true if it finds an ftyp/styp/moov brand box. This recognises
+ * iOS Safari's fragmented-MP4 audio (which can lead with styp/moof or place the
+ * brand box off the fixed byte-4 offset) while still rejecting random bytes.
+ *
+ * The common case — a plain MP4 with "ftyp" at bytes 4-7 — is still matched on
+ * the very first box, so existing exact-offset behaviour is preserved.
+ */
 export function isFtypContainer(buf: Uint8Array): boolean {
-  return FTYP.every((b, i) => buf[i + 4] === b);
+  let pos = 0;
+  // Walk up to ~5 boxes or the first ~1KB, whichever comes first.
+  for (let box = 0; box < 5 && pos + 8 <= buf.length && pos < 1024; box++) {
+    const type = readBoxType(buf, pos + 4);
+    if (ISO_BMFF_BRANDS.has(type)) return true;
+
+    // 32-bit big-endian box size covering the header + payload.
+    const size =
+      ((buf[pos] << 24) | (buf[pos + 1] << 16) | (buf[pos + 2] << 8) | buf[pos + 3]) >>> 0;
+
+    // Only advance past boxes we recognise as skippable; an unknown leading box
+    // with a bogus size shouldn't let us walk into arbitrary bytes and guess.
+    if (!ISO_BMFF_SKIPPABLE.has(type)) return false;
+    // size 0 = "to end of file", size 1 = 64-bit extended size: can't safely
+    // step over either with a 32-bit read, so stop scanning.
+    if (size < 8) return false;
+    pos += size;
+  }
+  return false;
 }
+
 export function isOggContainer(buf: Uint8Array): boolean {
   return OGG_MAGIC.every((b, i) => buf[i] === b);
 }

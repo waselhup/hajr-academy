@@ -32,6 +32,38 @@ const WEBM = buf([0x1a, 0x45, 0xdf, 0xa3]);
 const FTYP = buf([0x66, 0x74, 0x79, 0x70], 4); // "ftyp" at bytes 4-7
 const OGG = buf([0x4f, 0x67, 0x67, 0x53]);
 
+/** ASCII codes for a 4-char ISO-BMFF box type. */
+function fourcc(s: string): number[] {
+  return [s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3)];
+}
+/** 4-byte big-endian box size. */
+function be32(n: number): number[] {
+  return [(n >>> 24) & 0xff, (n >>> 16) & 0xff, (n >>> 8) & 0xff, n & 0xff];
+}
+/**
+ * Lay out real ISO-BMFF boxes back-to-back: each box is [size][type] followed
+ * by `size - 8` zero payload bytes, so the declared big-endian size genuinely
+ * spans to the next box (a faithful fragmented-MP4 simulation — the scanner
+ * walks by the declared size, so the fixture must honour it).
+ */
+function mp4Boxes(...boxes: Array<{ size: number; type: string }>): Uint8Array {
+  const out: number[] = [];
+  for (const b of boxes) {
+    out.push(...be32(b.size), ...fourcc(b.type));
+    for (let i = 0; i < b.size - 8; i++) out.push(0x00); // payload padding
+  }
+  const u = new Uint8Array(Math.max(32, out.length));
+  out.forEach((v, i) => (u[i] = v));
+  return u;
+}
+
+// iOS Safari fragmented-MP4 audio: a leading moof box (with payload) then the
+// ftyp brand box is NOT at the fixed byte-4 offset — the old exact-offset
+// sniffer missed it; the box-walker steps over moof by its size and finds ftyp.
+const FRAG_FTYP = mp4Boxes({ size: 16, type: "moof" }, { size: 16, type: "ftyp" });
+// styp-led segment (no ftyp at all) — fragmented-MP4 segment-type box.
+const STYP = mp4Boxes({ size: 16, type: "styp" });
+
 describe("container signature detectors", () => {
   it("recognises a WebM EBML header", () => {
     expect(isWebmContainer(WEBM)).toBe(true);
@@ -41,6 +73,15 @@ describe("container signature detectors", () => {
   it("recognises an MP4 ftyp box at bytes 4-7", () => {
     expect(isFtypContainer(FTYP)).toBe(true);
     expect(isWebmContainer(FTYP)).toBe(false);
+  });
+  it("recognises a fragmented-MP4 brand box NOT at the fixed offset (iOS audio)", () => {
+    // ftyp arrives after a leading moof box → must still be detected.
+    expect(isFtypContainer(FRAG_FTYP)).toBe(true);
+    // styp-led segment (no ftyp) → still an MP4-family container.
+    expect(isFtypContainer(STYP)).toBe(true);
+  });
+  it("still rejects random bytes that merely happen to be 32 bytes long", () => {
+    expect(isFtypContainer(buf([0xde, 0xad, 0xbe, 0xef]))).toBe(false);
   });
   it("recognises an Ogg header", () => {
     expect(isOggContainer(OGG)).toBe(true);
@@ -65,6 +106,12 @@ describe("detectRecordedMedia — header + AUDIO|VIDEO hint", () => {
   });
   it("MP4 ftyp + AUDIO hint → audio/mp4 (Safari voice take)", () => {
     expect(detectRecordedMedia(FTYP, "AUDIO")).toBe("audio/mp4");
+  });
+  it("iOS fragmented-MP4 audio (ftyp not at offset 4) + AUDIO → audio/mp4 (the fix)", () => {
+    expect(detectRecordedMedia(FRAG_FTYP, "AUDIO")).toBe("audio/mp4");
+  });
+  it("styp-led buffer + AUDIO → audio/mp4 (iOS segment-type box)", () => {
+    expect(detectRecordedMedia(STYP, "AUDIO")).toBe("audio/mp4");
   });
   it("Ogg + AUDIO hint → audio/ogg", () => {
     expect(detectRecordedMedia(OGG, "AUDIO")).toBe("audio/ogg");

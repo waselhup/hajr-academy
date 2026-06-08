@@ -239,7 +239,12 @@ export function VoiceRecorder({
       {recording && (
         <div className="space-y-2">
           {mode === "video" && (
-            <video ref={liveVideoRef} className="w-full rounded-md bg-black" playsInline muted />
+            <video
+              ref={liveVideoRef}
+              className="w-full max-h-[40vh] sm:max-h-64 rounded-md bg-black object-contain"
+              playsInline
+              muted
+            />
           )}
           <div className="flex items-center gap-2">
             <Button type="button" variant="destructive" size="sm" onClick={stop}>
@@ -258,7 +263,11 @@ export function VoiceRecorder({
       {!recording && previewUrl && (
         <div className="space-y-2 rounded-md border border-hajr-border bg-muted/20 p-2.5">
           {mode === "video" ? (
-            <video controls className="w-full rounded-md" src={previewUrl} />
+            <video
+              controls
+              className="w-full max-h-[40vh] sm:max-h-64 rounded-md object-contain"
+              src={previewUrl}
+            />
           ) : (
             <audio controls className="w-full" src={previewUrl} />
           )}
