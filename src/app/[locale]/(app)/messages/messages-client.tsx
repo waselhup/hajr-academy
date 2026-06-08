@@ -932,7 +932,10 @@ function AttachmentBlock({
       <video
         controls
         src={url}
-        className="max-h-64 w-full rounded-lg bg-black"
+        // Keep a portrait phone video a COMPACT chat bubble: bound both width
+        // (≤240px) and height (≤280px) and object-contain so it never grows into
+        // a tall full-width box. Matches the audio bubble's ≤240px footprint.
+        className="h-auto max-h-[280px] w-full max-w-[240px] rounded-lg bg-black object-contain"
         playsInline
       />
     );
