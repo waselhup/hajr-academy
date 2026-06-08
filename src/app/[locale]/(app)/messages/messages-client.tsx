@@ -635,21 +635,6 @@ export function MessagesClient({
                   </div>
                 )}
 
-                {/* in-browser recorder panel (voice/video) — capped + scrollable so a
-                    tall portrait camera preview can never push the composer send row
-                    off-screen on a narrow phone viewport. */}
-                {recorderMode && (
-                  <div className="max-h-[55vh] overflow-y-auto border-t border-hajr-border bg-white px-4 py-3">
-                    <VoiceRecorder
-                      mode={recorderMode}
-                      maxSeconds={3 * 60}
-                      busy={uploading}
-                      onCaptured={(blob, sec, mime) => uploadRecording(blob, sec, recorderMode, mime)}
-                      onCancel={() => setRecorderMode(null)}
-                    />
-                  </div>
-                )}
-
                 {/* composer */}
                 <div className="flex items-end gap-2 border-t border-hajr-border bg-white p-3">
                   <input
@@ -783,6 +768,41 @@ export function MessagesClient({
                 ))
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── in-browser recorder dialog (voice/video) ──
+          Rendered in a portal as a fixed, centered modal — completely OUTSIDE
+          the messages-card flow — so a tall portrait camera preview can NEVER
+          push the composer or chat list around. Closing the dialog unmounts
+          VoiceRecorder, whose cleanup effect stops the camera/mic stream. */}
+      <Dialog
+        open={!!recorderMode}
+        onOpenChange={(open) => {
+          if (!open) setRecorderMode(null);
+        }}
+      >
+        <DialogContent className="flex max-h-[90vh] max-w-md flex-col overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>
+              {recorderMode === "video" ? t("recordVideo") : t("recordVoice")}
+            </DialogTitle>
+          </DialogHeader>
+          {/* Scrollable body: preview is height-capped inside VoiceRecorder, and
+              this container scrolls if the controls ever exceed the modal. */}
+          <div className="-mx-1 flex-1 overflow-y-auto px-1 py-1">
+            {recorderMode && (
+              <VoiceRecorder
+                mode={recorderMode}
+                maxSeconds={3 * 60}
+                busy={uploading}
+                onCaptured={(blob, sec, mime) =>
+                  uploadRecording(blob, sec, recorderMode, mime)
+                }
+                onCancel={() => setRecorderMode(null)}
+              />
+            )}
           </div>
         </DialogContent>
       </Dialog>
