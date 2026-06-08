@@ -26,7 +26,12 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed start-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg rounded-lg",
+        // Physical left-[50%] + translate-x-[-50%] for centering. Do NOT use the
+        // logical `start-[50%]` here: in an RTL (Arabic) document `start` maps to
+        // `right`, but translate-x is always physical, so the two don't cancel and
+        // the dialog lands off-screen (top-left). Physical `left` centers correctly
+        // in BOTH directions. (The close button below can stay logical via `end-4`.)
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg rounded-lg",
         className
       )}
       {...props}
