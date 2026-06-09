@@ -16,9 +16,12 @@ import { notifyAdmins } from "@/lib/notify";
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-  try {
-    const session = await requireRole("STUDENT");
+  // requireRole() redirects (throws NEXT_REDIRECT) for an unauthenticated or
+  // wrong-role caller — keep it OUTSIDE the try so that control-flow throw
+  // propagates to Next instead of being swallowed into a 500 (house pattern).
+  const session = await requireRole("STUDENT");
 
+  try {
     const sp = await prisma.studentProfile.findUnique({
       where: { userId: session.user.id },
       select: { id: true, user: { select: { name: true, nameAr: true } } },
