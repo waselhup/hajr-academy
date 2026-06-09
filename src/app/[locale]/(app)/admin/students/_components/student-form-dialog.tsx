@@ -25,7 +25,13 @@ const formSchema = z.object({
   nameAr: z.string().optional(),
   email: z.string().email(),
   phone: z.string().regex(/^(\+966|0)?5\d{8}$/, "Invalid Saudi phone"),
-  birthDate: z.string().optional(),
+  // Optional, but if given must be a real date in the past (mirrors the server).
+  birthDate: z
+    .string()
+    .optional()
+    .refine((d) => !d || (!Number.isNaN(Date.parse(d)) && new Date(d) < new Date()), {
+      message: "Birth date must be a valid past date",
+    }),
   gradeLevel: z.string().optional(),
   englishLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   gender: z.enum(["MALE", "FEMALE"]),

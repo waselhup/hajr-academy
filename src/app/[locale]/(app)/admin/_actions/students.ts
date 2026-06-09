@@ -13,13 +13,24 @@ const PackageEnum = z.enum(["ESSENTIAL", "INTEGRATED", "PRIVATE", "SCHOOL"]);
 const LevelEnum = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]);
 const GenderEnum = z.enum(["MALE", "FEMALE"]);
 
+// birthDate (when present) must be a parseable date strictly in the past — a
+// future DOB would yield a negative/nonsensical age in the Age column (#6).
+const PastBirthDate = z
+  .string()
+  .optional()
+  .nullable()
+  .refine(
+    (d) => !d || (!Number.isNaN(Date.parse(d)) && new Date(d) < new Date()),
+    { message: "Birth date must be a valid past date" }
+  );
+
 const createSchema = z.object({
   name: z.string().min(2),
   nameAr: z.string().optional().nullable(),
   email: z.string().email(),
   phone: z.string().min(8),
   password: z.string().min(8).default("Hajr@2026"),
-  birthDate: z.string().optional().nullable(),
+  birthDate: PastBirthDate,
   gradeLevel: z.string().optional().nullable(),
   englishLevel: LevelEnum.default("BEGINNER"),
   gender: GenderEnum.default("MALE"),

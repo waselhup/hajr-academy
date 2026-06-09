@@ -11,7 +11,9 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
+import { DateField } from "@/components/ui/western-fields";
 
 const schema = z
   .object({
@@ -26,11 +28,21 @@ const schema = z
     password: z.string().min(8),
     confirmPassword: z.string().min(8),
     role: z.enum(["STUDENT", "PARENT"]),
+    // Optional for students (don't block signup). DateField emits "yyyy-mm-dd"
+    // when valid, "" when empty/incomplete. Only meaningful for STUDENT.
+    birthDate: z.string().optional(),
   })
   .refine((d) => d.password === d.confirmPassword, {
     path: ["confirmPassword"],
     message: "Passwords must match",
-  });
+  })
+  .refine(
+    (d) =>
+      d.role !== "STUDENT" ||
+      !d.birthDate ||
+      (/^\d{4}-\d{2}-\d{2}$/.test(d.birthDate) && new Date(d.birthDate) < new Date()),
+    { path: ["birthDate"], message: "Invalid birth date" }
+  );
 
 type FormData = z.infer<typeof schema>;
 
@@ -77,6 +89,10 @@ export function RegisterForm() {
       .map((p) => p.trim())
       .filter(Boolean)
       .join(" ");
+    // DateField already emits canonical "yyyy-mm-dd" (ISO date). Only send it for
+    // students who provided one; otherwise omit so the backend skips it.
+    const birthDate =
+      data.role === "STUDENT" && data.birthDate ? data.birthDate : undefined;
     startTransition(async () => {
       const res = await fetch("/api/auth/register", {
         method: "POST",
@@ -88,6 +104,7 @@ export function RegisterForm() {
           nameAr: data.nameAr,
           phone: data.phone,
           role: data.role,
+          birthDate,
           referralCode: referralCode ?? undefined,
         }),
       });
@@ -185,6 +202,15 @@ export function RegisterForm() {
         <Label htmlFor="nameAr">{t("Auth.fullNameAr")}</Label>
         <Input id="nameAr" {...register("nameAr")} dir="rtl" />
       </div>
+      {role === "STUDENT" && (
+        <div className="space-y-2">
+          <Label htmlFor="birthDate">{t("Auth.birthDate")}</Label>
+          <DateField id="birthDate" autoComplete="bday" {...register("birthDate")} />
+          {errors.birthDate && (
+            <p className="text-xs text-destructive">{t("Validation.dateInvalid")}</p>
+          )}
+        </div>
+      )}
       <div className="space-y-2">
         <Label htmlFor="email">{t("Common.email")}</Label>
         <Input id="email" type="email" {...register("email")} />
@@ -199,12 +225,24 @@ export function RegisterForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">{t("Common.password")}</Label>
-        <Input id="password" type="password" {...register("password")} />
+        <PasswordInput
+          id="password"
+          autoComplete="new-password"
+          showLabel={t("Common.showPassword")}
+          hideLabel={t("Common.hidePassword")}
+          {...register("password")}
+        />
         {errors.password && <p className="text-xs text-destructive">{t("Validation.passwordMin")}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="confirmPassword">{t("Auth.confirmPassword")}</Label>
-        <Input id="confirmPassword" type="password" {...register("confirmPassword")} />
+        <PasswordInput
+          id="confirmPassword"
+          autoComplete="new-password"
+          showLabel={t("Common.showPassword")}
+          hideLabel={t("Common.hidePassword")}
+          {...register("confirmPassword")}
+        />
         {errors.confirmPassword && <p className="text-xs text-destructive">{t("Validation.passwordsMatch")}</p>}
       </div>
       {serverError && <p className="text-sm text-destructive">{serverError}</p>}

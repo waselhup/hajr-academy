@@ -114,6 +114,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.students", href: "/admin/students", icon: Users },
       { key: "Nav.studentsTransfer", href: "/admin/students/transfer", icon: ArrowLeftRight },
       { key: "Nav.teachers", href: "/admin/teachers", icon: GraduationCap },
+      { key: "Nav.teacherRequests", href: "/admin/teacher-requests", icon: HandCoins },
       { key: "Nav.applicants", href: "/admin/applicants", icon: UserPlus },
       { key: "Nav.teacherActivity", href: "/admin/teacher-activity", icon: ActivitySquare },
       { key: "Nav.teacherMeetings", href: "/admin/teacher-meetings", icon: CalendarCheck },

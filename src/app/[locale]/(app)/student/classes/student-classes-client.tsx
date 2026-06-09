@@ -1,6 +1,6 @@
 "use client";
 import { useState, useMemo } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,11 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Calendar, Clock, Users, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
+import {
+  AvailableTeachers,
+  type AvailableTeacher,
+  type PrivateProgram,
+} from "./available-teachers";
 
 function initials(name: string): string {
   return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
@@ -48,9 +53,13 @@ export type StudentClassItem = {
 export function StudentClassesClient({
   locale,
   items,
+  availableTeachers,
+  privatePrograms,
 }: {
   locale: string;
   items: StudentClassItem[];
+  availableTeachers: AvailableTeacher[];
+  privatePrograms: PrivateProgram[];
 }) {
   const t = useTranslations("Classes");
   const [filter, setFilter] = useState<"ALL" | "GROUP" | "PRIVATE">("ALL");
@@ -171,7 +180,7 @@ export function StudentClassesClient({
                         variant={isLive ? "cta" : "default"}
                         className="flex-1"
                       >
-                        <Link href={`/${locale}/classroom/${c.nextSession.id}`}>
+                        <Link href={`/classroom/${c.nextSession.id}`}>
                           <Play className="me-2 h-3.5 w-3.5" />
                           {t("cardEnterClass")}
                         </Link>
@@ -184,6 +193,12 @@ export function StudentClassesClient({
           })}
         </div>
       )}
+
+      <AvailableTeachers
+        locale={locale}
+        teachers={availableTeachers}
+        privatePrograms={privatePrograms}
+      />
     </>
   );
 }

@@ -94,7 +94,9 @@
     "showing": "Showing",
     "to": "to",
     "results": "results",
-    "rosterRespectsGender": "Roster respects gender restriction"
+    "rosterRespectsGender": "Roster respects gender restriction",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "Auth": {
     "login": "Log in",
@@ -126,7 +128,8 @@
     "resetSent": "If the email is registered, we've sent a reset link",
     "verifyEmailMsg": "We've sent a verification link to your email",
     "invalidCredentials": "Invalid email or password",
-    "accountCreated": "Account created successfully"
+    "accountCreated": "Account created successfully",
+    "birthDate": "Birth date"
   },
   "Nav": {
     "dashboard": "Dashboard",
@@ -256,7 +259,8 @@
     "bottomNavCommissions": "Commissions",
     "applicants": "Applicants",
     "applicantOverview": "Overview",
-    "feedback": "Feedback"
+    "feedback": "Feedback",
+    "teacherRequests": "Teacher requests"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
@@ -335,7 +339,44 @@
     "credentialCopied": "Copied ✓",
     "credentialCopyBoth": "Copy both",
     "credentialChangeNote": "Ask them to change the password after first login.",
-    "credentialDone": "Done"
+    "credentialDone": "Done",
+    "applyQuestionsIntro": "All fields are required. Please answer honestly and clearly.",
+    "qIntroduceYourself": "Introduce yourself",
+    "qIntroduceYourselfHint": "Briefly describe your background.",
+    "qExperience": "Your experience",
+    "qExperienceHint": "Briefly describe any experience in marketing, sales, student recruitment, or customer relations.",
+    "qAudiences": "Target audiences",
+    "qAudiencesHint": "Choose at least one.",
+    "qAudiencesOther": "Specify the other audience",
+    "qAudiencesOtherHint": "Tell us which audience you mean.",
+    "qChannels": "Marketing channels",
+    "qChannelsHint": "What marketing channels or networks would you use to promote Hajr Academy? (e.g. WhatsApp groups, social media, schools, universities, personal network).",
+    "qConvince": "How would you convince?",
+    "qConvinceHint": "How would you convince a parent or student to join a Hajr Academy English program?",
+    "qMonthlyCapacity": "Students you can bring monthly",
+    "qMonthlyCapacityHint": "How many students do you expect to bring per month?",
+    "qWhySuccessful": "Why you'd succeed",
+    "qWhySuccessfulHint": "Why do you believe you would be a successful marketer for Hajr Academy?",
+    "audience_PARENTS": "Parents",
+    "audience_SCHOOL_STUDENTS": "School students",
+    "audience_UNIVERSITY_STUDENTS": "University students",
+    "audience_JOB_SEEKERS": "Job seekers",
+    "audience_EMPLOYEES": "Employees",
+    "audience_OTHER": "Other",
+    "capacity_RANGE_1_5": "1-5",
+    "capacity_RANGE_6_10": "6-10",
+    "capacity_RANGE_11_20": "11-20",
+    "capacity_RANGE_20_PLUS": "20+",
+    "capacitySelectPlaceholder": "Select a range",
+    "wordCounter": "words: {count}/{max}",
+    "errRequired": "This field is required.",
+    "errAudiencesRequired": "Choose at least one audience.",
+    "errAudiencesOtherRequired": "Please specify the other audience.",
+    "errCapacityRequired": "Please select a range.",
+    "errWordLimit": "Maximum 100 words.",
+    "errFixFields": "Please fix the highlighted fields.",
+    "adminApplication": "Application",
+    "adminNoStructured": "Legacy application (unstructured):"
   },
   "Placement": {
     "pageTitle": "Test Your Level Free",
@@ -530,7 +571,8 @@
     "emailInvalid": "Invalid email",
     "passwordMin": "Password must be at least 8 characters",
     "passwordsMatch": "Passwords don't match",
-    "phoneInvalid": "Phone must start with 05 or +9665"
+    "phoneInvalid": "Phone must start with 05 or +9665",
+    "dateInvalid": "Invalid date"
   },
   "Students": {
     "title": "Students",
@@ -579,7 +621,8 @@
     "amount": "Amount",
     "sar": "SAR",
     "promoCode": "Promo code",
-    "noPromo": "No promo code used"
+    "noPromo": "No promo code used",
+    "colAge": "Age"
   },
   "Teachers": {
     "title": "Teachers",
@@ -617,7 +660,13 @@
     "spec_IELTS": "IELTS",
     "spec_UNIVERSITY_PREP": "University prep",
     "spec_GENERAL": "General",
-    "spec_BUSINESS": "Business"
+    "spec_BUSINESS": "Business",
+    "groupRateSar": "Group rate (SAR)",
+    "groupRateUsd": "Group rate (USD)",
+    "oneToOneRateSar": "One-to-one rate (SAR)",
+    "oneToOneRateUsd": "One-to-one rate (USD)",
+    "colGroupRate": "Group rate",
+    "colOneToOneRate": "One-to-one rate"
   },
   "Parents": {
     "title": "Parents",
@@ -1679,7 +1728,8 @@
     "status_PAID": "Paid",
     "filterStatus": "Filter by status",
     "filterMonth": "Filter by month",
-    "noEarnings": "No earnings yet."
+    "noEarnings": "No earnings yet.",
+    "myRates": "My rates"
   },
   "Assignments": {
     "tabAssignments": "Assignments",
@@ -2705,7 +2755,11 @@
     "noRatingsYet": "No ratings yet",
     "alreadyRated": "✓ Rated this month",
     "rateThisMonth": "Rate this month",
-    "skipThisMonth": "Skip"
+    "skipThisMonth": "Skip",
+    "colAdminRating": "Admin rating",
+    "colSelfRating": "Self rating",
+    "colCombinedAvg": "Combined avg",
+    "adminRatingHint": "Admin rating for the teacher (1 to 5)"
   },
   "Gamification": {
     "level": "Level",
@@ -3105,5 +3159,66 @@
     "noClass": "No specific class",
     "adminSectionTitle": "Teacher evaluations",
     "trend": "Trend"
+  },
+  "TeacherOnboarding": {
+    "title": "Teacher Onboarding",
+    "subtitle": "Complete these quick steps before you can access your dashboard.",
+    "intro": "We need to confirm your teaching readiness. This onboarding is a one-time setup.",
+    "noProfile": "No teacher profile is linked to your account. Please contact an administrator.",
+    "stepOf": "Step {current} / {total}",
+    "stepZoomTitle": "Zoom check",
+    "stepDigitalTitle": "Digital tools",
+    "stepMockTitle": "Mock class",
+    "stepToolsTitle": "Interactive tools",
+    "stepClassroomTitle": "Classroom management",
+    "stepRatingTitle": "Your self-rating",
+    "confirmZoom": "I confirm I have tested Zoom with the admin and it works.",
+    "confirmDigital": "I confirm my digital tools (whiteboard, polls) are working.",
+    "confirmMock": "I confirm I have completed a mock class.",
+    "confirmClassroom": "I confirm I have reviewed the classroom management training.",
+    "toolsLabel": "Which interactive tools do you know?",
+    "toolsHint": "Select all that apply, or add another tool.",
+    "ratingLabel": "How do you rate your readiness to teach online?",
+    "ratingHint": "Choose from 1 (beginner) to 5 (expert).",
+    "finish": "Finish onboarding",
+    "submitting": "Saving...",
+    "errorConfirmRequired": "Please confirm this item to continue.",
+    "errorToolsRequired": "Please select at least one tool or add another.",
+    "errorRatingRequired": "Please choose a self-rating to continue.",
+    "errorSubmit": "Could not save your onboarding. Please try again."
+  },
+  "Discovery": {
+    "sectionTitle": "Available teachers",
+    "sectionSubtitle": "Request a specific teacher for a one-to-one course.",
+    "availabilityLabel": "Availability (GMT+3)",
+    "availabilityNone": "Availability not set yet",
+    "requestButton": "Request this teacher",
+    "dialogTitle": "Request a teacher",
+    "dialogFor": "Requesting: {name}",
+    "programLabel": "One-to-one course",
+    "programPlaceholder": "Choose a course",
+    "programNone": "No one-to-one courses available right now.",
+    "messageLabel": "Message (optional)",
+    "messagePlaceholder": "Tell us your goal or preferred times",
+    "requestSubmit": "Send request",
+    "requestSuccess": "Your request was sent. Our team will contact you soon.",
+    "requestError": "Could not send the request. Please try again.",
+    "cancel": "Cancel"
+  },
+  "TeacherRequests": {
+    "title": "Teacher requests",
+    "subtitle": "Student requests for a specific teacher (one-to-one)",
+    "pendingBadge": "pending",
+    "colStudent": "Student",
+    "colTeacher": "Teacher",
+    "colProgram": "Program",
+    "colMessage": "Message",
+    "colDate": "Date",
+    "colStatus": "Status",
+    "empty": "No requests yet",
+    "changeStatus": "Change status",
+    "status_PENDING": "Pending",
+    "status_CONTACTED": "Contacted",
+    "status_CLOSED": "Closed"
   }
 }

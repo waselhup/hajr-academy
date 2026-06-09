@@ -94,7 +94,9 @@
     "showing": "يعرض",
     "to": "إلى",
     "results": "نتيجة",
-    "rosterRespectsGender": "القائمة تحترم قيد الجنس"
+    "rosterRespectsGender": "القائمة تحترم قيد الجنس",
+    "showPassword": "إظهار كلمة المرور",
+    "hidePassword": "إخفاء كلمة المرور"
   },
   "Auth": {
     "login": "تسجيل الدخول",
@@ -126,7 +128,8 @@
     "resetSent": "إذا كان البريد مسجلاً لدينا، أرسلنا رابط إعادة التعيين",
     "verifyEmailMsg": "أرسلنا رابط التأكيد إلى بريدك الإلكتروني",
     "invalidCredentials": "البريد أو كلمة المرور غير صحيحة",
-    "accountCreated": "تم إنشاء الحساب بنجاح"
+    "accountCreated": "تم إنشاء الحساب بنجاح",
+    "birthDate": "تاريخ الميلاد"
   },
   "Nav": {
     "dashboard": "اللوحة الرئيسية",
@@ -256,7 +259,8 @@
     "bottomNavCommissions": "العمولات",
     "applicants": "المتقدّمون",
     "applicantOverview": "نظرة عامة",
-    "feedback": "التقييمات"
+    "feedback": "التقييمات",
+    "teacherRequests": "طلبات المعلّمين"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",
@@ -335,7 +339,44 @@
     "credentialCopied": "تم النسخ ✓",
     "credentialCopyBoth": "نسخ الكل",
     "credentialChangeNote": "اطلب منهم تغيير كلمة المرور بعد أول تسجيل دخول.",
-    "credentialDone": "تم"
+    "credentialDone": "تم",
+    "applyQuestionsIntro": "كل الحقول مطلوبة. أجب بصدق ووضوح.",
+    "qIntroduceYourself": "عرّف بنفسك",
+    "qIntroduceYourselfHint": "صف خلفيتك باختصار.",
+    "qExperience": "خبرتك",
+    "qExperienceHint": "صف باختصار أي خبرة في التسويق أو المبيعات أو استقطاب الطلاب أو علاقات العملاء.",
+    "qAudiences": "الفئات المستهدفة",
+    "qAudiencesHint": "اختر فئة واحدة على الأقل.",
+    "qAudiencesOther": "حدّد الفئة الأخرى",
+    "qAudiencesOtherHint": "اكتب الفئة التي تقصدها.",
+    "qChannels": "قنوات التسويق",
+    "qChannelsHint": "ما القنوات أو الشبكات التي ستستخدمها للترويج لأكاديمية هجر؟ (مثل مجموعات واتساب، وسائل التواصل، المدارس، الجامعات، الشبكة الشخصية).",
+    "qConvince": "كيف تُقنع؟",
+    "qConvinceHint": "كيف ستُقنع أحد أولياء الأمور أو الطلاب بالانضمام إلى أحد برامج اللغة الإنجليزية في أكاديمية هجر؟",
+    "qMonthlyCapacity": "عدد الطلاب المتوقع شهرياً",
+    "qMonthlyCapacityHint": "كم طالباً تتوقع جلبه في الشهر؟",
+    "qWhySuccessful": "لماذا ستنجح؟",
+    "qWhySuccessfulHint": "لماذا تعتقد أنك ستكون مسوّقاً ناجحاً لأكاديمية هجر؟",
+    "audience_PARENTS": "أولياء الأمور",
+    "audience_SCHOOL_STUDENTS": "طلاب المدارس",
+    "audience_UNIVERSITY_STUDENTS": "طلاب الجامعات",
+    "audience_JOB_SEEKERS": "الباحثون عن عمل",
+    "audience_EMPLOYEES": "الموظفون",
+    "audience_OTHER": "أخرى",
+    "capacity_RANGE_1_5": "1-5",
+    "capacity_RANGE_6_10": "6-10",
+    "capacity_RANGE_11_20": "11-20",
+    "capacity_RANGE_20_PLUS": "+20",
+    "capacitySelectPlaceholder": "اختر النطاق",
+    "wordCounter": "الكلمات: {count}/{max}",
+    "errRequired": "هذا الحقل مطلوب.",
+    "errAudiencesRequired": "اختر فئة واحدة على الأقل.",
+    "errAudiencesOtherRequired": "يرجى تحديد الفئة الأخرى.",
+    "errCapacityRequired": "يرجى اختيار النطاق.",
+    "errWordLimit": "الحد الأقصى 100 كلمة.",
+    "errFixFields": "يرجى تصحيح الحقول المميزة.",
+    "adminApplication": "الطلب",
+    "adminNoStructured": "طلب قديم (نص غير مُنظّم):"
   },
   "Placement": {
     "pageTitle": "اختبر مستواك مجاناً",
@@ -530,7 +571,8 @@
     "emailInvalid": "البريد الإلكتروني غير صحيح",
     "passwordMin": "كلمة المرور يجب أن تكون 8 أحرف على الأقل",
     "passwordsMatch": "كلمتا المرور غير متطابقتين",
-    "phoneInvalid": "رقم الجوال يجب أن يبدأ بـ 05 أو +9665"
+    "phoneInvalid": "رقم الجوال يجب أن يبدأ بـ 05 أو +9665",
+    "dateInvalid": "تاريخ غير صالح"
   },
   "Students": {
     "title": "الطلاب",
@@ -579,7 +621,8 @@
     "amount": "المبلغ",
     "sar": "ريال",
     "promoCode": "رمز الخصم",
-    "noPromo": "لم يُستخدم رمز خصم"
+    "noPromo": "لم يُستخدم رمز خصم",
+    "colAge": "العمر"
   },
   "Teachers": {
     "title": "المعلمون",
@@ -617,7 +660,13 @@
     "spec_IELTS": "آيلتس",
     "spec_UNIVERSITY_PREP": "التحضير الجامعي",
     "spec_GENERAL": "عام",
-    "spec_BUSINESS": "الأعمال"
+    "spec_BUSINESS": "الأعمال",
+    "groupRateSar": "سعر المجموعة (ر.س)",
+    "groupRateUsd": "سعر المجموعة (دولار)",
+    "oneToOneRateSar": "سعر الفردي (ر.س)",
+    "oneToOneRateUsd": "سعر الفردي (دولار)",
+    "colGroupRate": "سعر المجموعة",
+    "colOneToOneRate": "السعر الفردي"
   },
   "Parents": {
     "title": "أولياء الأمور",
@@ -1679,7 +1728,8 @@
     "status_PAID": "مدفوع",
     "filterStatus": "تصفية بالحالة",
     "filterMonth": "تصفية بالشهر",
-    "noEarnings": "لا توجد أرباح بعد."
+    "noEarnings": "لا توجد أرباح بعد.",
+    "myRates": "أسعاري"
   },
   "Assignments": {
     "tabAssignments": "الواجبات",
@@ -2705,7 +2755,11 @@
     "noRatingsYet": "لا توجد تقييمات بعد",
     "alreadyRated": "✓ قيّمت هذا الشهر",
     "rateThisMonth": "قيّم هذا الشهر",
-    "skipThisMonth": "تخطّي"
+    "skipThisMonth": "تخطّي",
+    "colAdminRating": "تقييم الإدارة",
+    "colSelfRating": "التقييم الذاتي",
+    "colCombinedAvg": "المتوسط المجمّع",
+    "adminRatingHint": "تقييم الإدارة للمعلّم (من 1 إلى 5)"
   },
   "Gamification": {
     "level": "المستوى",
@@ -3105,5 +3159,66 @@
     "noClass": "بدون فصل محدّد",
     "adminSectionTitle": "تقييمات المعلّمين",
     "trend": "الاتجاه"
+  },
+  "TeacherOnboarding": {
+    "title": "تهيئة المعلم",
+    "subtitle": "أكمل هذه الخطوات السريعة قبل الوصول إلى لوحة التحكم.",
+    "intro": "نحتاج إلى تأكيد جاهزيتك للتدريس. هذه التهيئة لمرة واحدة فقط.",
+    "noProfile": "لا يوجد ملف معلم مرتبط بحسابك. يرجى التواصل مع الإدارة.",
+    "stepOf": "خطوة {current} / {total}",
+    "stepZoomTitle": "اختبار Zoom",
+    "stepDigitalTitle": "الأدوات الرقمية",
+    "stepMockTitle": "الحصة التجريبية",
+    "stepToolsTitle": "الأدوات التفاعلية",
+    "stepClassroomTitle": "إدارة الصف",
+    "stepRatingTitle": "تقييمك الذاتي",
+    "confirmZoom": "أؤكد أنني اختبرت Zoom مع الإدارة وأنه يعمل.",
+    "confirmDigital": "أؤكد أن أدواتي الرقمية (السبورة، التصويت) تعمل.",
+    "confirmMock": "أؤكد أنني أكملت حصة تجريبية.",
+    "confirmClassroom": "أؤكد أنني راجعت تدريب إدارة الصف.",
+    "toolsLabel": "ما الأدوات التفاعلية التي تتقنها؟",
+    "toolsHint": "اختر كل ما ينطبق، أو أضف أداة أخرى.",
+    "ratingLabel": "كيف تقيّم جاهزيتك للتدريس عبر الإنترنت؟",
+    "ratingHint": "اختر من 1 (مبتدئ) إلى 5 (خبير).",
+    "finish": "إنهاء التهيئة",
+    "submitting": "جارٍ الحفظ...",
+    "errorConfirmRequired": "يرجى تأكيد هذا البند للمتابعة.",
+    "errorToolsRequired": "يرجى اختيار أداة واحدة على الأقل أو إضافة أداة أخرى.",
+    "errorRatingRequired": "يرجى اختيار تقييم ذاتي للمتابعة.",
+    "errorSubmit": "تعذّر حفظ التهيئة. حاول مرة أخرى."
+  },
+  "Discovery": {
+    "sectionTitle": "المعلّمون المتاحون",
+    "sectionSubtitle": "اطلب معلّماً محدداً لدورة فردية (واحد لواحد).",
+    "availabilityLabel": "أوقات التوفر (توقيت غرينتش +3)",
+    "availabilityNone": "أوقات التوفر غير محددة بعد",
+    "requestButton": "اطلب هذا المعلّم",
+    "dialogTitle": "طلب معلّم",
+    "dialogFor": "طلب المعلّم: {name}",
+    "programLabel": "الدورة الفردية",
+    "programPlaceholder": "اختر دورة",
+    "programNone": "لا توجد دورات فردية متاحة حالياً.",
+    "messageLabel": "رسالة (اختياري)",
+    "messagePlaceholder": "أخبرنا عن هدفك أو الأوقات المفضّلة لديك",
+    "requestSubmit": "إرسال الطلب",
+    "requestSuccess": "تم إرسال طلبك. سيتواصل معك الفريق قريباً.",
+    "requestError": "تعذّر إرسال الطلب. حاول مرة أخرى.",
+    "cancel": "إلغاء"
+  },
+  "TeacherRequests": {
+    "title": "طلبات المعلّمين",
+    "subtitle": "طلبات الطلاب لمعلّم محدّد لدرس فردي",
+    "pendingBadge": "قيد الانتظار",
+    "colStudent": "الطالب",
+    "colTeacher": "المعلّم",
+    "colProgram": "البرنامج",
+    "colMessage": "الرسالة",
+    "colDate": "التاريخ",
+    "colStatus": "الحالة",
+    "empty": "لا توجد طلبات بعد",
+    "changeStatus": "تغيير الحالة",
+    "status_PENDING": "قيد الانتظار",
+    "status_CONTACTED": "تم التواصل",
+    "status_CLOSED": "مغلق"
   }
 }

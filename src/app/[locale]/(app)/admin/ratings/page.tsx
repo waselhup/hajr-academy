@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
+import { combinedTeacherAverage } from "@/lib/ratings/combined";
+import { AdminRatingCell } from "./_components/admin-rating-cell";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +26,9 @@ export default async function AdminRatingsPage({
     postCount: number;
     monthlyAvg: number | null;
     parentMonthlyAvg: number | null;
+    adminRating: number | null;
+    selfRating: number | null;
+    combined: number | null;
   }> = [];
   let recent: Array<{
     id: string;
@@ -58,7 +63,10 @@ export default async function AdminRatingsPage({
 
     // Per-teacher aggregates
     const teacherProfiles = await prisma.teacherProfile.findMany({
-      include: { user: { select: { name: true, nameAr: true } } },
+      include: {
+        user: { select: { name: true, nameAr: true } },
+        readiness: { select: { selfRating: true } },
+      },
       take: 100,
     });
     teachers = await Promise.all(
@@ -78,15 +86,23 @@ export default async function AdminRatingsPage({
             _avg: { rating: true },
           }),
         ]);
+        const postAvg = postAgg._avg.rating
+          ? Number(postAgg._avg.rating.toFixed(2))
+          : null;
+        const adminRating = tp.adminRating ?? null;
+        const selfRating = tp.readiness?.selfRating ?? null;
         return {
           teacherId: tp.id,
           teacherName: tp.user.nameAr || tp.user.name,
-          postAvg: postAgg._avg.rating ? Number(postAgg._avg.rating.toFixed(2)) : null,
+          postAvg,
           postCount: postAgg._count._all,
           monthlyAvg: monthlyAgg._avg.rating ? Number(monthlyAgg._avg.rating.toFixed(2)) : null,
           parentMonthlyAvg: parentMonthlyAgg._avg.rating
             ? Number(parentMonthlyAgg._avg.rating.toFixed(2))
             : null,
+          adminRating,
+          selfRating,
+          combined: combinedTeacherAverage({ postAvg, adminRating, selfRating }),
         };
       })
     );
@@ -113,12 +129,15 @@ export default async function AdminRatingsPage({
                   <th className="px-3 py-2 text-start">{t("colPostCount")}</th>
                   <th className="px-3 py-2 text-start">{t("colMonthlyAvg")}</th>
                   <th className="px-3 py-2 text-start">{t("colParentAvg")}</th>
+                  <th className="px-3 py-2 text-start">{t("colAdminRating")}</th>
+                  <th className="px-3 py-2 text-start">{t("colSelfRating")}</th>
+                  <th className="px-3 py-2 text-start">{t("colCombinedAvg")}</th>
                 </tr>
               </thead>
               <tbody>
                 {teachers.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-8 text-center text-hajr-gray-500">
+                    <td colSpan={8} className="px-3 py-8 text-center text-hajr-gray-500">
                       {t("emptyTeachers")}
                     </td>
                   </tr>
@@ -142,6 +161,11 @@ export default async function AdminRatingsPage({
                       <td className="px-3 py-2">{tr.postCount}</td>
                       <td className="px-3 py-2">{tr.monthlyAvg ?? "—"}</td>
                       <td className="px-3 py-2">{tr.parentMonthlyAvg ?? "—"}</td>
+                      <td className="px-3 py-2">
+                        <AdminRatingCell teacherId={tr.teacherId} value={tr.adminRating} />
+                      </td>
+                      <td className="px-3 py-2 num">{tr.selfRating ?? "—"}</td>
+                      <td className="px-3 py-2 num font-medium">{tr.combined ?? "—"}</td>
                     </tr>
                   ))
                 )}

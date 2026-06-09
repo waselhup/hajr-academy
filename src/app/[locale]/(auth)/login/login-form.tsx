@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { ROLE_HOME } from "@/lib/role-home";
 import type { Role } from "@prisma/client";
@@ -64,7 +65,13 @@ export function LoginForm() {
       </div>
       <div className="space-y-2">
         <Label htmlFor="password">{t("Common.password")}</Label>
-        <Input id="password" type="password" autoComplete="current-password" {...register("password")} />
+        <PasswordInput
+          id="password"
+          autoComplete="current-password"
+          showLabel={t("Common.showPassword")}
+          hideLabel={t("Common.hidePassword")}
+          {...register("password")}
+        />
         {errors.password && <p className="text-xs text-destructive">{t("Validation.passwordMin")}</p>}
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}

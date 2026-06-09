@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Mail, Phone, Star, Users, BadgeDollarSign } from "lucide-react";
+import { fmtSAR, fmtUSD } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -280,6 +281,27 @@ export default async function TeacherProfilePage({
         </CardContent>
       </Card>
 
+      {/* Section 2b — My rates (read-only, set by admin) */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">{t("TeacherPay.myRates")}</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-3 sm:grid-cols-2">
+          <RateTile
+            label={t("Teachers.colGroupRate")}
+            sar={teacher.groupRateSar != null ? Number(teacher.groupRateSar) : null}
+            usd={teacher.groupRateUsd != null ? Number(teacher.groupRateUsd) : null}
+            locale={locale}
+          />
+          <RateTile
+            label={t("Teachers.colOneToOneRate")}
+            sar={teacher.oneToOneRateSar != null ? Number(teacher.oneToOneRateSar) : null}
+            usd={teacher.oneToOneRateUsd != null ? Number(teacher.oneToOneRateUsd) : null}
+            locale={locale}
+          />
+        </CardContent>
+      </Card>
+
       {/* Section 3 — Performance */}
       <Card>
         <CardHeader>
@@ -335,6 +357,31 @@ function StatTile({
           {locale === "ar" ? "ر.س" : "SAR"}
         </span>
       </p>
+    </div>
+  );
+}
+
+function RateTile({
+  label,
+  sar,
+  usd,
+  locale,
+}: {
+  label: string;
+  sar: number | null;
+  usd: number | null;
+  locale: string;
+}) {
+  const loc = locale === "ar" ? "ar" : "en";
+  return (
+    <div className="rounded-lg border border-brand-navy/10 bg-white p-4">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-bold text-brand-navy num">
+        {sar != null ? fmtSAR(sar, loc) : "—"}
+      </p>
+      {usd != null ? (
+        <p className="mt-0.5 text-sm text-muted-foreground num">{fmtUSD(usd, loc)}</p>
+      ) : null}
     </div>
   );
 }

@@ -11,6 +11,25 @@ function fmt(n: number | string): string {
   return new Intl.NumberFormat("en", { maximumFractionDigits: 2 }).format(Number(n));
 }
 
+/** The structured marketer-application answers stored in MarketerProfile.answersJson. */
+type MarketerAnswers = {
+  introduceYourself?: string;
+  experience?: string;
+  audiences?: string[];
+  audiencesOther?: string;
+  channels?: string;
+  convince?: string;
+  monthlyCapacity?: string;
+  whySuccessful?: string;
+  social?: string;
+};
+
+/** Narrow the loosely-typed Json column into our answers shape (null for legacy rows). */
+function readAnswers(json: unknown): MarketerAnswers | null {
+  if (!json || typeof json !== "object" || Array.isArray(json)) return null;
+  return json as MarketerAnswers;
+}
+
 export default async function AdminMarketerDetailPage({
   params,
 }: {
@@ -38,6 +57,8 @@ export default async function AdminMarketerDetailPage({
     },
   });
   if (!m) notFound();
+
+  const answers = readAnswers(m.answersJson);
 
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-4 md:p-6">
@@ -73,6 +94,50 @@ export default async function AdminMarketerDetailPage({
           </dl>
         </section>
       </div>
+
+      <section className="rounded-2xl border border-hajr-border bg-white p-5 shadow-card">
+        <h2 className="mb-3 text-base font-semibold text-hajr-text">{t("adminApplication")}</h2>
+        {answers ? (
+          <dl className="space-y-3 text-sm">
+            <AnswerRow label={t("qIntroduceYourself")} val={answers.introduceYourself} />
+            <AnswerRow label={t("qExperience")} val={answers.experience} />
+            <AnswerRow
+              label={t("qAudiences")}
+              val={
+                answers.audiences && answers.audiences.length > 0
+                  ? answers.audiences
+                      .map((a) =>
+                        a === "OTHER" && answers.audiencesOther
+                          ? `${t("audience_OTHER")} — ${answers.audiencesOther}`
+                          : t(`audience_${a}` as never)
+                      )
+                      .join("، ")
+                  : undefined
+              }
+            />
+            <AnswerRow label={t("qChannels")} val={answers.channels} />
+            <AnswerRow label={t("qConvince")} val={answers.convince} />
+            <AnswerRow
+              label={t("qMonthlyCapacity")}
+              val={
+                answers.monthlyCapacity
+                  ? t(`capacity_${answers.monthlyCapacity}` as never)
+                  : undefined
+              }
+              numeric
+            />
+            <AnswerRow label={t("qWhySuccessful")} val={answers.whySuccessful} />
+            {answers.social ? (
+              <AnswerRow label={t("applySocial")} val={answers.social} />
+            ) : null}
+          </dl>
+        ) : (
+          <div className="space-y-2 text-sm">
+            <p className="text-xs text-hajr-muted">{t("adminNoStructured")}</p>
+            <p className="whitespace-pre-wrap text-hajr-text">{m.notes || "—"}</p>
+          </div>
+        )}
+      </section>
 
       <MarketerActions
         marketerId={m.id}
@@ -137,6 +202,27 @@ function Row({ label, val }: { label: string; val: React.ReactNode }) {
     <div className="flex items-start justify-between gap-3">
       <dt className="text-hajr-muted">{label}</dt>
       <dd className="text-hajr-text">{val}</dd>
+    </div>
+  );
+}
+
+/** A stacked label + (possibly long) answer block for the Application section.
+ *  `numeric` adds the `.num` class so range labels render Western digits. */
+function AnswerRow({
+  label,
+  val,
+  numeric,
+}: {
+  label: string;
+  val?: string;
+  numeric?: boolean;
+}) {
+  return (
+    <div>
+      <dt className="mb-0.5 text-xs font-medium text-hajr-muted">{label}</dt>
+      <dd className={`whitespace-pre-wrap text-hajr-text ${numeric ? "num" : ""}`}>
+        {val && val.trim() ? val : "—"}
+      </dd>
     </div>
   );
 }

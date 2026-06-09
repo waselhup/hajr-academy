@@ -33,6 +33,10 @@ const schema = z.object({
   hourlyRate: z.coerce.number().nonnegative().default(0),
   salaryBaseUsd: z.coerce.number().nonnegative().optional(),
   hourlyRateUsd: z.coerce.number().nonnegative().optional(),
+  groupRateSar: z.coerce.number().nonnegative().optional(),
+  groupRateUsd: z.coerce.number().nonnegative().optional(),
+  oneToOneRateSar: z.coerce.number().nonnegative().optional(),
+  oneToOneRateUsd: z.coerce.number().nonnegative().optional(),
   zoomHostEmail: z.union([z.string().email(), z.literal("")]).optional(),
   ageGroup: z.string().optional(),
   availabilityDays: z.array(z.enum(DAYS)).default([]),
@@ -57,6 +61,10 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           hourlyRate: Number(existing.profile?.hourlyRate ?? 0),
           salaryBaseUsd: existing.profile?.salaryBaseUsd != null ? Number(existing.profile.salaryBaseUsd) : undefined,
           hourlyRateUsd: existing.profile?.hourlyRateUsd != null ? Number(existing.profile.hourlyRateUsd) : undefined,
+          groupRateSar: existing.profile?.groupRateSar != null ? Number(existing.profile.groupRateSar) : undefined,
+          groupRateUsd: existing.profile?.groupRateUsd != null ? Number(existing.profile.groupRateUsd) : undefined,
+          oneToOneRateSar: existing.profile?.oneToOneRateSar != null ? Number(existing.profile.oneToOneRateSar) : undefined,
+          oneToOneRateUsd: existing.profile?.oneToOneRateUsd != null ? Number(existing.profile.oneToOneRateUsd) : undefined,
           zoomHostEmail: existing.profile?.zoomHostEmail ?? "",
           ageGroup: existing.profile?.ageGroup ?? "",
           availabilityDays: existing.profile?.availabilityDays ?? [],
@@ -83,6 +91,10 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
         zoomHostEmail: data.zoomHostEmail || null,
         salaryBaseUsd: Number.isFinite(data.salaryBaseUsd as number) ? data.salaryBaseUsd : null,
         hourlyRateUsd: Number.isFinite(data.hourlyRateUsd as number) ? data.hourlyRateUsd : null,
+        groupRateSar: Number.isFinite(data.groupRateSar as number) ? data.groupRateSar : null,
+        groupRateUsd: Number.isFinite(data.groupRateUsd as number) ? data.groupRateUsd : null,
+        oneToOneRateSar: Number.isFinite(data.oneToOneRateSar as number) ? data.oneToOneRateSar : null,
+        oneToOneRateUsd: Number.isFinite(data.oneToOneRateUsd as number) ? data.oneToOneRateUsd : null,
       };
       const res = mode === "create"
         ? await createTeacherAction(payload as any)
@@ -114,6 +126,10 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           <Field label={t("Teachers.salaryBaseUsd")}><Input type="number" step="50" dir="ltr" placeholder="USD" {...register("salaryBaseUsd")} /></Field>
           <Field label={t("AdminPay.rateLabel")}><Input type="number" step="5" {...register("hourlyRate")} /></Field>
           <Field label={t("Teachers.hourlyRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("hourlyRateUsd")} /></Field>
+          <Field label={t("Teachers.groupRateSar")}><Input type="number" step="5" {...register("groupRateSar")} /></Field>
+          <Field label={t("Teachers.groupRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("groupRateUsd")} /></Field>
+          <Field label={t("Teachers.oneToOneRateSar")}><Input type="number" step="5" {...register("oneToOneRateSar")} /></Field>
+          <Field label={t("Teachers.oneToOneRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("oneToOneRateUsd")} /></Field>
           <Field label={t("Teachers.zoomHostEmail")}><Input type="email" {...register("zoomHostEmail")} /></Field>
           <div className="sm:col-span-2">
             <Label>{t("Teachers.specializations")}</Label>

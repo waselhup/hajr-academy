@@ -38,6 +38,10 @@ type Row = {
     hourlyRate?: string;
     salaryBaseUsd?: string | null;
     hourlyRateUsd?: string | null;
+    groupRateSar?: string | null;
+    groupRateUsd?: string | null;
+    oneToOneRateSar?: string | null;
+    oneToOneRateUsd?: string | null;
     zoomHostEmail: string | null;
     ageGroup: string | null;
     availabilityDays: string[];
@@ -137,6 +141,8 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
               <TableHead>{t("Teachers.specializations")}</TableHead>
               <TableHead>{t("Teachers.salaryBase")}</TableHead>
               <TableHead>{t("TeacherPay.currentRate")}</TableHead>
+              <TableHead>{t("Teachers.colGroupRate")}</TableHead>
+              <TableHead>{t("Teachers.colOneToOneRate")}</TableHead>
               <TableHead>{t("Teachers.rating")}</TableHead>
               <TableHead>{t("Nav.classes")}</TableHead>
               <TableHead>{t("Common.status")}</TableHead>
@@ -145,7 +151,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
-              <TableRow><TableCell colSpan={9} className="text-center text-muted-foreground p-12">{t("Common.noResults")}</TableCell></TableRow>
+              <TableRow><TableCell colSpan={11} className="text-center text-muted-foreground p-12">{t("Common.noResults")}</TableCell></TableRow>
             ) : rows.map((r) => (
               <TableRow key={r.id}>
                 <TableCell>
@@ -172,6 +178,14 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
                 <TableCell className="num">
                   {r.profile?.hourlyRate ? fmtSAR(r.profile.hourlyRate, locale as "ar" | "en") : "—"}
                   {r.profile?.hourlyRateUsd ? <span className="block text-xs text-muted-foreground">{fmtUSD(r.profile.hourlyRateUsd, locale as "ar" | "en")}</span> : null}
+                </TableCell>
+                <TableCell className="num">
+                  {r.profile?.groupRateSar ? fmtSAR(r.profile.groupRateSar, locale as "ar" | "en") : "—"}
+                  {r.profile?.groupRateUsd ? <span className="block text-xs text-muted-foreground">{fmtUSD(r.profile.groupRateUsd, locale as "ar" | "en")}</span> : null}
+                </TableCell>
+                <TableCell className="num">
+                  {r.profile?.oneToOneRateSar ? fmtSAR(r.profile.oneToOneRateSar, locale as "ar" | "en") : "—"}
+                  {r.profile?.oneToOneRateUsd ? <span className="block text-xs text-muted-foreground">{fmtUSD(r.profile.oneToOneRateUsd, locale as "ar" | "en")}</span> : null}
                 </TableCell>
                 <TableCell>
                   {r.profile?.rating ? (
@@ -299,6 +313,14 @@ function TeacherPreviewDialog({ row, onClose }: { row: Row; onClose: () => void 
             <Row2 label={t("AdminPay.rateLabel")}>
               <span className="num">{p?.hourlyRate ? fmtSAR(p.hourlyRate, locale as "ar" | "en") : "—"}</span>
               {p?.hourlyRateUsd ? <span className="block text-xs text-muted-foreground num">{fmtUSD(p.hourlyRateUsd, locale as "ar" | "en")}</span> : null}
+            </Row2>
+            <Row2 label={t("Teachers.colGroupRate")}>
+              <span className="num">{p?.groupRateSar ? fmtSAR(p.groupRateSar, locale as "ar" | "en") : "—"}</span>
+              {p?.groupRateUsd ? <span className="block text-xs text-muted-foreground num">{fmtUSD(p.groupRateUsd, locale as "ar" | "en")}</span> : null}
+            </Row2>
+            <Row2 label={t("Teachers.colOneToOneRate")}>
+              <span className="num">{p?.oneToOneRateSar ? fmtSAR(p.oneToOneRateSar, locale as "ar" | "en") : "—"}</span>
+              {p?.oneToOneRateUsd ? <span className="block text-xs text-muted-foreground num">{fmtUSD(p.oneToOneRateUsd, locale as "ar" | "en")}</span> : null}
             </Row2>
             <Row2 label={t("Teachers.rating")}>
               {p?.rating ? (

@@ -23,6 +23,10 @@ const createSchema = z.object({
   hourlyRate: z.number().nonnegative().default(0),
   salaryBaseUsd: z.number().nonnegative().optional().nullable(),
   hourlyRateUsd: z.number().nonnegative().optional().nullable(),
+  groupRateSar: z.number().nonnegative().optional().nullable(),
+  groupRateUsd: z.number().nonnegative().optional().nullable(),
+  oneToOneRateSar: z.number().nonnegative().optional().nullable(),
+  oneToOneRateUsd: z.number().nonnegative().optional().nullable(),
   zoomHostEmail: z.string().email().optional().nullable(),
   ageGroup: z.string().optional().nullable(),
   availabilityDays: z.array(z.enum(DAY_VALUES)).default([]),
@@ -62,6 +66,10 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
           hourlyRate: parsed.data.hourlyRate,
           salaryBaseUsd: parsed.data.salaryBaseUsd ?? null,
           hourlyRateUsd: parsed.data.hourlyRateUsd ?? null,
+          groupRateSar: parsed.data.groupRateSar ?? null,
+          groupRateUsd: parsed.data.groupRateUsd ?? null,
+          oneToOneRateSar: parsed.data.oneToOneRateSar ?? null,
+          oneToOneRateUsd: parsed.data.oneToOneRateUsd ?? null,
           zoomHostEmail: parsed.data.zoomHostEmail ?? null,
           ageGroup: parsed.data.ageGroup ?? null,
           availabilityDays: parsed.data.availabilityDays,
@@ -97,6 +105,10 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   if (patch.hourlyRate !== undefined) profilePatch.hourlyRate = patch.hourlyRate;
   if (patch.salaryBaseUsd !== undefined) profilePatch.salaryBaseUsd = patch.salaryBaseUsd;
   if (patch.hourlyRateUsd !== undefined) profilePatch.hourlyRateUsd = patch.hourlyRateUsd;
+  if (patch.groupRateSar !== undefined) profilePatch.groupRateSar = patch.groupRateSar;
+  if (patch.groupRateUsd !== undefined) profilePatch.groupRateUsd = patch.groupRateUsd;
+  if (patch.oneToOneRateSar !== undefined) profilePatch.oneToOneRateSar = patch.oneToOneRateSar;
+  if (patch.oneToOneRateUsd !== undefined) profilePatch.oneToOneRateUsd = patch.oneToOneRateUsd;
   if (patch.zoomHostEmail !== undefined) profilePatch.zoomHostEmail = patch.zoomHostEmail;
   if (patch.ageGroup !== undefined) profilePatch.ageGroup = patch.ageGroup;
   if (patch.availabilityDays !== undefined) profilePatch.availabilityDays = patch.availabilityDays;

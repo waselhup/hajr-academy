@@ -118,6 +118,21 @@ const LEVEL_VARIANT: Record<string, "success" | "info" | "rose"> = {
   ADVANCED: "rose",
 };
 
+/**
+ * Full years from birthDate (ISO string) to today, or null when no/invalid date.
+ * Decrements if this year's birthday hasn't occurred yet.
+ */
+function computeAge(birthIso: string | null | undefined): number | null {
+  if (!birthIso) return null;
+  const b = new Date(birthIso);
+  if (isNaN(b.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - b.getFullYear();
+  const m = now.getMonth() - b.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < b.getDate())) age--;
+  return age >= 0 ? age : null;
+}
+
 export function StudentsClient({
   rows,
   total,
@@ -348,6 +363,7 @@ export function StudentsClient({
                 <TableHead>{t("Common.email")}</TableHead>
                 <TableHead>{t("Common.level")}</TableHead>
                 <TableHead>{t("Common.gender")}</TableHead>
+                <TableHead>{t("Students.colAge")}</TableHead>
                 <TableHead>{t("Common.package")}</TableHead>
                 <TableHead>{t("Students.promoCode")}</TableHead>
                 <TableHead>{t("Common.status")}</TableHead>
@@ -382,6 +398,7 @@ export function StudentsClient({
                     ) : "—"}
                   </TableCell>
                   <TableCell>{r.profile?.gender ? t("Common." + r.profile.gender.toLowerCase() as any) : "—"}</TableCell>
+                  <TableCell className="num">{computeAge(r.profile?.birthDate) ?? "—"}</TableCell>
                   <TableCell>
                     {r.profile?.activePackage ? <Badge variant="info">{t("Packages." + r.profile.activePackage as any)}</Badge> : "—"}
                   </TableCell>
@@ -486,6 +503,7 @@ export function StudentsClient({
                   <PreviewRow label={t("Common.phone")} value={previewData.phone} />
                   <PreviewRow label={t("Students.studentPhone")} value={previewData.studentPhone} />
                   <PreviewRow label={t("Students.birthDate")} value={fmtDate(previewData.birthDate)} />
+                  <PreviewRow label={t("Students.colAge")} value={ageLabel(previewData.birthDate)} />
                   <PreviewRow label={t("Students.gradeLevel")} value={previewData.gradeLevel} />
                   <PreviewRow label={t("Common.level")} value={previewData.englishLevel ? t(("Levels." + previewData.englishLevel) as any) : null} />
                   <PreviewRow label={t("Common.gender")} value={previewData.gender ? t(("Common." + previewData.gender.toLowerCase()) as any) : null} />
@@ -609,6 +627,13 @@ export function StudentsClient({
 
 function fmtDate(v: string | null): string | null {
   return v ? v.slice(0, 10) : null;
+}
+
+// Derived age as a Western-digit string for the preview (null → "—" via PreviewRow).
+// String(number) is always ASCII 0-9, so this is locale-safe.
+function ageLabel(birthIso: string | null): string | null {
+  const a = computeAge(birthIso);
+  return a === null ? null : String(a);
 }
 
 function PreviewRow({ label, value }: { label: string; value: string | null | undefined }) {

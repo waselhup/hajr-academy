@@ -73,6 +73,19 @@ model TeacherProfile {
   // null = not entered (NOT a live FX rate — admin types these by hand).
   salaryBaseUsd   Decimal? @db.Decimal(10, 2)
   hourlyRateUsd   Decimal? @db.Decimal(10, 2)
+  // Owner batch 5 — #7: Group and One-to-One (1:1) rates, each SAR + USD.
+  // Nullable; USD is typed by hand (NOT a live FX rate — mirrors the base/hourly
+  // convention). null = not entered.
+  groupRateSar    Decimal? @db.Decimal(10, 2)
+  groupRateUsd    Decimal? @db.Decimal(10, 2)
+  oneToOneRateSar Decimal? @db.Decimal(10, 2)
+  oneToOneRateUsd Decimal? @db.Decimal(10, 2)
+  // Owner batch 5 — #8: admin-entered rating (1..5). Feeds the combined-average
+  // column on the admin ratings table alongside post-session and self ratings.
+  adminRating     Int?
+  // Owner batch 5 — #5: first-login onboarding gate. null = not completed yet;
+  // a server guard in the teacher layout redirects until this is set. Idempotent.
+  onboardingCompletedAt DateTime?
   zoomHostEmail   String?
   rating          Decimal? @db.Decimal(3, 2)
   totalStudents   Int      @default(0)
@@ -106,6 +119,7 @@ model TeacherProfile {
   filledOpenings      ProgramOpening[]
   openingAudiences    OpeningAudienceMember[]
   studentEvaluations  StudentEvaluation[]
+  teacherRequests     TeacherRequest[]
 }
 
 model StudentProfile {
@@ -155,6 +169,7 @@ model StudentProfile {
   speakingClubRsvps     SpeakingClubRSVP[]
   certificates          Certificate[]
   evaluations           StudentEvaluation[]
+  teacherRequests       TeacherRequest[]
 }
 
 model ParentProfile {
@@ -194,10 +209,11 @@ model Program {
   durationHours   Int?
   active          Boolean     @default(true)
 
-  classes       Class[]
-  subscriptions Subscription[]
-  openings      ProgramOpening[]
-  applicants    ApplicantProfile[]
+  classes         Class[]
+  subscriptions   Subscription[]
+  openings        ProgramOpening[]
+  applicants      ApplicantProfile[]
+  teacherRequests TeacherRequest[]
 }
 
 model Class {
@@ -1291,6 +1307,27 @@ model TrialRequest {
   updatedAt            DateTime    @updatedAt
 }
 
+/// Owner batch 5 — #9. A student requests a specific teacher for a one-to-one
+/// (PRIVATE) course from the "available teachers" discovery panel. Lightweight
+/// and admin-actionable; the admin is notified on create. RLS-on (Prisma uses
+/// the pooled service connection, which bypasses RLS like every other table).
+model TeacherRequest {
+  id        String         @id @default(uuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  teacherId String
+  teacher   TeacherProfile @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  programId String?
+  program   Program?       @relation(fields: [programId], references: [id], onDelete: SetNull)
+  message   String?        @db.Text
+  status    String         @default("PENDING") // PENDING | CONTACTED | CLOSED
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@index([studentId, createdAt])
+  @@index([teacherId, status])
+}
+
 // ─────────────────────── ENUMS ───────────────────────
 enum Role {
   SUPER_ADMIN
@@ -1777,6 +1814,10 @@ model MarketerProfile {
   bankName       String?
   bankHolder     String?
   notes          String?        @db.Text
+  // Owner batch 5 — #3: structured 7-question application answers. Replaces
+  // cramming the application into `notes` (kept for back-compat). Server
+  // re-validates required fields + word limits before writing this.
+  answersJson    Json?
   // Success Partner kind (batch 4B — additive). A marketer account is, by
   // default, an INDIVIDUAL success partner.
   partnerType    PartnerType?   @default(INDIVIDUAL)

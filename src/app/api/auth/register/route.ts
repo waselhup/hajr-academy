@@ -13,6 +13,8 @@ const schema = z.object({
   role: z.enum(["STUDENT", "PARENT"]),
   preferredLang: z.enum(["AR", "EN"]).default("AR"),
   referralCode: z.string().trim().optional(),
+  // Optional ISO date (yyyy-mm-dd) from the public form; only used for students.
+  birthDate: z.string().trim().optional(),
 });
 
 export async function POST(req: Request) {
@@ -23,8 +25,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 });
     }
 
-    const { email, password, name, nameAr, phone, role, preferredLang, referralCode } = parsed.data;
+    const { email, password, name, nameAr, phone, role, preferredLang, referralCode, birthDate } = parsed.data;
     const normalizedEmail = email.toLowerCase();
+
+    // Server-side birthDate validation (never trust client): must be a real,
+    // past date. Only meaningful for students; ignored for other roles.
+    let birthDateValue: Date | null = null;
+    if (role === "STUDENT" && birthDate) {
+      const d = new Date(birthDate);
+      if (isNaN(d.getTime()) || d >= new Date()) {
+        return NextResponse.json({ error: "Invalid birth date" }, { status: 400 });
+      }
+      birthDateValue = d;
+    }
 
     const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) return NextResponse.json({ error: "Email already registered" }, { status: 409 });
@@ -61,7 +74,9 @@ export async function POST(req: Request) {
         preferredLang,
         referredByCode: resolvedReferralCode,
         referredAt: resolvedReferralCode ? new Date() : null,
-        ...(role === "STUDENT" ? { studentProfile: { create: {} } } : {}),
+        ...(role === "STUDENT"
+          ? { studentProfile: { create: birthDateValue ? { birthDate: birthDateValue } : {} } }
+          : {}),
         ...(role === "PARENT" ? { parentProfile: { create: {} } } : {}),
       },
       include: { studentProfile: { select: { id: true } } },

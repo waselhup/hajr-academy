@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { LiveClassBanner } from "@/components/class/live-class-banner";
 import { StudentClassesClient, type StudentClassItem } from "./student-classes-client";
+import type { AvailableTeacher, PrivateProgram } from "./available-teachers";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,8 @@ export default async function StudentClassesPage({
     );
   }
 
-  const [enrollments, privateLessons] = await Promise.all([
+  const [enrollments, privateLessons, availableTeacherRows, privateProgramRows] =
+    await Promise.all([
     prisma.enrollment.findMany({
       where: { studentId: profile.id, status: "ACTIVE" },
       include: {
@@ -64,6 +66,27 @@ export default async function StudentClassesPage({
         teacher: { include: { user: { select: { name: true, nameAr: true, avatar: true } } } },
       },
       orderBy: { scheduledAt: "asc" },
+    }),
+    // Owner batch 5 — #9: surface active teachers for one-to-one discovery.
+    // Public-safe projection ONLY (name/avatar/specialization/availability —
+    // never salary, rates, email or phone).
+    prisma.teacherProfile.findMany({
+      where: { active: true, user: { isActive: true } },
+      select: {
+        id: true,
+        specializations: true,
+        availabilityDays: true,
+        availabilityHours: true,
+        user: { select: { name: true, nameAr: true, avatar: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 24,
+    }),
+    // One-to-one (PRIVATE) programs the student can request a teacher for.
+    prisma.program.findMany({
+      where: { type: "PRIVATE", active: true },
+      select: { id: true, nameEn: true, nameAr: true },
+      orderBy: { nameEn: "asc" },
     }),
   ]);
 
@@ -120,11 +143,30 @@ export default async function StudentClassesPage({
     })),
   ];
 
+  const availableTeachers: AvailableTeacher[] = availableTeacherRows.map((tp) => ({
+    id: tp.id,
+    name: locale === "ar" && tp.user.nameAr ? tp.user.nameAr : tp.user.name,
+    avatar: tp.user.avatar ?? null,
+    specializations: tp.specializations,
+    availabilityDays: tp.availabilityDays,
+    availabilityHours: tp.availabilityHours ?? null,
+  }));
+
+  const privatePrograms: PrivateProgram[] = privateProgramRows.map((p) => ({
+    id: p.id,
+    name: locale === "ar" ? p.nameAr : p.nameEn,
+  }));
+
   return (
     <div className="space-y-6">
       <LiveClassBanner userId={session.user.id} />
       <h1 className="text-2xl font-bold">{t("Nav.myClasses")}</h1>
-      <StudentClassesClient locale={locale} items={items} />
+      <StudentClassesClient
+        locale={locale}
+        items={items}
+        availableTeachers={availableTeachers}
+        privatePrograms={privatePrograms}
+      />
     </div>
   );
 }
