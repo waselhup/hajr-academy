@@ -5,6 +5,7 @@ import { routing } from "@/i18n/routing";
 import { Toaster } from "@/components/ui/toaster";
 import { TopProgressBar } from "@/components/shared/top-progress-bar";
 import { HtmlLangSync } from "@/components/shared/html-lang-sync";
+import { BuildRecovery } from "@/components/shared/build-recovery";
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -27,6 +28,7 @@ export default async function LocaleLayout({
     <div lang={locale} dir={dir} className={dir === "rtl" ? "font-ar" : "font-en"}>
       <NextIntlClientProvider messages={messages} locale={locale} timeZone="Asia/Riyadh">
         <HtmlLangSync />
+        <BuildRecovery />
         <TopProgressBar />
         {children}
         <Toaster />
