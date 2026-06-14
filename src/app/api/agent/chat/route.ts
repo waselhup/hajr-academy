@@ -13,11 +13,10 @@ import { cookies } from "next/headers";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { message, conversationId, agentType, visitorId: clientVisitorId } = body as {
+    const { message, conversationId, agentType } = body as {
       message: string;
       conversationId?: string;
       agentType?: string;
-      visitorId?: string;
     };
 
     if (!message || typeof message !== "string" || message.trim().length === 0) {
@@ -36,13 +35,40 @@ export async function POST(req: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    let visitorId = clientVisitorId;
-    if (!userId && !visitorId) {
+    // Visitor identity for rate-limiting must be derived server-side, NOT taken
+    // from the request body — the landing widget mints a fresh UUID per mount,
+    // so trusting the client id would reset the free-message counter on every
+    // reload. The httpOnly cookie set on the response is the only thing counted.
+    let visitorId: string | undefined;
+    if (!userId) {
       const cookieStore = await cookies();
-      visitorId = cookieStore.get("hajr_visitor_id")?.value;
-      if (!visitorId) {
-        visitorId = crypto.randomUUID();
+      visitorId = cookieStore.get("hajr_visitor_id")?.value ?? crypto.randomUUID();
+    }
+
+    // Ownership guard: a client-supplied conversationId must belong to the
+    // caller, else anyone could read or append another user's (or an admin's)
+    // thread by passing its id (IDOR + history leak). A request with no id
+    // starts a fresh, owned conversation inside the engine.
+    let priorMessageCount = 0;
+    if (conversationId) {
+      const convo = await prisma.agentConversation.findUnique({
+        where: { id: conversationId },
+        select: { userId: true, agentType: true, metadata: true, messageCount: true },
+      });
+      if (!convo) {
+        return Response.json({ error: "Conversation not found" }, { status: 404 });
       }
+      const expectedType = isAdminAgent ? "ADMIN_AGENT" : "PUBLIC_ASSISTANT";
+      const ownedByUser = !!userId && convo.userId === userId;
+      const ownedByVisitor =
+        !userId &&
+        convo.userId === null &&
+        !!visitorId &&
+        (convo.metadata as { visitorId?: string } | null)?.visitorId === visitorId;
+      if (convo.agentType !== expectedType || (!ownedByUser && !ownedByVisitor)) {
+        return Response.json({ error: "Forbidden" }, { status: 403 });
+      }
+      priorMessageCount = convo.messageCount ?? 0;
     }
 
     const rateCheck = await checkRateLimit({
@@ -66,18 +92,9 @@ export async function POST(req: Request) {
 
     if (isAdminAgent) {
       model = "claude-sonnet-4-6";
-    } else {
-      let messageCount = 0;
-      if (conversationId) {
-        const convo = await prisma.agentConversation.findUnique({
-          where: { id: conversationId },
-          select: { messageCount: true },
-        });
-        messageCount = convo?.messageCount ?? 0;
-      }
-      if (shouldEscalateToSonnet(message, messageCount)) {
-        model = "claude-sonnet-4-6";
-      }
+    } else if (shouldEscalateToSonnet(message, priorMessageCount)) {
+      // priorMessageCount comes from the ownership lookup above — no 2nd query.
+      model = "claude-sonnet-4-6";
     }
 
     const systemPrompt = isAdminAgent
@@ -128,7 +145,7 @@ export async function POST(req: Request) {
     if (!userId && visitorId) {
       response.headers.set(
         "Set-Cookie",
-        `hajr_visitor_id=${visitorId}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax`
+        `hajr_visitor_id=${visitorId}; Path=/; Max-Age=${60 * 60 * 24 * 30}; SameSite=Lax; HttpOnly`
       );
     }
 

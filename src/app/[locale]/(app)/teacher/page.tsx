@@ -25,9 +25,11 @@ export default async function TeacherDashboardPage({
   let sessions: any[] = [];
 
   try {
+    // Only the per-class enrollment COUNT is rendered (the total-students
+    // tile), so count instead of pulling every enrollment row for every class.
     profile = await prisma.teacherProfile.findUnique({
       where: { userId: session.user.id },
-      include: { classes: { include: { enrollments: true } } },
+      include: { classes: { select: { _count: { select: { enrollments: true } } } } },
     });
 
     const todayStart = new Date();
@@ -36,29 +38,32 @@ export default async function TeacherDashboardPage({
     todayEnd.setHours(24);
 
     if (profile) {
-      todaySessions = await prisma.classSession.count({
-        where: {
-          class: { teacherId: profile.id },
-          scheduledDate: { gte: todayStart, lt: todayEnd },
-        },
-      });
-
       const horizon = new Date(Date.now() + 7 * 86400_000);
-      sessions = await prisma.classSession.findMany({
-        where: {
-          class: { teacherId: profile.id },
-          OR: [
-            { status: "LIVE" },
-            {
-              status: "SCHEDULED",
-              scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon },
-            },
-          ],
-        },
-        include: { class: true },
-        orderBy: { scheduledDate: "asc" },
-        take: 6,
-      });
+      // Today's count + the upcoming-sessions list are independent — run them
+      // together instead of two serial DB round-trips.
+      [todaySessions, sessions] = await Promise.all([
+        prisma.classSession.count({
+          where: {
+            class: { teacherId: profile.id },
+            scheduledDate: { gte: todayStart, lt: todayEnd },
+          },
+        }),
+        prisma.classSession.findMany({
+          where: {
+            class: { teacherId: profile.id },
+            OR: [
+              { status: "LIVE" },
+              {
+                status: "SCHEDULED",
+                scheduledDate: { gte: new Date(Date.now() - 3600_000), lte: horizon },
+              },
+            ],
+          },
+          include: { class: true },
+          orderBy: { scheduledDate: "asc" },
+          take: 6,
+        }),
+      ]);
     }
   } catch (e) {
     console.error("[teacher-dashboard] DB query failed:", e);
@@ -100,7 +105,7 @@ export default async function TeacherDashboardPage({
           </CardHeader>
           <CardContent>
             <span className="text-3xl font-bold num">
-              {profile?.classes.reduce((sum: number, c: any) => sum + c.enrollments.length, 0) ?? 0}
+              {profile?.classes.reduce((sum: number, c: any) => sum + c._count.enrollments, 0) ?? 0}
             </span>
           </CardContent>
         </Card>

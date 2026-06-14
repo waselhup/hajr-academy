@@ -33,6 +33,12 @@ export async function POST(req: NextRequest) {
   if (!m) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   if (action === "APPROVE") {
+    // One-shot: only a PENDING application issues credentials. Re-approving an
+    // already-active marketer (double-click, stale page, direct POST) would mint
+    // a NEW temp password and overwrite the one already delivered to the partner.
+    if (m.status !== "PENDING") {
+      return NextResponse.json({ error: "Already processed" }, { status: 409 });
+    }
     // Generate a fresh temporary password at approval time, store its hash, and
     // return it ONCE to the approving admin to deliver manually (WhatsApp/email).
     // The system never sends it automatically and never persists the plaintext.

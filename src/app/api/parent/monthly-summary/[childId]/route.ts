@@ -124,7 +124,13 @@ export async function GET(
       teachers,
     });
   } catch (e) {
+    // A real DB failure must NOT masquerade as "no teachers" (the client hides
+    // the card on an empty list, so a broken summary looked identical to a
+    // genuinely empty one). The empty-but-ok case returns from the try above.
     console.error("[parent/monthly-summary]", e);
-    return NextResponse.json({ ok: true, teachers: [] });
+    return NextResponse.json(
+      { ok: false, error: "summary_failed", teachers: [] },
+      { status: 500 }
+    );
   }
 }

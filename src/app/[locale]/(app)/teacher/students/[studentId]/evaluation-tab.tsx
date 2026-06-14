@@ -6,7 +6,7 @@
  * and see past evaluations. The server action re-checks ownership; this UI is
  * only the convenient surface.
  */
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
@@ -60,6 +60,10 @@ export function EvaluationTab({
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [evaluations, setEvaluations] = useState<EvaluationVM[]>(initialEvaluations);
+  // Re-sync the list when the server re-renders after router.refresh() — useState
+  // keeps its value across a refresh, so without this the just-saved evaluation
+  // never showed up until a full page reload.
+  useEffect(() => setEvaluations(initialEvaluations), [initialEvaluations]);
 
   const [skillLevel, setSkillLevel] = useState<string>("B1");
   const [participation, setParticipation] = useState<number>(3);

@@ -3,7 +3,10 @@ export function getPublicSystemPrompt(
   userName: string | null,
   locale: string
 ): string {
-  const currentDate = new Date().toLocaleDateString("ar-SA", {
+  // Western (Gregorian) date with Latin digits. Platform rule: numbers and
+  // dates are ALWAYS 0-9 / Western — "ar-SA" would render Umm al-Qura (Hijri)
+  // plus Arabic-Indic digits, which is banned across the product.
+  const currentDate = new Date().toLocaleDateString("en-GB", {
     timeZone: "Asia/Riyadh",
   });
 
@@ -45,7 +48,7 @@ export function getPublicSystemPrompt(
    "هل تود إرسال رسالة لفريقنا؟" / "Would you like to send a message to our
    team?" — then collect their name, email, and message and call the
    submit_contact_message tool. Confirm once it succeeds.
-8. Use Arabic-Indic numerals (٠١٢٣٤٥٦٧٨٩) when responding in Arabic`;
+8. Always use Western numerals (0-9) for every number, price, and date — even when responding in Arabic. Never use Arabic-Indic numerals (٠١٢٣٤٥٦٧٨٩).`;
 
   if (userRole === "STUDENT") {
     base += `

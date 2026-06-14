@@ -35,10 +35,30 @@ export async function POST(req: NextRequest) {
 
     const attempt = await prisma.labAttempt.findUnique({
       where: { id: attemptId },
-      select: { id: true },
+      select: { id: true, studentId: true },
     });
     if (!attempt) {
       return NextResponse.json({ error: "Attempt not found" }, { status: 404 });
+    }
+
+    // Ownership: a TEACHER may only review attempts by a student they actually
+    // teach (admins bypass). Every other lab mutation is owner-gated; this write
+    // was the odd one out, letting any teacher grade any student's attempt by
+    // POSTing a known/forged attemptId.
+    if (session.user.role === "TEACHER") {
+      const tp = await prisma.teacherProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+      const teaches = tp
+        ? await prisma.enrollment.findFirst({
+            where: { studentId: attempt.studentId, class: { teacherId: tp.id } },
+            select: { id: true },
+          })
+        : null;
+      if (!teaches) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     let teacherScore: number | undefined;

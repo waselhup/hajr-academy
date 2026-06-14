@@ -11,6 +11,10 @@ export async function GET() {
   if (!session?.user) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
+  // Bundles the internal admin manual — gate on role, not just any login.
+  if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  }
 
   // jszip is present as a transitive dependency — pull dynamically so
   // bundlers don't choke if it's hoisted.

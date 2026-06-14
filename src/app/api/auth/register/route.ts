@@ -9,7 +9,10 @@ const schema = z.object({
   password: z.string().min(8),
   name: z.string().min(2),
   nameAr: z.string().optional(),
-  phone: z.string().optional(),
+  // Required server-side too — the public register form already requires a
+  // valid Saudi phone; the server is the real boundary (a direct API call must
+  // not create a phone-less account). Format is validated below via normalize.
+  phone: z.string().min(1, "Phone is required"),
   role: z.enum(["STUDENT", "PARENT"]),
   preferredLang: z.enum(["AR", "EN"]).default("AR"),
   referralCode: z.string().trim().optional(),

@@ -47,13 +47,22 @@ export default async function TeacherAssignmentsPage({
       prisma.labExercise.findMany({
         where: { createdBy: session.user.id },
         orderBy: { updatedAt: "desc" },
-        include: { _count: { select: { attempts: true } } },
+        take: 50,
+        // Only the fields shape() actually renders — the full row carries large
+        // JSON content/items columns this list never uses.
+        select: {
+          id: true, type: true, level: true, title: true, titleAr: true,
+          isPublished: true, _count: { select: { attempts: true } },
+        },
       }),
       prisma.labExercise.findMany({
         where: { isPublished: true },
         orderBy: { updatedAt: "desc" },
         take: 50,
-        include: { _count: { select: { attempts: true } } },
+        select: {
+          id: true, type: true, level: true, title: true, titleAr: true,
+          isPublished: true, _count: { select: { attempts: true } },
+        },
       }),
       prisma.class.findMany({
         where: { teacherId: teacher.id, status: "ACTIVE" },
