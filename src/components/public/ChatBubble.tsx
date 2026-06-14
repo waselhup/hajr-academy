@@ -186,7 +186,7 @@ export default function ChatBubble() {
                 className={cn(
                   "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm",
                   msg.role === "user"
-                    ? "bg-slate-100 text-hajr-navy ms-auto"
+                    ? "bg-hajr-ivory text-hajr-navy ms-auto"
                     : "bg-white border border-hajr-border text-hajr-navy"
                 )}
               >

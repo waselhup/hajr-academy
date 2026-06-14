@@ -369,10 +369,10 @@ export default async function AdminDashboard({
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-brand-navy">
+        <h1 className="text-2xl font-bold text-hajr-deep-navy">
           {t("AdminDashboard.greeting", { name: payload.name })}
         </h1>
-        <p className="mt-0.5 text-sm text-muted-foreground">
+        <p className="mt-0.5 text-sm text-hajr-muted">
           {fmtRiyadh(now, "EEEE, MMM d yyyy")}
         </p>
       </div>

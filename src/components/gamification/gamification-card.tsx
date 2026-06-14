@@ -54,14 +54,14 @@ type Pr = NonNullable<Profile["progress"]>;
 
 function PlayfulCard({ p, progress, earned, isAr, t }: { p: P; progress: Pr; earned: number; isAr: boolean; t: (k: string) => string }) {
   return (
-    <Card className="overflow-hidden border-2 border-hajr-rose/40 bg-gradient-to-br from-hajr-rose/10 to-hajr-mint/10">
+    <Card className="overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-hajr-rose text-2xl text-white shadow-lg">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-hajr-deep-navy text-2xl text-white">
             ⭐
           </div>
           <div className="flex-1">
-            <div className="text-xs uppercase tracking-wide text-hajr-rose">
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
               {isAr ? "نجمتي اللطيفة" : "My Bright Star"}
             </div>
             <div className="text-2xl font-bold text-hajr-deep-navy">
@@ -85,15 +85,15 @@ function PlayfulCard({ p, progress, earned, isAr, t }: { p: P; progress: Pr; ear
 
 function GameCard({ p, progress, earned, unclaimed, isAr, t }: { p: P; progress: Pr; earned: number; unclaimed: number; isAr: boolean; t: (k: string) => string }) {
   return (
-    <Card className="overflow-hidden border-hajr-deep-navy/20 bg-gradient-to-br from-hajr-deep-navy/5 to-hajr-rose/5">
+    <Card className="overflow-hidden">
       <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-hajr-deep-navy text-xl text-white">
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-hajr-deep-navy text-xl text-white">
               {p.level}
             </div>
             <div>
-              <div className="text-xs text-hajr-rose">{t("explorerTitle")}</div>
+              <div className="text-xs text-muted-foreground">{t("explorerTitle")}</div>
               <div className="text-lg font-bold text-hajr-deep-navy">
                 {t("level")} {p.level} {t("knight")}
               </div>
@@ -124,7 +124,7 @@ function GameCard({ p, progress, earned, unclaimed, isAr, t }: { p: P; progress:
 function DefaultMiddleCard({ p, progress, earned, unclaimed, isAr, t }: { p: P; progress: Pr; earned: number; unclaimed: number; isAr: boolean; t: (k: string) => string }) {
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="text-xs text-hajr-gray-500">{t("yourLevel")}</div>
@@ -157,7 +157,7 @@ function DefaultMiddleCard({ p, progress, earned, unclaimed, isAr, t }: { p: P; 
 function MatureCard({ p, progress, earned, isAr, t }: { p: P; progress: Pr; earned: number; isAr: boolean; t: (k: string) => string }) {
   return (
     <Card>
-      <CardContent className="p-4">
+      <CardContent className="p-5">
         <div className="flex items-baseline justify-between">
           <div>
             <div className="text-[11px] uppercase tracking-wider text-hajr-gray-500">
@@ -184,7 +184,7 @@ function MatureCard({ p, progress, earned, isAr, t }: { p: P; progress: Pr; earn
             <span className="block text-hajr-gray-500">{t("credentials")}</span>
             <span className="font-mono text-base">{earned}</span>
           </span>
-          <Link href="./achievements" className="text-hajr-rose hover:underline">
+          <Link href="./achievements" className="text-hajr-deep-navy hover:underline">
             <span className="block">{t("viewDetails")}</span>
           </Link>
         </div>
@@ -195,7 +195,7 @@ function MatureCard({ p, progress, earned, isAr, t }: { p: P; progress: Pr; earn
 
 function Tile({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-md bg-white px-3 py-2 shadow-sm">
+    <div className="rounded-2xl bg-hajr-ivory px-3 py-2">
       <div className="text-[10px] text-hajr-gray-500">{label}</div>
       <div className="text-base font-bold text-hajr-deep-navy">{value}</div>
     </div>
@@ -204,7 +204,7 @@ function Tile({ label, value }: { label: string; value: string | number }) {
 
 function BigTile({ icon, labelAr, labelEn, value, isAr }: { icon: string; labelAr: string; labelEn: string; value: number; isAr: boolean }) {
   return (
-    <div className="rounded-xl bg-white p-3 shadow-sm">
+    <div className="rounded-2xl bg-hajr-ivory p-3">
       <div className="text-2xl">{icon}</div>
       <div className="text-lg font-bold text-hajr-deep-navy">{value}</div>
       <div className="text-[11px] text-hajr-gray-500">{isAr ? labelAr : labelEn}</div>

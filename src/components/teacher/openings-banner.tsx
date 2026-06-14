@@ -70,10 +70,12 @@ export async function OpeningsBanner({ userId }: { userId: string }) {
     return (
       <Link
         href={`/${locale}/teacher/openings`}
-        className="flex items-start gap-3 rounded-lg border border-hajr-rose/40 bg-hajr-rose/10 p-4 transition-colors hover:bg-hajr-rose/15"
+        className="flex flex-wrap items-center gap-3 rounded-card border border-hajr-border bg-white p-5 shadow-card transition-shadow duration-200 hover:shadow-card-hover"
       >
-        <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-hajr-rose" />
-        <div className="flex-1">
+        <span className="icon-chip shrink-0">
+          <Sparkles className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
           <div className="text-sm font-semibold text-hajr-deep-navy">
             {t("Openings.bannerTitle")}
           </div>
@@ -81,7 +83,7 @@ export async function OpeningsBanner({ userId }: { userId: string }) {
             {t("Openings.bannerBody")}
           </div>
         </div>
-        <span className="shrink-0 self-center rounded-md bg-hajr-rose px-3 py-1.5 text-sm font-medium text-white">
+        <span className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-hajr-deep-navy px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-hajr-navy">
           {t("Openings.bannerCta")}
         </span>
       </Link>

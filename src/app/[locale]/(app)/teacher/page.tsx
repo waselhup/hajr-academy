@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarDays, BookOpen, Users } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
@@ -66,11 +67,11 @@ export default async function TeacherDashboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-hajr-deep-navy p-6 text-white shadow-card sm:p-8">
         <h1 className="text-2xl font-bold">
           {t("Dashboard.welcome")}، {session.user.name}
         </h1>
-        <Badge variant="info">{t("Roles.TEACHER")}</Badge>
+        <Badge variant="rose">{t("Roles.TEACHER")}</Badge>
       </div>
 
       <TechCheckBanner locale={locale} userId={session.user.id} />
@@ -79,35 +80,44 @@ export default async function TeacherDashboardPage({
 
       <div className="grid gap-4 sm:grid-cols-3">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Dashboard.todayClasses")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">{todaySessions}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Nav.myClasses")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">{profile?.classes.length ?? 0}</span>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-sm text-muted-foreground">{t("Dashboard.totalStudents")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <span className="text-3xl font-bold num">
-              {profile?.classes.reduce((sum: number, c: any) => sum + c.enrollments.length, 0) ?? 0}
+          <CardContent className="flex items-center gap-4 p-5">
+            <span className="icon-chip shrink-0">
+              <CalendarDays className="h-5 w-5" />
             </span>
+            <div className="min-w-0">
+              <div className="text-3xl font-bold num text-hajr-deep-navy">{todaySessions}</div>
+              <div className="text-sm text-muted-foreground">{t("Dashboard.todayClasses")}</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <span className="icon-chip shrink-0">
+              <BookOpen className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-3xl font-bold num text-hajr-deep-navy">{profile?.classes.length ?? 0}</div>
+              <div className="text-sm text-muted-foreground">{t("Nav.myClasses")}</div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="flex items-center gap-4 p-5">
+            <span className="icon-chip shrink-0">
+              <Users className="h-5 w-5" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-3xl font-bold num text-hajr-deep-navy">
+                {profile?.classes.reduce((sum: number, c: any) => sum + c.enrollments.length, 0) ?? 0}
+              </div>
+              <div className="text-sm text-muted-foreground">{t("Dashboard.totalStudents")}</div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       <div>
-        <h2 className="mb-3 text-lg font-bold">{t("Video.nextClass")}</h2>
+        <h2 className="mb-3 text-lg font-bold text-hajr-deep-navy">{t("Video.nextClass")}</h2>
         {sessions.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-sm text-muted-foreground">
@@ -115,7 +125,7 @@ export default async function TeacherDashboardPage({
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-4">
             {sessions.map((s: any) => (
               <UpcomingSessionCard
                 key={s.id}

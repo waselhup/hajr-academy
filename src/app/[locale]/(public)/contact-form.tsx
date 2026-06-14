@@ -144,7 +144,7 @@ function ContactFormInner({
           <select
             value={subject}
             onChange={(e) => setSubject(e.target.value as (typeof SUBJECTS)[number])}
-            className="flex h-10 w-full rounded-lg border border-hajr-border bg-white px-3 text-sm text-hajr-navy outline-none transition-colors focus-visible:ring-2 focus-visible:ring-hajr-navy"
+            className="flex h-11 w-full rounded-xl border border-hajr-border bg-white px-3.5 text-sm text-hajr-navy outline-none transition-colors focus-visible:border-hajr-rose focus-visible:ring-2 focus-visible:ring-hajr-rose/30"
           >
             {SUBJECTS.map((s) => (
               <option key={s} value={s}>

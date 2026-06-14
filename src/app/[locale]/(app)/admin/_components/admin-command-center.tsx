@@ -136,7 +136,7 @@ export function AdminCommandCenter({
   return (
     <div className="space-y-6">
       {/* ── SECTION 1 — Hero KPIs ─────────────────────────────── */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           icon={<Wallet className="h-5 w-5" />}
           tint="emerald"
@@ -188,18 +188,17 @@ export function AdminCommandCenter({
       <Card
         id="alerts"
         className={cn(
-          "border-2",
           payload.alerts.total > 0 ? "border-red-200" : "border-emerald-200"
         )}
       >
-        <CardContent className="p-4 sm:p-5">
-          <div className="mb-3 flex items-center gap-2">
+        <CardContent className="p-5 sm:p-6">
+          <div className="mb-4 flex items-center gap-2">
             {payload.alerts.total > 0 ? (
               <AlertTriangle className="h-4 w-4 text-red-600" />
             ) : (
               <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             )}
-            <h2 className="text-sm font-semibold text-brand-navy">
+            <h2 className="text-sm font-semibold text-hajr-deep-navy">
               {payload.alerts.total > 0
                 ? t("AdminDashboard.alertsTitle")
                 : t("AdminDashboard.alertsEmpty")}
@@ -212,7 +211,7 @@ export function AdminCommandCenter({
                 : "All caught up — no pending requests or alerts."}
             </p>
           ) : (
-            <ul className="divide-y">
+            <ul className="space-y-2">
               {payload.alerts.newContactRequests > 0 && (
                 <AlertRow
                   icon={<Inbox className="h-4 w-4" />}
@@ -269,17 +268,17 @@ export function AdminCommandCenter({
       </Card>
 
       {/* ── SECTION 3 — Today + Activity ─────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <TodayClasses locale={locale} items={payload.todayClasses} ar={ar} />
         <SmartActivity locale={locale} items={payload.activity} ar={ar} />
       </div>
 
       {/* ── SECTION 4 — Quick Actions ────────────────────────── */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+        <h2 className="mb-3 text-sm font-semibold text-hajr-muted">
           {t("AdminDashboard.quickActionsTitle")}
         </h2>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <QuickTile
             href={"/admin/students"}
             icon={<UserCheck className="h-6 w-6" />}
@@ -333,44 +332,36 @@ function KpiCard({
   ar: boolean;
   href: string;
 }) {
-  const tintCls = {
-    emerald: "bg-emerald-50 text-emerald-700",
-    blue: "bg-blue-50 text-blue-700",
-    rose: "bg-rose-50 text-rose-700",
-    amber: "bg-amber-50 text-amber-700",
-  }[tint];
+  // Utility icon chips are neutral grey by design (navy icon on #EFF1F4);
+  // the `tint` prop is preserved for the semantic sparkline accent below.
+  void tint;
 
   const positive = (delta ?? 0) >= 0;
   const sparkColor = positive ? "#10b981" : "#ef4444";
 
   const inner = (
-    <Card className="h-full transition-shadow hover:shadow-md">
-      <CardContent className="space-y-3 p-4">
+    <Card className="h-full p-5">
+      <CardContent className="space-y-3 p-0">
         <div className="flex items-start justify-between gap-2">
-          <span
-            className={cn(
-              "inline-flex h-9 w-9 items-center justify-center rounded-lg",
-              tintCls
-            )}
-          >
+          <span className="icon-chip">
             {icon}
           </span>
           {pulse && (
             <span className="relative inline-flex h-3 w-3">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-rose-600" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hajr-rose opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-hajr-rose" />
             </span>
           )}
         </div>
         <div className="min-w-0">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          <p className="text-[11px] uppercase tracking-wide text-hajr-muted">
             {label}
           </p>
-          <p className="mt-1 truncate text-2xl font-bold text-brand-navy num">
+          <p className="mt-1 truncate text-2xl font-bold text-hajr-deep-navy num">
             {value}
           </p>
           {subline && (
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">{subline}</p>
+            <p className="mt-0.5 truncate text-xs text-hajr-muted">{subline}</p>
           )}
           {typeof delta === "number" && (
             <div className="mt-1 flex items-center gap-1 text-xs">
@@ -388,7 +379,7 @@ function KpiCard({
                 {Math.abs(delta)}%
               </span>
               {deltaSuffix && (
-                <span className="truncate text-muted-foreground">{deltaSuffix}</span>
+                <span className="truncate text-hajr-muted">{deltaSuffix}</span>
               )}
             </div>
           )}
@@ -462,16 +453,16 @@ function AlertRow({
     <li>
       <Link
         href={href}
-        className="flex items-center gap-3 px-1 py-2.5 text-sm transition-colors hover:bg-muted/50"
+        className="subrow flex items-center gap-3 p-3 text-sm transition-colors hover:bg-hajr-chip"
       >
-        <span className={cn("inline-flex h-8 w-8 items-center justify-center rounded-full", tintCls)}>
+        <span className={cn("inline-flex h-9 w-9 items-center justify-center rounded-xl", tintCls)}>
           {icon}
         </span>
-        <span className="flex-1 truncate font-medium">{label}</span>
+        <span className="flex-1 truncate font-medium text-hajr-deep-navy">{label}</span>
         <Badge variant="danger" className="num">
           {ar ? count.toLocaleString("ar-SA-u-nu-latn") : count}
         </Badge>
-        <ArrowRight className="h-4 w-4 text-muted-foreground rtl-flip" />
+        <ArrowRight className="h-4 w-4 text-hajr-muted rtl-flip" />
       </Link>
     </li>
   );
@@ -488,16 +479,16 @@ function TodayClasses({
 }) {
   const t = useTranslations("AdminDashboard");
   return (
-    <Card>
-      <CardContent className="space-y-3 p-4 sm:p-5">
+    <Card className="p-5 sm:p-6">
+      <CardContent className="space-y-4 p-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-brand-rose" />
-            <h2 className="text-sm font-semibold text-brand-navy">
+            <Calendar className="h-4 w-4 text-hajr-rose" />
+            <h2 className="text-sm font-semibold text-hajr-deep-navy">
               {t("todayClassesTitle")}
             </h2>
             {items.length > 0 && (
-              <span className="num text-xs text-muted-foreground">
+              <span className="num text-xs text-hajr-muted">
                 ({ar ? items.length.toLocaleString("ar-SA-u-nu-latn") : items.length})
               </span>
             )}
@@ -510,22 +501,24 @@ function TodayClasses({
           </Button>
         </div>
         {items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-sm text-hajr-muted">
             {t("todayClassesEmpty")}
           </p>
         ) : (
-          <ul className="space-y-1.5">
+          <ul className="space-y-2">
             {items.slice(0, 6).map((c) => (
               <li key={c.id}>
                 <Link
                   href={"/admin/schedule"}
                   className={cn(
-                    "flex items-center gap-3 rounded-md border p-2.5 text-sm transition-colors hover:bg-muted/50",
-                    c.status === "LIVE" && "border-rose-200 bg-rose-50/30"
+                    "flex items-center gap-3 rounded-2xl p-3 text-sm transition-colors",
+                    c.status === "LIVE"
+                      ? "border border-hajr-rose/30 bg-hajr-rose/5"
+                      : "bg-hajr-ivory hover:bg-hajr-chip"
                   )}
                 >
                   <StatusDot status={c.status} />
-                  <span className="num w-14 shrink-0 text-xs font-medium text-muted-foreground">
+                  <span className="num w-14 shrink-0 text-xs font-medium text-hajr-muted">
                     {new Date(c.scheduledStartAt).toLocaleTimeString(
                       ar ? "ar-SA-u-nu-latn" : "en-GB",
                       {
@@ -537,7 +530,7 @@ function TodayClasses({
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="truncate font-medium">{c.className}</span>
+                      <span className="truncate font-medium text-hajr-deep-navy">{c.className}</span>
                       {c.status === "LIVE" && (
                         <Badge variant="rose" className="text-[9px]">
                           ● {t("liveBadge")}
@@ -551,7 +544,7 @@ function TodayClasses({
                         </Badge>
                       )}
                     </div>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-xs text-hajr-muted">
                       {c.teacherName} ·{" "}
                       {t("studentsCount", {
                         n: ar
@@ -574,8 +567,8 @@ function StatusDot({ status }: { status: "LIVE" | "SOON" | "LATER" | "DONE" }) {
   if (status === "LIVE") {
     return (
       <span className="relative inline-flex h-2.5 w-2.5 shrink-0">
-        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
-        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-rose-600" />
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hajr-rose opacity-75" />
+        <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-hajr-rose" />
       </span>
     );
   }
@@ -605,12 +598,12 @@ function SmartActivity({
 }) {
   const t = useTranslations("AdminDashboard");
   return (
-    <Card>
-      <CardContent className="space-y-3 p-4 sm:p-5">
+    <Card className="p-5 sm:p-6">
+      <CardContent className="space-y-4 p-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-brand-rose" />
-            <h2 className="text-sm font-semibold text-brand-navy">
+            <Sparkles className="h-4 w-4 text-hajr-rose" />
+            <h2 className="text-sm font-semibold text-hajr-deep-navy">
               {t("activityTitle")}
             </h2>
           </div>
@@ -622,23 +615,23 @@ function SmartActivity({
           </Button>
         </div>
         {items.length === 0 ? (
-          <p className="py-6 text-center text-sm text-muted-foreground">
+          <p className="py-6 text-center text-sm text-hajr-muted">
             {t("activityEmpty")}
           </p>
         ) : (
-          <ul className="space-y-1.5">
+          <ul className="space-y-2">
             {items.map((it) => (
               <li key={it.id}>
                 <Link
                   href={it.href}
-                  className="flex items-start gap-3 rounded-md border p-2.5 text-sm transition-colors hover:bg-muted/50"
+                  className="subrow flex items-start gap-3 p-3 text-sm transition-colors hover:bg-hajr-chip"
                 >
                   <ActivityIcon type={it.type} />
                   <div className="min-w-0 flex-1">
-                    <p className="line-clamp-2">
+                    <p className="line-clamp-2 text-hajr-deep-navy">
                       {t(`evt_${it.type}` as any, it.data as any)}
                     </p>
-                    <p className="mt-0.5 text-[11px] text-muted-foreground num">
+                    <p className="mt-0.5 text-[11px] text-hajr-muted num">
                       {relTime(it.time, ar)}
                     </p>
                   </div>
@@ -653,47 +646,49 @@ function SmartActivity({
 }
 
 function ActivityIcon({ type }: { type: SmartActivityType }) {
-  const wrap = "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full";
+  // Feed type-indicators are generic utility icons → neutral grey chip
+  // (navy icon on #EFF1F4). The icon glyph still distinguishes each event.
+  const wrap = "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy";
   switch (type) {
     case "PAYMENT_RECEIVED":
       return (
-        <span className={cn(wrap, "bg-emerald-50 text-emerald-700")}>
+        <span className={wrap}>
           <Wallet className="h-4 w-4" />
         </span>
       );
     case "STUDENT_REGISTERED":
       return (
-        <span className={cn(wrap, "bg-blue-50 text-blue-700")}>
+        <span className={wrap}>
           <UserPlus className="h-4 w-4" />
         </span>
       );
     case "TRIAL_REQUESTED":
       return (
-        <span className={cn(wrap, "bg-purple-50 text-purple-700")}>
+        <span className={wrap}>
           <UserCheck className="h-4 w-4" />
         </span>
       );
     case "CLASS_STARTED":
       return (
-        <span className={cn(wrap, "bg-rose-50 text-rose-700")}>
+        <span className={wrap}>
           <Play className="h-4 w-4" />
         </span>
       );
     case "INVOICE_OVERDUE":
       return (
-        <span className={cn(wrap, "bg-red-50 text-red-700")}>
+        <span className={wrap}>
           <Receipt className="h-4 w-4" />
         </span>
       );
     case "CONTACT_SUBMITTED":
       return (
-        <span className={cn(wrap, "bg-amber-50 text-amber-700")}>
+        <span className={wrap}>
           <Inbox className="h-4 w-4" />
         </span>
       );
     case "TEACHER_EARNING_APPROVED":
       return (
-        <span className={cn(wrap, "bg-teal-50 text-teal-700")}>
+        <span className={wrap}>
           <BadgeDollarSign className="h-4 w-4" />
         </span>
       );
@@ -712,12 +707,12 @@ function QuickTile({
   return (
     <Link
       href={href}
-      className="group flex h-24 flex-col items-center justify-center gap-2 rounded-xl border bg-white p-3 text-center transition-all hover:border-brand-navy/30 hover:shadow-sm sm:h-28"
+      className="group flex h-24 flex-col items-center justify-center gap-2 rounded-card border border-hajr-border bg-white p-4 text-center shadow-card transition-all hover:shadow-card-hover sm:h-28"
     >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy transition-colors group-hover:bg-brand-navy/10">
+      <span className="icon-chip transition-colors group-hover:bg-hajr-border">
         {icon}
       </span>
-      <span className="text-sm font-medium text-brand-navy">{label}</span>
+      <span className="text-sm font-medium text-hajr-deep-navy">{label}</span>
     </Link>
   );
 }

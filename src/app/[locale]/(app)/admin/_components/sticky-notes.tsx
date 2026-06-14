@@ -115,14 +115,16 @@ export function StickyNotesWidget({
   }
 
   return (
-    <Card>
-      <CardContent className="space-y-4 p-4 sm:p-6">
+    <Card className="p-5 sm:p-6">
+      <CardContent className="space-y-4 p-0">
         {/* Header */}
         <div className="flex items-center gap-2">
-          <StickyNoteIcon className="h-5 w-5 text-hajr-rose" />
-          <h2 className="text-base font-semibold text-brand-navy">{t("title")}</h2>
+          <span className="icon-chip h-9 w-9">
+            <StickyNoteIcon className="h-5 w-5" />
+          </span>
+          <h2 className="text-base font-semibold text-hajr-deep-navy">{t("title")}</h2>
           {notes.length > 0 && (
-            <span className="ms-auto rounded-full bg-hajr-hover px-2 py-0.5 text-xs font-medium text-hajr-navy num">
+            <span className="ms-auto rounded-full bg-hajr-chip px-2 py-0.5 text-xs font-medium text-hajr-deep-navy num">
               {notes.length}
             </span>
           )}

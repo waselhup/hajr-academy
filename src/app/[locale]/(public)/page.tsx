@@ -4,7 +4,6 @@ import { HajrLogo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/shell/language-toggle";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import ChatBubble from "@/components/public/ChatBubble";
 import { ContactForm } from "./contact-form";
 import { AnnouncementBar } from "@/components/public/AnnouncementBar";
@@ -54,14 +53,14 @@ export default async function LandingPage() {
     { icon: ShieldCheck, title: t("Landing.valueConfidenceTitle"), desc: t("Landing.valueConfidenceDesc") },
   ];
 
-  // 6 testimonials with avatar gradients. Admin can later swap to real photos via DB.
+  // 6 testimonials with navy avatars. Admin can later swap to real photos via DB.
   const AVATAR_GRADIENTS = [
     "from-hajr-deep-navy to-hajr-navy",
-    "from-hajr-rose to-pink-400",
-    "from-emerald-500 to-emerald-700",
-    "from-amber-500 to-orange-500",
-    "from-blue-600 to-indigo-700",
-    "from-slate-500 to-slate-700",
+    "from-hajr-navy to-hajr-deep-navy",
+    "from-hajr-deep-navy to-hajr-navy",
+    "from-hajr-navy to-hajr-deep-navy",
+    "from-hajr-deep-navy to-hajr-navy",
+    "from-hajr-navy to-hajr-deep-navy",
   ];
   const testimonials = isAr
     ? [
@@ -113,10 +112,10 @@ export default async function LandingPage() {
           className="pointer-events-none absolute inset-0"
           style={{
             background:
-              "radial-gradient(58rem 30rem at 50% -12%, rgba(255,255,255,0.06), transparent 70%), radial-gradient(34rem 20rem at 88% 8%, rgba(201,123,138,0.16), transparent 70%)",
+              "radial-gradient(58rem 30rem at 50% -12%, rgba(255,255,255,0.06), transparent 70%)",
           }}
         />
-        <div className="container relative flex flex-col items-center py-20 text-center sm:py-28">
+        <div className="container relative flex flex-col items-center pb-28 pt-20 text-center sm:pb-36 sm:pt-28">
           <div className="animate-fade-in">
             <span className="mb-6 inline-flex items-center rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80">
               {t("Landing.heroEyebrow")}
@@ -157,11 +156,11 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Stats band ────────────────────────────────────── */}
-      <section className="border-b border-hajr-border bg-white">
-        <div className="container grid grid-cols-2 gap-8 py-10 sm:grid-cols-4">
+      {/* ── Stats band — floating card overlapping the hero ─── */}
+      <section className="container relative z-10 -mt-16 sm:-mt-20">
+        <div className="grid grid-cols-2 divide-y divide-hajr-border rounded-card border border-hajr-border bg-white p-2 shadow-card sm:grid-cols-4 sm:divide-y-0 sm:divide-x sm:rtl:divide-x-reverse">
           {stats.map((s) => (
-            <div key={s.label} className="text-center">
+            <div key={s.label} className="px-4 py-6 text-center sm:py-8">
               <div className="num text-3xl font-extrabold text-hajr-navy sm:text-4xl">{s.value}</div>
               <div className="mt-1 text-sm text-hajr-muted">{s.label}</div>
             </div>
@@ -179,16 +178,13 @@ export default async function LandingPage() {
           {values.map((v) => {
             const Icon = v.icon;
             return (
-              <div
-                key={v.title}
-                className="rounded-2xl border border-hajr-border bg-hajr-ivory p-6 transition-shadow duration-200 hover:shadow-card"
-              >
-                <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-hajr-deep-navy">
-                  <Icon className="h-6 w-6 text-white" />
+              <Card key={v.title} className="p-6">
+                <div className="icon-chip mb-4 h-12 w-12">
+                  <Icon className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-bold text-hajr-navy">{v.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{v.desc}</p>
-              </div>
+              </Card>
             );
           })}
         </div>
@@ -208,8 +204,8 @@ export default async function LandingPage() {
                 <Card key={p.code} className="group relative overflow-hidden">
                   <span className="absolute inset-x-0 top-0 h-1 bg-hajr-deep-navy" />
                   <CardHeader>
-                    <div className="mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-hajr-surface">
-                      <Icon className="h-7 w-7 text-hajr-navy" />
+                    <div className="icon-chip mb-4 h-14 w-14 rounded-2xl">
+                      <Icon className="h-7 w-7" />
                     </div>
                     <CardTitle className="text-xl text-hajr-navy">{t("Programs." + p.code as any)}</CardTitle>
                     <CardDescription className="mt-1 inline-flex items-center gap-1.5 text-hajr-muted">
@@ -236,16 +232,16 @@ export default async function LandingPage() {
               key={pk.code}
               className={
                 pk.featured
-                  ? "relative border-hajr-deep-navy ring-1 ring-hajr-deep-navy shadow-card-hover md:scale-105"
+                  ? "relative border-hajr-rose ring-1 ring-hajr-rose shadow-card-hover md:scale-105"
                   : "relative"
               }
             >
               {pk.featured && (
                 <div className="absolute -top-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
-                  <Badge variant="navy" className="px-3 py-1 shadow-sm">
+                  <span className="inline-flex items-center rounded-full bg-hajr-rose px-3 py-1 text-xs font-semibold text-white shadow-sm">
                     <Star className="me-1 h-3 w-3 fill-current" />
                     {t("Landing.packageMostPopular")}
-                  </Badge>
+                  </span>
                 </div>
               )}
               <CardHeader className="pt-8 text-center">
@@ -282,7 +278,7 @@ export default async function LandingPage() {
       <section className="bg-white py-20">
         <div className="container">
           <div className="mx-auto mb-3 flex justify-center">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-hajr-mint/40 px-3 py-1 text-xs font-medium text-hajr-deep-navy">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-hajr-border bg-white px-3 py-1 text-xs font-medium text-hajr-deep-navy shadow-card">
               <VerifyIcon className="h-3.5 w-3.5" />
               {t("Landing.trustBadge")}
             </span>
@@ -338,13 +334,13 @@ export default async function LandingPage() {
 
       {/* ── CTA banner ────────────────────────────────────── */}
       <section className="container pb-20">
-        <div className="relative overflow-hidden rounded-3xl bg-hajr-deep-navy px-8 py-14 text-center sm:px-16">
+        <div className="relative overflow-hidden rounded-card bg-hajr-deep-navy px-8 py-14 text-center shadow-card sm:px-16">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0"
             style={{
               background:
-                "radial-gradient(30rem 16rem at 15% 20%, rgba(201,123,138,0.22), transparent 70%), radial-gradient(26rem 14rem at 90% 90%, rgba(255,255,255,0.05), transparent 70%)",
+                "radial-gradient(26rem 14rem at 90% 90%, rgba(255,255,255,0.05), transparent 70%)",
             }}
           />
           <div className="relative">
@@ -445,7 +441,7 @@ function SocialIconRow() {
 function FeatureChip({ icon: Icon, label }: { icon: any; label: string }) {
   return (
     <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2">
-      <Icon className="h-4 w-4 text-hajr-rose" />
+      <Icon className="h-4 w-4 text-white/80" />
       <span className="text-sm font-medium text-white">{label}</span>
     </div>
   );
@@ -465,8 +461,8 @@ function PackageFeature({ children }: { children: React.ReactNode }) {
 function ContactRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-hajr-surface">
-        <Icon className="h-5 w-5 text-hajr-navy" />
+      <span className="icon-chip shrink-0">
+        <Icon className="h-5 w-5" />
       </span>
       <div>
         <div className="text-xs font-medium uppercase tracking-wide text-hajr-light">{label}</div>

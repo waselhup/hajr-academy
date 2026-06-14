@@ -38,12 +38,17 @@ export function UpcomingSessionCard({
   });
 
   return (
-    <Card className={isLive ? "ring-2 ring-brand-rose" : ""}>
+    <Card className={isLive ? "ring-2 ring-hajr-rose" : ""}>
       <CardContent className="flex flex-wrap items-center justify-between gap-4 p-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="truncate font-semibold text-brand-navy">{session.title}</h3>
-            {isLive && <Badge variant="rose">●</Badge>}
+            <h3 className="truncate font-semibold text-hajr-deep-navy">{session.title}</h3>
+            {isLive && (
+              <Badge variant="rose" className="gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                LIVE
+              </Badge>
+            )}
           </div>
           {session.subtitle && (
             <p className="text-sm text-muted-foreground">{session.subtitle}</p>

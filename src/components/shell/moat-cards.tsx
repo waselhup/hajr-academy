@@ -87,10 +87,10 @@ export function MoatCards({
               href={`/${locale}${c.href}`}
               className="group"
             >
-              <Card className="h-full transition-all hover:border-hajr-rose/40 hover:shadow-sm">
-                <CardContent className="flex items-start gap-3 p-4">
-                  <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-hajr-deep-navy/5 text-hajr-deep-navy group-hover:bg-hajr-rose/10 group-hover:text-hajr-rose">
-                    <Icon className="h-4 w-4" />
+              <Card className="h-full transition-all hover:-translate-y-0.5">
+                <CardContent className="flex items-start gap-3 p-5">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy">
+                    <Icon className="h-[18px] w-[18px]" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1 text-sm font-semibold text-brand-navy">

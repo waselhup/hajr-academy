@@ -117,7 +117,7 @@ export function LiveClassBanner({ userId, classIds }: Props) {
       {live.map((s) => (
         <div
           key={s.sessionId}
-          className="relative flex flex-wrap items-center justify-between gap-3 rounded-xl bg-brand-navy px-4 py-3 text-white shadow-md sm:px-5 sm:py-4"
+          className="relative flex flex-wrap items-center justify-between gap-3 rounded-card bg-hajr-deep-navy px-4 py-3 text-white shadow-card sm:px-5 sm:py-4"
         >
           <button
             aria-label={t("liveNowDismiss")}
@@ -128,12 +128,12 @@ export function LiveClassBanner({ userId, classIds }: Props) {
           </button>
           <div className="flex min-w-0 items-center gap-3 pe-7">
             <span className="relative flex h-3 w-3 shrink-0">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hajr-mint opacity-75" />
-              <span className="relative inline-flex h-3 w-3 rounded-full bg-hajr-mint" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-hajr-rose opacity-75" />
+              <span className="relative inline-flex h-3 w-3 rounded-full bg-hajr-rose" />
             </span>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wide text-hajr-mint">
-                ● {t("liveBadge")}
+              <p className="inline-flex items-center gap-1.5 rounded-full bg-hajr-rose px-2.5 py-0.5 text-[0.7rem] font-bold uppercase tracking-wide text-white">
+                {t("liveBadge")}
               </p>
               <p className="mt-0.5 truncate font-bold">
                 {s.teacherName
@@ -148,7 +148,7 @@ export function LiveClassBanner({ userId, classIds }: Props) {
           <button
             type="button"
             onClick={() => handleJoin(s)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-hajr-deep-navy px-4 py-2 text-sm font-semibold transition-colors hover:bg-hajr-deep-navy/90"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-hajr-rose px-5 py-2.5 text-sm font-semibold transition-colors hover:bg-hajr-rose/90"
           >
             <Radio className="h-4 w-4" />
             {t("joinClass")}

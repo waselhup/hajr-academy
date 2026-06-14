@@ -4,23 +4,24 @@
 
 @layer base {
   :root {
-    /* ── HAJR A° Brand v3 ──────────────────────────────────────
-       Locked official palette. 70/15/10/3/2 proportion rule.
-       Rose mauve is ACCENT ONLY — never a large surface. */
-    --hajr-deep-navy:    #1E2A36;  /* 70% — primary */
-    --hajr-navy:         #2C3E50;  /* 15% — secondary text/headings */
-    --hajr-ivory:        #FAF6EE;  /* 10% — page bg */
-    --hajr-rose:         #B86E7B;  /* 3%  — ACCENT ONLY */
-    --hajr-mint:         #B5E5D8;  /* 2%  — support / success */
+    /* ── HAJR A° Brand v4 "airy cards" ─────────────────────────
+       Flat warm-ivory canvas, navy structure, rose ACCENT ONLY
+       (primary actions, LIVE pill, active-nav dot, progress). */
+    --hajr-deep-navy:    #16243F;  /* STRUCTURE — sidebar, heroes, headings */
+    --hajr-navy:         #22344F;  /* lighter navy — hovers, secondary text */
+    --hajr-ivory:        #F4F1EA;  /* CANVAS — flat warm ivory + inner sub-rows */
+    --hajr-rose:         #C8546B;  /* ACCENT ONLY */
+    --hajr-mint:         #B5E5D8;  /* support / success */
+    --hajr-chip:         #EFF1F4;  /* neutral grey utility icon-chip fill */
     --hajr-white:        #FFFFFF;
 
-    --hajr-text-primary: #1E2A36;
+    --hajr-text-primary: #16243F;
     --hajr-text-body:    #2C3E50;
     --hajr-text-muted:   #64748B;
     --hajr-text-light:   #94A3B8;
 
-    --hajr-border:       #E2E8F0;
-    --hajr-surface:      #F8FAFC;
+    --hajr-border:       #E7E2D7;
+    --hajr-surface:      #F4F1EA;
     --hajr-hover:        #F1F5F9;
 
     --hajr-error:        #DC2626;
@@ -28,26 +29,26 @@
     --hajr-success:      #059669;
     --hajr-info:         #2563EB;
 
-    /* ── shadcn/ui tokens, mapped to brand v3 ─────────────── */
-    --background: 39 56% 96%;
-    --foreground: 211 31% 17%;
+    /* ── shadcn/ui tokens, mapped to brand v4 ─────────────── */
+    --background: 42 31% 94%;          /* warm ivory canvas #F4F1EA */
+    --foreground: 218 49% 17%;         /* structure navy #16243F */
     --card: 0 0% 100%;
-    --card-foreground: 211 31% 17%;
+    --card-foreground: 218 49% 17%;
     --popover: 0 0% 100%;
-    --popover-foreground: 211 31% 17%;
-    --primary: 211 31% 17%;            /* deep navy */
+    --popover-foreground: 218 49% 17%;
+    --primary: 218 49% 17%;            /* deep navy #16243F */
     --primary-foreground: 0 0% 100%;
-    --secondary: 213 32% 24%;          /* charcoal navy */
+    --secondary: 216 39% 22%;          /* navy #22344F */
     --secondary-foreground: 0 0% 100%;
-    --muted: 210 40% 98%;
+    --muted: 42 25% 95%;
     --muted-foreground: 215 16% 47%;
     --accent: 165 51% 80%;             /* mint */
-    --accent-foreground: 213 32% 24%;
+    --accent-foreground: 216 39% 22%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 211 31% 17%;
+    --border: 38 27% 88%;              /* hairline #E7E2D7 */
+    --input: 38 27% 88%;
+    --ring: 345 51% 56%;               /* rose focus ring #C8546B */
     --radius: 0.75rem;
   }
 
@@ -61,7 +62,7 @@
 
   body {
     @apply antialiased;
-    background: #FAF6EE;
+    background: #F4F1EA;
     color: #2C3E50;
     font-family: var(--font-en), Inter, sans-serif;
   }
@@ -79,13 +80,13 @@
      the heading scale per the Figma typography sheet. */
   h1, h2, h3 {
     @apply font-semibold;
-    color: #1E2A36;
+    color: #16243F;
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
   h4 {
     @apply font-medium;
-    color: #1E2A36;
+    color: #16243F;
     letter-spacing: -0.02em;
     line-height: 1.2;
   }
@@ -104,33 +105,44 @@
 }
 
 @layer components {
-  /* Card: white surface on ivory page, soft shadow, lifts on hover */
+  /* Card: floating white surface on ivory canvas — ~20px radius,
+     soft navy shadow, hairline border, lifts on hover. */
   .card-base {
-    @apply rounded-xl border border-hajr-border bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-card-hover;
+    @apply rounded-card border border-hajr-border bg-white p-6 shadow-card transition-shadow duration-200 hover:shadow-card-hover;
+  }
+
+  /* Inner sub-rows inside a card use the ivory canvas fill, not tinted chips. */
+  .subrow {
+    @apply rounded-2xl bg-hajr-ivory p-4;
+  }
+
+  /* Utility icon chip: neutral grey square, navy icon. Never rose-tinted. */
+  .icon-chip {
+    @apply inline-flex h-10 w-10 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy;
   }
 
   /* ── Buttons ──────────────────────────────────────────────────
      Primary (DEFAULT) is deep navy. CTA (rose) is reserved for the
      1–2 most important actions per page. */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-hajr-deep-navy px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-navy disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl bg-hajr-deep-navy px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-navy disabled:opacity-50;
   }
 
   /* CTA — the ONLY place rose is a fill */
   .btn-cta {
-    @apply inline-flex items-center justify-center rounded-lg bg-hajr-rose px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl bg-hajr-rose px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:bg-hajr-rose/90 disabled:opacity-50;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-hajr-navy bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-navy/5 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl border border-hajr-navy bg-transparent px-5 py-2.5 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-navy/5 disabled:opacity-50;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center rounded-lg bg-transparent px-4 py-2 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-hover disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl bg-transparent px-5 py-2.5 text-sm font-medium text-hajr-navy transition-all duration-200 hover:bg-hajr-hover disabled:opacity-50;
   }
 
   .btn-destructive {
-    @apply inline-flex items-center justify-center rounded-lg bg-hajr-error px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50;
+    @apply inline-flex items-center justify-center rounded-xl bg-hajr-error px-5 py-2.5 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50;
   }
 }
 

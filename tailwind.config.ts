@@ -16,22 +16,24 @@ const config: Config = {
     extend: {
       colors: {
         hajr: {
-          // ── BRAND v3 — locked official palette ──
-          // 70/15/10/3/2 proportion rule. Rose mauve is ACCENT ONLY.
-          "deep-navy": "#1E2A36", // 70% — primary surface
-          navy: "#2C3E50",        // 15% — secondary text/headings
-          ivory: "#FAF6EE",       // 10% — page bg
+          // ── BRAND v4 "airy cards" — locked palette ──
+          // Flat warm-ivory canvas, navy structure, rose ACCENT ONLY
+          // (primary actions, LIVE pill, active-nav dot, progress, "popular").
+          "deep-navy": "#16243F", // STRUCTURE — sidebar, heroes, headings, avatars
+          navy: "#22344F",        // slightly lighter navy — hovers, secondary text
+          ivory: "#F4F1EA",       // CANVAS — flat warm ivory page bg + inner sub-rows
           white: "#FFFFFF",
-          rose: "#B86E7B",        // 3%  — ACCENT ONLY
-          mint: "#B5E5D8",        // 2%  — support / success
+          rose: "#C8546B",        // ACCENT ONLY — actions, LIVE, active dot, progress
+          mint: "#B5E5D8",        // support / success
+          chip: "#EFF1F4",        // neutral grey utility icon-chip fill (navy icon)
           // text scale
-          text: "#1E2A36",
+          text: "#16243F",
           body: "#2C3E50",
           muted: "#64748B",
           light: "#94A3B8",
           // surfaces & lines
-          border: "#E2E8F0",
-          surface: "#F8FAFC",
+          border: "#E7E2D7",      // hairline tuned for white card on ivory canvas
+          surface: "#F4F1EA",     // inner sub-row fill = canvas ivory
           hover: "#F1F5F9",
           // status
           error: "#DC2626",
@@ -39,10 +41,11 @@ const config: Config = {
           success: "#059669",
           info: "#2563EB",
           // Compat slots so existing utility classes resolve.
-          black: "#1E2A36",
+          black: "#16243F",
           gray: {
-            100: "#F8FAFC",
-            200: "#E2E8F0",
+            50: "#F7F5EF",
+            100: "#EFF1F4",
+            200: "#E7E2D7",
             300: "#CBD5E1",
             500: "#64748B",
           },
@@ -52,12 +55,12 @@ const config: Config = {
         // `bg-brand-rose` paints navy, not pink. True rose CTAs use
         // `variant="cta"`.
         brand: {
-          "deep-navy": "#1E2A36",
-          navy: "#2C3E50",
-          rose: "#2C3E50",        // ← still navy by design
-          accent: "#B86E7B",      // the real rose for any rare opt-in
+          "deep-navy": "#16243F",
+          navy: "#22344F",
+          rose: "#22344F",        // ← still navy by design
+          accent: "#C8546B",      // the real rose for any rare opt-in
           mint: "#B5E5D8",
-          ivory: "#FAF6EE",
+          ivory: "#F4F1EA",
           lavender: "#D4C5E2",    // deprecated — remove once 0 refs
         },
         border: "hsl(var(--border))",
@@ -98,6 +101,10 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        // "airy cards" rounding — floating white cards ~20px.
+        xl: "1rem",
+        "2xl": "1.25rem",
+        card: "20px",
       },
       fontFamily: {
         ar: ["var(--font-ar)", "IBM Plex Sans Arabic", "Cairo", "sans-serif"],
@@ -105,8 +112,9 @@ const config: Config = {
         sans: ["var(--font-en)", "Inter", "sans-serif"],
       },
       boxShadow: {
-        card: "0 1px 3px 0 rgb(44 62 80 / 0.06), 0 1px 2px -1px rgb(44 62 80 / 0.08)",
-        "card-hover": "0 8px 24px -4px rgb(44 62 80 / 0.12), 0 2px 6px -2px rgb(44 62 80 / 0.08)",
+        // "airy cards" — soft navy float on warm-ivory canvas.
+        card: "0 12px 30px -22px rgb(22 36 63 / 0.30)",
+        "card-hover": "0 20px 44px -22px rgb(22 36 63 / 0.40)",
       },
       keyframes: {
         "accordion-down": {

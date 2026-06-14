@@ -154,9 +154,9 @@ export function StudentHero({
 
   return (
     <div className="space-y-5">
-      {/* ── Greeting Card ────────────────────────────────────── */}
-      <Card className="overflow-hidden border-0 bg-brand-navy text-white shadow-lg">
-        <CardContent className="relative p-5 sm:p-7">
+      {/* ── Welcome Hero (navy structure) ─────────────────────── */}
+      <div className="student-hero relative overflow-hidden rounded-card bg-hajr-deep-navy text-white shadow-card">
+        <div className="relative p-5 sm:p-7">
           <Link
             href={`/${locale}/student/profile`}
             className="absolute end-4 top-4 inline-flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-white/80 transition-colors hover:bg-white/20 hover:text-white"
@@ -166,7 +166,7 @@ export function StudentHero({
           </Link>
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <Avatar className="h-16 w-16 ring-4 ring-white/20">
+            <Avatar className="h-16 w-16 ring-4 ring-white/15">
               {data.avatar ? <AvatarImage src={data.avatar} alt={displayName} /> : null}
               <AvatarFallback className="bg-white/15 text-lg text-white">
                 {initials(data.name)}
@@ -192,13 +192,13 @@ export function StudentHero({
             </div>
           </div>
 
-          <div className="mt-5 grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
             <HeroStat label={t("statAttendance")} value={`${formatNum(data.attendancePct, ar)}%`} />
             <HeroStat label={t("statAssignments")} value={formatNum(data.openAssignments, ar)} />
             <HeroStat label={t("statGrade")} value={`${formatNum(data.avgGrade, ar)}%`} />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── Next Class ────────────────────────────────────────── */}
       <NextClassCard
@@ -214,8 +214,8 @@ export function StudentHero({
         {/* Teachers widget */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <GraduationCap className="h-4 w-4 text-brand-rose" />
+            <CardTitle className="flex items-center gap-2 text-base text-hajr-deep-navy">
+              <GraduationCap className="h-4 w-4 text-hajr-deep-navy" />
               {t("teachersTitle")}
             </CardTitle>
             {data.teachers.length > 4 && (
@@ -237,16 +237,16 @@ export function StudentHero({
                 {data.teachers.slice(0, 4).map((tch) => (
                   <li
                     key={tch.userId}
-                    className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2.5"
+                    className="subrow flex items-center gap-3"
                   >
                     <Avatar className="h-10 w-10">
                       {tch.avatar ? <AvatarImage src={tch.avatar} alt={tch.name} /> : null}
-                      <AvatarFallback className="bg-brand-navy text-xs text-white">
+                      <AvatarFallback className="bg-hajr-deep-navy text-xs text-white">
                         {initials(tch.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium">{tch.name}</p>
+                      <p className="truncate text-sm font-medium text-hajr-deep-navy">{tch.name}</p>
                       <p className="truncate text-[11px] text-muted-foreground">
                         {tch.classes.slice(0, 2).join(" · ") || "—"}
                       </p>
@@ -271,8 +271,8 @@ export function StudentHero({
         {/* Activity widget */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Sparkles className="h-4 w-4 text-brand-rose" />
+            <CardTitle className="flex items-center gap-2 text-base text-hajr-deep-navy">
+              <Sparkles className="h-4 w-4 text-hajr-deep-navy" />
               {t("activityTitle")}
             </CardTitle>
           </CardHeader>
@@ -287,11 +287,11 @@ export function StudentHero({
                   <li key={item.id}>
                     <Link
                       href={item.href}
-                      className="flex items-start gap-3 rounded-md border bg-muted/30 p-2.5 transition-colors hover:bg-muted"
+                      className="subrow flex items-start gap-3 transition-colors hover:bg-hajr-chip"
                     >
                       <ActivityIcon type={item.type} />
                       <div className="min-w-0 flex-1">
-                        <p className="line-clamp-2 text-sm">
+                        <p className="line-clamp-2 text-sm text-hajr-deep-navy">
                           {tAct(`activity_${item.type}` as any, item.data as any)}
                         </p>
                         <p className="mt-0.5 text-[11px] text-muted-foreground num">
@@ -309,7 +309,7 @@ export function StudentHero({
 
       {/* ── Quick Actions ─────────────────────────────────────── */}
       <div>
-        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">
+        <h2 className="mb-3 text-sm font-semibold text-hajr-deep-navy">
           {t("quickTitle")}
         </h2>
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -345,9 +345,9 @@ function formatNum(n: number, ar: boolean): string {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-white/10 p-3 backdrop-blur-sm">
-      <p className="text-[10px] uppercase tracking-wide text-white/70">{label}</p>
-      <p className="mt-1 text-xl font-bold num sm:text-2xl">{value}</p>
+    <div className="rounded-2xl bg-white/[0.08] p-3 backdrop-blur-sm sm:p-4">
+      <p className="text-[10px] uppercase tracking-wide text-white/60">{label}</p>
+      <p className="mt-1 text-xl font-bold num text-white sm:text-2xl">{value}</p>
     </div>
   );
 }
@@ -372,8 +372,10 @@ function NextClassCard({
     return (
       <Card className="border-dashed">
         <CardContent className="space-y-3 p-6 text-center">
-          <Inbox className="mx-auto h-8 w-8 text-muted-foreground/60" />
-          <p className="text-sm font-medium">{t("nextClassNone")}</p>
+          <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy">
+            <Inbox className="h-6 w-6" />
+          </span>
+          <p className="text-sm font-medium text-hajr-deep-navy">{t("nextClassNone")}</p>
           <Button asChild variant="outline" size="sm">
             <Link href={`/${locale}/student/classes`}>{t("nextClassExplore")}</Link>
           </Button>
@@ -397,16 +399,16 @@ function NextClassCard({
     <Card
       className={cn(
         "overflow-hidden",
-        showLive ? "ring-2 ring-brand-rose shadow-md" : ""
+        showLive ? "ring-2 ring-hajr-rose" : ""
       )}
     >
       <CardContent className="space-y-3 p-5">
         <div className="flex items-start justify-between gap-2">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-brand-rose">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("nextClassTitle")}
             </p>
-            <h3 className="mt-1 text-lg font-bold text-brand-navy">
+            <h3 className="mt-1 text-lg font-bold text-hajr-deep-navy">
               📚 {data.className}
             </h3>
             <p className="mt-0.5 text-xs text-muted-foreground num">{data.cohortCode}</p>
@@ -421,18 +423,18 @@ function NextClassCard({
         <p className="text-sm text-muted-foreground">{dateStr}</p>
 
         {/* Teacher card — photo + name + Message (matches the my-teachers row) */}
-        <div className="flex items-center gap-3 rounded-lg border bg-muted/30 p-2.5">
+        <div className="subrow flex items-center gap-3">
           <Avatar className="h-10 w-10">
             {data.teacherAvatar ? (
               <AvatarImage src={data.teacherAvatar} alt={data.teacherName} />
             ) : null}
-            <AvatarFallback className="bg-brand-navy text-xs text-white">
+            <AvatarFallback className="bg-hajr-deep-navy text-xs text-white">
               {initials(data.teacherName)}
             </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-[11px] text-muted-foreground">{t("cardTeacher")}</p>
-            <p className="truncate text-sm font-medium">{data.teacherName}</p>
+            <p className="truncate text-sm font-medium text-hajr-deep-navy">{data.teacherName}</p>
           </div>
           <Button
             size="sm"
@@ -486,46 +488,47 @@ function QuickTile({
   return (
     <Link
       href={href}
-      className="group flex h-24 flex-col items-center justify-center gap-2 rounded-xl border bg-white p-3 text-center transition-all hover:border-brand-navy/30 hover:shadow-sm sm:h-28"
+      className="group flex h-24 flex-col items-center justify-center gap-2 rounded-card border border-hajr-border bg-white p-3 text-center shadow-card transition-shadow duration-200 hover:shadow-card-hover sm:h-28"
     >
-      <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand-navy/5 text-brand-navy transition-colors group-hover:bg-brand-navy/10">
+      <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy transition-colors group-hover:bg-hajr-chip/70">
         {icon}
       </span>
-      <span className="text-sm font-medium text-brand-navy">{label}</span>
+      <span className="text-sm font-medium text-hajr-deep-navy">{label}</span>
     </Link>
   );
 }
 
 function ActivityIcon({ type }: { type: ActivityType }) {
-  const wrap = "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full";
+  const wrap =
+    "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-hajr-chip text-hajr-deep-navy";
   switch (type) {
     case "ASSIGNMENT_NEW":
       return (
-        <span className={cn(wrap, "bg-blue-50 text-blue-700")}>
+        <span className={wrap}>
           <BookCheck className="h-4 w-4" />
         </span>
       );
     case "ASSIGNMENT_GRADED":
       return (
-        <span className={cn(wrap, "bg-emerald-50 text-emerald-700")}>
+        <span className={wrap}>
           <BookCheck className="h-4 w-4" />
         </span>
       );
     case "EXAM_RESULT":
       return (
-        <span className={cn(wrap, "bg-purple-50 text-purple-700")}>
+        <span className={wrap}>
           <FileText className="h-4 w-4" />
         </span>
       );
     case "INVOICE_DUE":
       return (
-        <span className={cn(wrap, "bg-amber-50 text-amber-700")}>
+        <span className={wrap}>
           <Receipt className="h-4 w-4" />
         </span>
       );
     case "CLASS_REMINDER":
       return (
-        <span className={cn(wrap, "bg-rose-50 text-rose-700")}>
+        <span className={wrap}>
           <Bell className="h-4 w-4" />
         </span>
       );

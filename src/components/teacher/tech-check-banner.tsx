@@ -50,15 +50,17 @@ export async function TechCheckBanner({
 
   const t = await getTranslations("TechCheck");
   return (
-    <div className="flex items-start gap-3 rounded-lg border border-hajr-rose/40 bg-hajr-rose/10 p-4">
-      <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-hajr-rose" />
-      <div className="flex-1">
+    <div className="flex flex-wrap items-center gap-3 rounded-card border border-amber-300 bg-amber-50 p-5 shadow-card">
+      <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+        <AlertTriangle className="h-5 w-5" />
+      </span>
+      <div className="min-w-0 flex-1">
         <div className="text-sm font-semibold text-hajr-deep-navy">{t("bannerTitle")}</div>
         <div className="text-xs text-hajr-gray-600">{t("bannerBody")}</div>
       </div>
       <Link
         href={`/${locale}/teacher/tech-check`}
-        className="rounded-md bg-hajr-rose px-3 py-1.5 text-sm font-medium text-white hover:bg-hajr-rose/90"
+        className="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-hajr-deep-navy px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-hajr-navy"
       >
         {t("runNow")}
       </Link>
