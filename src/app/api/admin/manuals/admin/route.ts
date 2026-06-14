@@ -9,6 +9,11 @@ export async function GET(req: NextRequest) {
   if (!session?.user) {
     return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
   }
+  // The admin operations manual is internal — gate on role, not just any login
+  // (a STUDENT/PARENT session must not be able to pull the admin playbook).
+  if (!["ADMIN", "SUPER_ADMIN"].includes(session.user.role)) {
+    return NextResponse.json({ error: "FORBIDDEN" }, { status: 403 });
+  }
   const lang = req.nextUrl.searchParams.get("lang") === "ar" ? "ar" : "en";
   const html = buildAdminManual(lang);
   return new Response(html, {

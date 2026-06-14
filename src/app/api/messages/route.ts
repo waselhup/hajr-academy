@@ -6,6 +6,7 @@ import { canMessage } from "@/lib/comms/permissions";
 import { sendEmail } from "@/lib/comms/email";
 import { createNotification } from "@/lib/comms/in-app";
 import { broadcastNewMessage } from "@/lib/chat/realtime";
+import { escapeHtml } from "@/lib/html";
 
 export const dynamic = "force-dynamic";
 
@@ -208,7 +209,9 @@ export async function POST(req: NextRequest) {
       sendEmail({
         to: recipient.email,
         subject: subject ?? `New message from ${senderName}`,
-        html: `<p>${text.replace(/\n/g, "<br/>")}</p>`,
+        // Escape the user-supplied message before interpolation — otherwise a
+        // sender can inject arbitrary markup/links into the recipient's email.
+        html: `<p>${escapeHtml(text).replace(/\n/g, "<br/>")}</p>`,
       }).catch(() => {});
     }
 

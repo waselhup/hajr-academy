@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     if (consentOnly) where.consentTestimonial = true;
     if (mediaOnly) where.OR = [{ voiceUrl: { not: null } }, { videoUrl: { not: null } }];
 
-    const [total, rows, agg] = await Promise.all([
+    const [total, rows, agg, filteredAgg] = await Promise.all([
       prisma.feedbackSurveyResponse.count({ where }),
       prisma.feedbackSurveyResponse.findMany({
         where,
@@ -55,6 +55,9 @@ export async function GET(req: NextRequest) {
         take: PAGE_SIZE,
       }),
       prisma.feedbackSurveyResponse.aggregate({ _avg: { ratingOverall: true }, _count: { _all: true } }),
+      // Average over the SAME filtered set as the list/count, so the header's
+      // average matches the result count shown next to it.
+      prisma.feedbackSurveyResponse.aggregate({ where, _avg: { ratingOverall: true } }),
     ]);
 
     return NextResponse.json({
@@ -62,7 +65,10 @@ export async function GET(req: NextRequest) {
       page,
       pageSize: PAGE_SIZE,
       totalAll: agg._count._all,
-      avgOverall: agg._avg.ratingOverall,
+      // avgOverall reflects the active filters (matches `total`); avgOverallAll
+      // is the unfiltered platform-wide average.
+      avgOverall: filteredAgg._avg.ratingOverall,
+      avgOverallAll: agg._avg.ratingOverall,
       responses: rows.map((r) => ({
         id: r.id,
         respondentType: r.respondentType,

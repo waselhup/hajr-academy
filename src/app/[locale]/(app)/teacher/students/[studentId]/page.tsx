@@ -44,18 +44,11 @@ export default async function TeacherStudentDetailPage({
   if (!profile) notFound();
 
   // Permission guard: must be enrolled in one of the teacher's classes.
-  const teacherClassIds = (
-    await prisma.class.findMany({
-      where: { teacherId: profile.id },
-      select: { id: true },
-    })
-  ).map((c) => c.id);
-
+  // Single existence query via relation filter — drops the separate class-id
+  // round-trip that used to precede it.
   const enrollment = await prisma.enrollment.findFirst({
-    where: {
-      studentId,
-      classId: { in: teacherClassIds },
-    },
+    where: { studentId, class: { teacherId: profile.id } },
+    select: { id: true },
   });
   if (!enrollment) {
     // 403 — student not in this teacher's roster.
@@ -105,65 +98,71 @@ export default async function TeacherStudentDetailPage({
       ? student.school?.nameAr ?? student.schoolName ?? "—"
       : student.school?.nameEn ?? student.schoolName ?? "—";
 
-  // Attendance — only for sessions in this teacher's classes.
-  const attendances = await prisma.attendance.findMany({
-    where: {
-      studentId,
-      session: { class: { teacherId: profile.id } },
-    },
-    include: {
-      session: {
-        select: {
-          id: true,
-          scheduledDate: true,
-          status: true,
-          class: { select: { name: true, nameAr: true, cohortCode: true } },
+  // All of this student's detail data depends only on studentId / this
+  // teacher's classes and is mutually independent — fetch it in ONE parallel
+  // batch instead of six serial DB round-trips.
+  const [
+    attendances,
+    unmarkedSessions,
+    submissions,
+    skillLevels,
+    evaluationRows,
+    teacherClasses,
+  ] = await Promise.all([
+    // Attendance — only for sessions in this teacher's classes.
+    prisma.attendance.findMany({
+      where: {
+        studentId,
+        session: { class: { teacherId: profile.id } },
+      },
+      include: {
+        session: {
+          select: {
+            id: true,
+            scheduledDate: true,
+            status: true,
+            class: { select: { name: true, nameAr: true, cohortCode: true } },
+          },
         },
       },
-    },
-    orderBy: { session: { scheduledDate: "desc" } },
-    take: 50,
-  });
-
-  // Recent unmarked sessions where this student is enrolled.
-  const unmarkedSessions = await prisma.classSession.findMany({
-    where: {
-      class: { teacherId: profile.id, enrollments: { some: { studentId } } },
-      attendances: { none: { studentId } },
-      status: { in: ["LIVE", "COMPLETED", "SCHEDULED"] },
-      scheduledDate: { lte: new Date() },
-    },
-    select: {
-      id: true,
-      scheduledDate: true,
-      class: { select: { name: true, nameAr: true, cohortCode: true } },
-    },
-    orderBy: { scheduledDate: "desc" },
-    take: 10,
-  });
-
-  // Submissions for this student in the teacher's classes.
-  const submissions = await prisma.submission.findMany({
-    where: {
-      studentId,
-      assignment: { class: { teacherId: profile.id } },
-    },
-    include: {
-      assignment: { select: { title: true, titleAr: true, dueDate: true } },
-    },
-    orderBy: { submittedAt: "desc" },
-    take: 30,
-  });
-
-  // Lab skill snapshot.
-  const skillLevels = await prisma.skillLevel.findMany({
-    where: { studentId },
-    orderBy: { skill: "asc" },
-  });
-
-  // Evaluations of this student (any teacher) + this teacher's classes for the
-  // optional class picker. The form's server action re-checks ownership.
-  const [evaluationRows, teacherClasses] = await Promise.all([
+      orderBy: { session: { scheduledDate: "desc" } },
+      take: 50,
+    }),
+    // Recent unmarked sessions where this student is enrolled.
+    prisma.classSession.findMany({
+      where: {
+        class: { teacherId: profile.id, enrollments: { some: { studentId } } },
+        attendances: { none: { studentId } },
+        status: { in: ["LIVE", "COMPLETED", "SCHEDULED"] },
+        scheduledDate: { lte: new Date() },
+      },
+      select: {
+        id: true,
+        scheduledDate: true,
+        class: { select: { name: true, nameAr: true, cohortCode: true } },
+      },
+      orderBy: { scheduledDate: "desc" },
+      take: 10,
+    }),
+    // Submissions for this student in the teacher's classes.
+    prisma.submission.findMany({
+      where: {
+        studentId,
+        assignment: { class: { teacherId: profile.id } },
+      },
+      include: {
+        assignment: { select: { title: true, titleAr: true, dueDate: true } },
+      },
+      orderBy: { submittedAt: "desc" },
+      take: 30,
+    }),
+    // Lab skill snapshot.
+    prisma.skillLevel.findMany({
+      where: { studentId },
+      orderBy: { skill: "asc" },
+    }),
+    // Evaluations of this student (any teacher). The form's server action
+    // re-checks ownership.
     prisma.studentEvaluation.findMany({
       where: { studentId },
       include: {
@@ -173,6 +172,7 @@ export default async function TeacherStudentDetailPage({
       orderBy: { createdAt: "desc" },
       take: 50,
     }),
+    // This teacher's classes for the optional class picker.
     prisma.class.findMany({
       where: { teacherId: profile.id },
       select: { id: true, name: true, nameAr: true },

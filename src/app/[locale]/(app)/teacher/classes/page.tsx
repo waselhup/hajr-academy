@@ -28,39 +28,42 @@ export default async function TeacherClassesPage({
     );
   }
 
-  // Group classes
-  const groupClasses = await prisma.class.findMany({
-    where: { teacherId: profile.id },
-    include: {
-      program: true,
-      _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
-      sessions: {
-        where: {
-          OR: [
-            { status: "LIVE" },
-            { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
-          ],
+  // Group classes + private lessons are independent — fetch them in parallel
+  // (one DB round-trip instead of two) on this primary nav target. `program` is
+  // narrowed to the two name fields actually rendered, not the whole row.
+  const [groupClasses, privateLessons] = await Promise.all([
+    prisma.class.findMany({
+      where: { teacherId: profile.id },
+      include: {
+        program: { select: { nameAr: true, nameEn: true } },
+        _count: { select: { enrollments: { where: { status: "ACTIVE" } } } },
+        sessions: {
+          where: {
+            OR: [
+              { status: "LIVE" },
+              { status: "SCHEDULED", scheduledDate: { gte: new Date(Date.now() - 3600_000) } },
+            ],
+          },
+          orderBy: { scheduledDate: "asc" },
+          take: 1,
         },
-        orderBy: { scheduledDate: "asc" },
-        take: 1,
       },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  // Private lessons — grouped by student to form synthetic "private class"
-  // entries so they fit the same UI shape.
-  const privateLessons = await prisma.privateLesson.findMany({
-    where: {
-      teacherId: profile.id,
-      OR: [
-        { status: "LIVE" },
-        { status: "SCHEDULED", scheduledAt: { gte: new Date(Date.now() - 86400_000) } },
-      ],
-    },
-    include: { student: { include: { user: { select: { name: true, nameAr: true } } } } },
-    orderBy: { scheduledAt: "asc" },
-  });
+      orderBy: { createdAt: "desc" },
+    }),
+    // Private lessons — grouped by student to form synthetic "private class"
+    // entries so they fit the same UI shape.
+    prisma.privateLesson.findMany({
+      where: {
+        teacherId: profile.id,
+        OR: [
+          { status: "LIVE" },
+          { status: "SCHEDULED", scheduledAt: { gte: new Date(Date.now() - 86400_000) } },
+        ],
+      },
+      include: { student: { include: { user: { select: { name: true, nameAr: true } } } } },
+      orderBy: { scheduledAt: "asc" },
+    }),
+  ]);
 
   const items: TeacherClassItem[] = [
     ...groupClasses.map((c) => ({

@@ -80,10 +80,13 @@ export async function runCommsTick(): Promise<CronSummary> {
           1,
           Math.floor((now.getTime() - inv.dueDate.getTime()) / 86400_000)
         );
-        // Flip status so we don't re-remind every tick.
+        // Flip status so we don't re-remind every tick. Update BOTH status
+        // columns the schema promises to keep in sync — the parent finance and
+        // child-detail pages render `invoiceStatus`, which otherwise stayed
+        // PENDING so an overdue invoice never showed as overdue to the parent.
         await prisma.invoice.update({
           where: { id: inv.id },
-          data: { status: "OVERDUE" },
+          data: { status: "OVERDUE", invoiceStatus: "OVERDUE" },
         });
         await triggerPaymentOverdue(inv.id, daysOverdue);
         summary.overdueReminders++;

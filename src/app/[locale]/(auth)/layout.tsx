@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/routing";
 import { HajrLogo } from "@/components/brand/logo";
 import { getTranslations } from "next-intl/server";
 import { LanguageToggle } from "@/components/shell/language-toggle";
