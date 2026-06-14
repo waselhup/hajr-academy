@@ -33,6 +33,25 @@ export async function GET(
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
+    // Ownership: a TEACHER may only view progress for a student they actually
+    // teach (admins bypass) — pairs with the lab/review write guard, which is
+    // otherwise the only owner-gated lab surface for this student.
+    if (session.user.role === "TEACHER") {
+      const tp = await prisma.teacherProfile.findUnique({
+        where: { userId: session.user.id },
+        select: { id: true },
+      });
+      const teaches = tp
+        ? await prisma.enrollment.findFirst({
+            where: { studentId: student.id, class: { teacherId: tp.id } },
+            select: { id: true },
+          })
+        : null;
+      if (!teaches) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const skillLevels = await ensureSkillLevels(student.id);
 
     const recentAttempts = await prisma.labAttempt.findMany({
