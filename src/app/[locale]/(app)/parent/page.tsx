@@ -51,8 +51,8 @@ export default async function ParentDashboardPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-baseline justify-between">
-        <h1 className="text-2xl font-bold">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="min-w-0 truncate text-2xl font-bold">
           {t("welcome")}، {session.user.name}
         </h1>
         <Badge variant="info">{t("role")}</Badge>

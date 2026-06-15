@@ -27,7 +27,7 @@ export function ShareCodeBox({ code, landingUrl }: Props) {
     <div className="rounded-2xl bg-hajr-deep-navy p-5 text-white shadow-card-hover">
       <div className="text-xs uppercase tracking-widest text-hajr-mint/80">{t("yourReferralCode")}</div>
       <div className="mt-2 flex items-center justify-between gap-3">
-        <div className="text-3xl font-bold tracking-[0.4em] text-white">{code}</div>
+        <div className="min-w-0 truncate text-2xl font-bold tracking-[0.25em] text-white sm:text-3xl sm:tracking-[0.4em]">{code}</div>
         <button
           type="button"
           onClick={copyCode}

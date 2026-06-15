@@ -10,7 +10,9 @@ const config: Config = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      // Tighter side gutters on phones so packed header rows don't overflow;
+      // desktop (lg+) keeps the original 2rem so it's pixel-identical.
+      padding: { DEFAULT: "1rem", sm: "1.5rem", lg: "2rem" },
       screens: { "2xl": "1400px" },
     },
     extend: {

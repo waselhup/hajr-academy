@@ -75,7 +75,7 @@ export default function AdminChatPanel() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <button className="fixed bottom-6 end-6 z-40 flex items-center gap-2 bg-brand-navy text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-brand-navy/90 transition-colors">
+        <button className="fixed bottom-20 end-4 z-40 sm:bottom-6 sm:end-6 flex items-center gap-2 bg-brand-navy text-white rounded-full px-4 py-2.5 shadow-lg hover:bg-brand-navy/90 transition-colors">
           <Bot className="h-5 w-5" />
           <span className="text-sm font-medium">هجر</span>
         </button>

@@ -449,7 +449,7 @@ export function MessagesClient({
       </div>
 
       <Card className="overflow-hidden p-0">
-        <div className="grid h-[640px] grid-cols-1 md:grid-cols-[320px_1fr]">
+        <div className="grid h-[calc(100dvh-13rem)] grid-cols-1 md:h-[640px] md:grid-cols-[320px_1fr]">
           {/* ── conversation list ── */}
           <div
             className={cn(
@@ -636,7 +636,7 @@ export function MessagesClient({
                 )}
 
                 {/* composer */}
-                <div className="flex items-end gap-2 border-t border-hajr-border bg-white p-3">
+                <div className="flex items-end gap-1.5 border-t border-hajr-border bg-white p-2 sm:gap-2 sm:p-3">
                   <input
                     ref={fileInputRef}
                     type="file"

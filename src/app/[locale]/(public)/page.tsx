@@ -91,14 +91,14 @@ export default async function LandingPage() {
       <header className="sticky top-0 z-20 border-b border-hajr-border/70 bg-hajr-ivory/85 backdrop-blur">
         <div className="container flex h-16 items-center justify-between gap-2">
           <HajrLogo size="sm" variant="full" />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
             <LanguageToggle />
             {/* Sign-in: visible on every breakpoint, condensed on mobile */}
             <Button variant="ghost" size="sm" asChild>
               <Link href="/login">{t("Landing.ctaLogin")}</Link>
             </Button>
             {/* Primary CTA — always visible */}
-            <Button variant="cta" size="pill" asChild>
+            <Button variant="cta" size="pill" className="px-4 sm:px-8" asChild>
               <Link href="/register">{t("Landing.ctaStickyMobile")}</Link>
             </Button>
           </div>

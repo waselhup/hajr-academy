@@ -129,7 +129,7 @@ export default async function ParentFinancePage({
                     </TableCell>
                     <TableCell className="num">{date(inv.dueDate)}</TableCell>
                     <TableCell className="text-end">
-                      <div className="flex justify-end gap-1">
+                      <div className="flex justify-end gap-2">
                         {inv.status !== "PAID" &&
                           inv.status !== "CANCELLED" && (
                             <Button asChild size="sm">

@@ -132,7 +132,7 @@ function DefaultMiddleCard({ p, progress, earned, unclaimed, isAr, t }: { p: P; 
               {t("level")} {p.level}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <StreakFlame days={p.streakDays} />
             <Badge variant="rose">{earned} <Trophy className="ms-1 inline h-3 w-3" /></Badge>
             {unclaimed > 0 && (

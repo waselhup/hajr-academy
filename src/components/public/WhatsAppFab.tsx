@@ -14,7 +14,7 @@ export function WhatsAppFab({ label, message }: { label: string; message: string
       rel="noopener noreferrer"
       aria-label={label}
       title={label}
-      className="fixed bottom-5 end-5 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-transform duration-150 hover:scale-105 hover:bg-emerald-600 sm:bottom-6 sm:end-6"
+      className="fixed bottom-40 end-6 z-30 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg transition-transform duration-150 hover:scale-105 hover:bg-emerald-600 sm:bottom-24 sm:end-6"
     >
       <MessageCircle className="h-6 w-6" />
     </a>

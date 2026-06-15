@@ -117,7 +117,9 @@ export default function ChatBubble() {
           onClick={() => setOpen(true)}
           aria-label="Open chat"
           className={cn(
-            "fixed z-50 bottom-6 end-6",
+            // Lifted on phones so it clears the mobile sticky sign-up bar; the
+            // WhatsApp FAB stacks above this. Desktop keeps the original corner.
+            "fixed z-50 bottom-24 end-6 sm:bottom-6",
             "h-14 w-14 rounded-full bg-hajr-deep-navy text-white shadow-lg",
             "flex items-center justify-center",
             "hover:scale-105 transition-transform",

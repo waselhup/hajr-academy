@@ -22,8 +22,8 @@ const SheetContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & { side?: "left" | "right" | "top" | "bottom" }
 >(({ side = "right", className, children, ...props }, ref) => {
   const sideClass: Record<string, string> = {
-    right: "inset-y-0 end-0 h-full w-3/4 sm:max-w-md border-s",
-    left: "inset-y-0 start-0 h-full w-3/4 sm:max-w-md border-e",
+    right: "inset-y-0 end-0 h-full w-[88%] max-w-sm sm:max-w-md border-s",
+    left: "inset-y-0 start-0 h-full w-[88%] max-w-sm sm:max-w-md border-e",
     top: "inset-x-0 top-0 w-full h-auto border-b",
     bottom: "inset-x-0 bottom-0 w-full h-auto border-t",
   };
@@ -32,7 +32,7 @@ const SheetContent = React.forwardRef<
       <SheetOverlay />
       <DialogPrimitive.Content
         ref={ref}
-        className={cn("fixed z-50 gap-4 bg-white p-6 shadow-lg", sideClass[side], className)}
+        className={cn("fixed z-50 max-h-dvh overflow-y-auto gap-4 bg-white p-6 shadow-lg", sideClass[side], className)}
         {...props}
       >
         {children}

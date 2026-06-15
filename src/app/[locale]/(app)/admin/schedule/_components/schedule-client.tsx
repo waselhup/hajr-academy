@@ -167,7 +167,10 @@ export function ScheduleClient({
       ) : (
         <Card>
           <CardContent className="p-0">
-            <div className="grid grid-cols-7 border-b">
+            {/* Horizontal scroll on phones: 7 day-columns need ~700px to stay
+                readable; below that the row scrolls sideways instead of crushing. */}
+            <div className="overflow-x-auto">
+            <div className="grid grid-cols-7 border-b min-w-[700px]">
               {days.map((d) => (
                 <div key={d.idx} className="border-e p-2 text-center text-xs font-medium last:border-e-0">
                   <div>{t("Days." + d.key as any)}</div>
@@ -175,7 +178,7 @@ export function ScheduleClient({
                 </div>
               ))}
             </div>
-            <div className="grid grid-cols-7 min-h-[400px]">
+            <div className="grid grid-cols-7 min-h-[400px] min-w-[700px]">
               {sessionsByDay.map((daySessions, idx) => (
                 <div key={idx} className="border-e p-2 space-y-1 last:border-e-0">
                   {daySessions.length === 0 ? (
@@ -194,6 +197,7 @@ export function ScheduleClient({
                   ))}
                 </div>
               ))}
+            </div>
             </div>
           </CardContent>
         </Card>

@@ -103,7 +103,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 border-t border-hajr-border bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.04)] sm:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 border-t border-hajr-border bg-white shadow-[0_-2px_6px_rgba(0,0,0,0.04)] lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
       <ul className="grid h-16 grid-cols-5">
@@ -125,7 +125,7 @@ export function MobileBottomNav({ role }: { role: Role }) {
                   </span>
                 )}
               </span>
-              <span className="mt-0.5 text-[0.65rem] leading-none">{t(tab.key as any)}</span>
+              <span className="mt-0.5 w-full truncate px-0.5 text-center text-[0.65rem] leading-none">{t(tab.key as any)}</span>
             </>
           );
           const classes = cn(

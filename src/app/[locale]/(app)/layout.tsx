@@ -49,7 +49,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             role={session.user.role}
             avatar={me?.avatar ?? null}
           />
-          <main className="flex-1 p-4 pb-24 sm:p-6 sm:pb-6 lg:p-8 lg:pb-8">{children}</main>
+          <main className="flex-1 p-4 pb-24 sm:p-6 lg:p-8 lg:pb-8">{children}</main>
         </div>
       </div>
       <MobileBottomNav role={session.user.role} />

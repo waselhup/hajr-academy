@@ -31,7 +31,10 @@ const DialogContent = React.forwardRef<
         // `right`, but translate-x is always physical, so the two don't cancel and
         // the dialog lands off-screen (top-left). Physical `left` centers correctly
         // in BOTH directions. (The close button below can stay logical via `end-4`.)
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-white p-6 shadow-lg rounded-lg",
+        // Mobile: keep a 1rem gutter each side (w-calc) and never grow past the
+        // viewport (max-h + scroll) so the submit button stays reachable with the
+        // keyboard open. Callers that set their own max-h still win via twMerge.
+        "fixed left-[50%] top-[50%] z-50 grid max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 overflow-y-auto border bg-white p-6 shadow-lg rounded-lg",
         className
       )}
       {...props}

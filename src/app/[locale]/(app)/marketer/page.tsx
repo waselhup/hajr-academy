@@ -60,7 +60,7 @@ export default async function MarketerDashboardPage({
       : "bg-hajr-error/15 text-hajr-error";
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4 md:p-6">
+    <div className="mx-auto max-w-6xl space-y-6">
       {/* Hero */}
       <div className="rounded-2xl bg-hajr-deep-navy p-6 text-white shadow-card-hover md:p-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

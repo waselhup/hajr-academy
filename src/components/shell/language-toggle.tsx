@@ -15,10 +15,13 @@ export function LanguageToggle() {
       variant="ghost"
       size="sm"
       onClick={() => router.replace(pathname, { locale: next })}
+      aria-label={locale === "ar" ? "Switch to English" : "التبديل إلى العربية"}
       className="gap-2"
     >
       <Globe className="h-4 w-4" />
-      <span>{locale === "ar" ? "English" : "العربية"}</span>
+      {/* Hide the word label on phones so the topbar cluster fits 360px; the
+          globe + aria-label keep it usable/accessible. */}
+      <span className="hidden sm:inline">{locale === "ar" ? "English" : "العربية"}</span>
     </Button>
   );
 }

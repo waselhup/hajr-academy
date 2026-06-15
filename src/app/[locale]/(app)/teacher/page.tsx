@@ -73,7 +73,7 @@ export default async function TeacherDashboardPage({
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4 rounded-card bg-hajr-deep-navy p-6 text-white shadow-card sm:p-8">
-        <h1 className="text-2xl font-bold">
+        <h1 className="min-w-0 truncate text-2xl font-bold">
           {t("Dashboard.welcome")}، {session.user.name}
         </h1>
         <Badge variant="rose">{t("Roles.TEACHER")}</Badge>
