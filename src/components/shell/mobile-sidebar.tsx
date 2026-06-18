@@ -2,9 +2,9 @@
 import { useEffect, useRef, useState } from "react";
 // Locale-aware Link + usePathname (next-intl) keep navigation inside the
 // current locale; raw next/link would bounce the user back to the default.
-import { Link, usePathname } from "@/i18n/routing";
-import { Menu, X, ChevronDown } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { Menu, X, ChevronDown, Globe } from "lucide-react";
+import { useTranslations, useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { HajrLogo } from "@/components/brand/logo";
 import { cn } from "@/lib/utils";
@@ -52,8 +52,8 @@ export function MobileSidebar({ role }: { role: Role }) {
             className="absolute inset-0 bg-hajr-deep-navy/50 animate-fade-in"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute start-0 top-0 h-full w-64 bg-hajr-deep-navy text-white shadow-xl">
-            <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+          <div className="absolute start-0 top-0 flex h-full w-64 flex-col bg-hajr-deep-navy text-white shadow-xl">
+            <div className="flex h-16 shrink-0 items-center justify-between border-b border-white/10 px-4">
               <HajrLogo size="sm" variant="full" light />
               <button
                 onClick={() => setOpen(false)}
@@ -63,10 +63,7 @@ export function MobileSidebar({ role }: { role: Role }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav
-              className="overflow-y-auto p-2"
-              style={{ maxHeight: "calc(100vh - 4rem)" }}
-            >
+            <nav className="flex-1 overflow-y-auto p-2">
               {isAdminish ? (
                 <GroupedMobileNav
                   kind="admin"
@@ -87,10 +84,59 @@ export function MobileSidebar({ role }: { role: Role }) {
                 <FlatMobileNav role={role} pathname={pathname} t={t} onNavigate={() => setOpen(false)} />
               )}
             </nav>
+            <LanguageSwitchFooter onSwitch={() => setOpen(false)} />
           </div>
         </div>
       )}
     </>
+  );
+}
+
+/**
+ * Clearly-labelled language switch pinned to the bottom of the mobile drawer.
+ * On phones the desktop sidebar is hidden and the topbar toggle is just a small
+ * globe, so this is the discoverable place to change language. Shows both
+ * languages in their own script; the current one is highlighted in rose.
+ */
+function LanguageSwitchFooter({ onSwitch }: { onSwitch: () => void }) {
+  const locale = useLocale();
+  const pathname = usePathname();
+  const router = useRouter();
+  const langs: { code: "ar" | "en"; label: string }[] = [
+    { code: "ar", label: "العربية" },
+    { code: "en", label: "English" },
+  ];
+  return (
+    <div className="shrink-0 border-t border-white/10 p-3">
+      <div className="mb-2 flex items-center gap-2 px-1 text-xs font-semibold uppercase tracking-wide text-white/50">
+        <Globe className="h-3.5 w-3.5" />
+        <span>{locale === "ar" ? "اللغة" : "Language"}</span>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        {langs.map((l) => {
+          const active = locale === l.code;
+          return (
+            <button
+              key={l.code}
+              type="button"
+              aria-pressed={active}
+              onClick={() => {
+                if (!active) router.replace(pathname, { locale: l.code });
+                onSwitch();
+              }}
+              className={cn(
+                "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                active
+                  ? "bg-hajr-rose text-white"
+                  : "bg-white/[0.06] text-white/80 hover:bg-white/[0.12] hover:text-white"
+              )}
+            >
+              {l.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

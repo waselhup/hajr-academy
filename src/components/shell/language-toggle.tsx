@@ -19,8 +19,9 @@ export function LanguageToggle() {
       className="gap-2"
     >
       <Globe className="h-4 w-4" />
-      {/* Hide the word label on phones so the topbar cluster fits 360px; the
-          globe + aria-label keep it usable/accessible. */}
+      {/* Phones: a short language code (EN / ع) so the control reads as a
+          language switch, not a bare globe. sm+: the full word. */}
+      <span className="text-xs font-semibold sm:hidden">{locale === "ar" ? "EN" : "ع"}</span>
       <span className="hidden sm:inline">{locale === "ar" ? "English" : "العربية"}</span>
     </Button>
   );

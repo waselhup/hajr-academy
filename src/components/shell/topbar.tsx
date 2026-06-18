@@ -106,7 +106,7 @@ export function Topbar({
               </span>
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60">
+          <DropdownMenuContent align="end" className="w-60 max-w-[calc(100vw-1rem)]">
             <DropdownMenuLabel>
               <div className="flex flex-col gap-0.5">
                 <span className="text-sm font-semibold text-hajr-navy">
