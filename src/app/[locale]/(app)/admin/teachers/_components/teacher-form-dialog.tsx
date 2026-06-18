@@ -149,11 +149,12 @@ export function TeacherFormDialog({ mode, existing, zoomAccounts = [], onClose, 
               <SelectContent>
                 <SelectItem value="__none__">{isAr ? "بدون حساب" : "No account"}</SelectItem>
                 {zoomAccounts.map((a) => {
-                  const isCurrent = a.id === existing?.profile?.zoomAccountId;
-                  const full = a.teacherCount >= a.capacity && !isCurrent;
+                  // Capacity is a SUGGESTED guideline, not a hard limit — every
+                  // account stays selectable; over-target ones just show a hint.
+                  const over = a.teacherCount >= a.capacity;
                   return (
-                    <SelectItem key={a.id} value={a.id} disabled={full}>
-                      {a.label} ({a.teacherCount}/{a.capacity}){full ? (isAr ? " — ممتلئ" : " — full") : ""}
+                    <SelectItem key={a.id} value={a.id}>
+                      {a.label} ({a.teacherCount}/{a.capacity}){over ? (isAr ? " — أعلى من المقترح" : " — over suggested") : ""}
                     </SelectItem>
                   );
                 })}

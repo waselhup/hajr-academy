@@ -49,30 +49,6 @@ function makeTempPassword(): string {
   return `Hajr-${s}`;
 }
 
-/**
- * Enforce the max-teachers-per-Zoom-account cap. Returns an error code string
- * if the target account is full or missing, else null.
- */
-async function assertCapacity(
-  zoomAccountId: string | null | undefined,
-  excludeTeacherProfileId?: string
-): Promise<string | null> {
-  if (!zoomAccountId) return null;
-  const acc = await prisma.zoomAccount.findUnique({
-    where: { id: zoomAccountId },
-    select: { capacity: true },
-  });
-  if (!acc) return "ZOOM_ACCOUNT_NOT_FOUND";
-  const count = await prisma.teacherProfile.count({
-    where: {
-      zoomAccountId,
-      ...(excludeTeacherProfileId ? { id: { not: excludeTeacherProfileId } } : {}),
-    },
-  });
-  if (count >= acc.capacity) return "ZOOM_ACCOUNT_FULL";
-  return null;
-}
-
 export async function createTeacherAction(
   input: z.infer<typeof createSchema>
 ): Promise<Result<{ id: string; credentials: { username: string; tempPassword: string } }>> {
@@ -83,8 +59,6 @@ export async function createTeacherAction(
   if (!phone) return { ok: false, error: "INVALID_PHONE" };
   const exists = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (exists) return { ok: false, error: "EMAIL_EXISTS" };
-  const capErr = await assertCapacity(parsed.data.zoomAccountId);
-  if (capErr) return { ok: false, error: capErr };
   // Generate a one-time password and return it to the admin (never stored as
   // plaintext) so they can deliver it to the teacher.
   const tempPassword = makeTempPassword();
@@ -131,11 +105,6 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   const parsed = updateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "VALIDATION" };
   const { id, ...patch } = parsed.data;
-  if (patch.zoomAccountId) {
-    const tp = await prisma.teacherProfile.findUnique({ where: { userId: id }, select: { id: true } });
-    const capErr = await assertCapacity(patch.zoomAccountId, tp?.id);
-    if (capErr) return { ok: false, error: capErr };
-  }
   const userPatch: any = {};
   if (patch.name) userPatch.name = patch.name;
   if (patch.nameAr !== undefined) userPatch.nameAr = patch.nameAr;
