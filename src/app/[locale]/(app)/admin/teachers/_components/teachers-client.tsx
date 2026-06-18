@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
-import { Plus, MoreHorizontal, Pencil, Power, Trash2, Search, Star, Eye } from "lucide-react";
+import { Plus, MoreHorizontal, Pencil, Power, Trash2, Search, Star, Eye, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,8 @@ import {
   AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { TeacherFormDialog } from "./teacher-form-dialog";
-import { deleteTeacherAction, toggleTeacherActiveAction } from "../../_actions/teachers";
+import { TeacherCredentialsDialog } from "./teacher-credentials-dialog";
+import { deleteTeacherAction, toggleTeacherActiveAction, resetTeacherPasswordAction } from "../../_actions/teachers";
 import { fmtSAR, fmtUSD } from "@/lib/format";
 
 const SPEC_VALUES = ["STEP", "IELTS", "UNIVERSITY_PREP", "GENERAL", "BUSINESS"] as const;
@@ -43,6 +44,7 @@ type Row = {
     oneToOneRateSar?: string | null;
     oneToOneRateUsd?: string | null;
     zoomHostEmail: string | null;
+    zoomAccountId?: string | null;
     ageGroup: string | null;
     availabilityDays: string[];
     availabilityHours: string | null;
@@ -52,7 +54,9 @@ type Row = {
   } | null;
 };
 
-export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; total: number; page: number; pageSize: number }) {
+type ZoomAccountOpt = { id: string; label: string; capacity: number; teacherCount: number };
+
+export function TeachersClient({ rows, total, page, pageSize, zoomAccounts = [] }: { rows: Row[]; total: number; page: number; pageSize: number; zoomAccounts?: ZoomAccountOpt[] }) {
   const t = useTranslations();
   const locale = useLocale();
   const router = useRouter();
@@ -62,6 +66,7 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
   const [editing, setEditing] = useState<Row | null>(null);
   const [previewing, setPreviewing] = useState<Row | null>(null);
   const [confirmDel, setConfirmDel] = useState<Row | null>(null);
+  const [creds, setCreds] = useState<{ username: string; tempPassword: string } | null>(null);
 
   let timer: any;
   function debouncedQ(v: string) {
@@ -214,6 +219,13 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
                       }}>
                         <Power className="me-2 h-4 w-4" />{r.isActive ? t("Common.bulkDeactivate") : t("Common.bulkActivate")}
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={async () => {
+                        const res = await resetTeacherPasswordAction(r.id);
+                        if (res.ok) setCreds(res.data.credentials);
+                        else toast.error(res.error);
+                      }}>
+                        <KeyRound className="me-2 h-4 w-4" />{locale === "ar" ? "إعادة تعيين كلمة المرور وعرضها" : "Reset & show password"}
+                      </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-red-600" onClick={() => setConfirmDel(r)}>
                         <Trash2 className="me-2 h-4 w-4" />{t("Teachers.delete")}
@@ -239,9 +251,16 @@ export function TeachersClient({ rows, total, page, pageSize }: { rows: Row[]; t
         </div>
       </div>
 
-      {showAdd && <TeacherFormDialog mode="create" onClose={() => setShowAdd(false)} onDone={() => router.refresh()} />}
-      {editing && <TeacherFormDialog mode="edit" existing={editing} onClose={() => setEditing(null)} onDone={() => router.refresh()} />}
+      {showAdd && <TeacherFormDialog mode="create" zoomAccounts={zoomAccounts} onClose={() => setShowAdd(false)} onDone={() => router.refresh()} />}
+      {editing && <TeacherFormDialog mode="edit" existing={editing} zoomAccounts={zoomAccounts} onClose={() => setEditing(null)} onDone={() => router.refresh()} />}
       {previewing && <TeacherPreviewDialog row={previewing} onClose={() => setPreviewing(null)} />}
+      {creds && (
+        <TeacherCredentialsDialog
+          username={creds.username}
+          tempPassword={creds.tempPassword}
+          onClose={() => { setCreds(null); router.refresh(); }}
+        />
+      )}
 
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>

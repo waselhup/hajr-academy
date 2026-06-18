@@ -73,9 +73,10 @@ export default async function AdminStudentsPage({
   let data: any[] = [];
   let schools: any[] = [];
   let gradeOptions: string[] = [];
+  let classes: any[] = [];
 
   try {
-    const [_total, rows, _schools, _grades] = await Promise.all([
+    const [_total, rows, _schools, _grades, _classes] = await Promise.all([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
@@ -104,10 +105,25 @@ export default async function AdminStudentsPage({
         distinct: ["gradeLevel"],
         orderBy: { gradeLevel: "asc" },
       }),
+      prisma.class.findMany({
+        where: { status: "ACTIVE" },
+        select: {
+          id: true, name: true, cohortCode: true,
+          teacher: { select: { user: { select: { name: true } } } },
+        },
+        orderBy: { name: "asc" },
+        take: 300,
+      }),
     ]);
     total = _total;
     schools = _schools;
     gradeOptions = _grades.map((g) => g.gradeLevel).filter((g): g is string => !!g);
+    classes = _classes.map((c: any) => ({
+      id: c.id,
+      label:
+        [c.name, c.teacher?.user?.name].filter(Boolean).join(" · ") +
+        (c.cohortCode ? ` (${c.cohortCode})` : ""),
+    }));
     data = rows.map((u) => ({
       id: u.id,
       name: u.name,
@@ -151,6 +167,7 @@ export default async function AdminStudentsPage({
       pageSize={PAGE_SIZE}
       schools={schools.map((s) => ({ id: s.id, name: s.nameEn }))}
       gradeOptions={gradeOptions}
+      classes={classes}
     />
   );
 }

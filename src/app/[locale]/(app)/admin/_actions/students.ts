@@ -46,6 +46,9 @@ const createSchema = z.object({
   guardianPhone: z.string().optional().nullable(),
   residenceAddress: z.string().optional().nullable(),
   englishTeacherName: z.string().optional().nullable(),
+  // Optional: enroll the new student into a class on creation (the class carries
+  // the teacher). This is how a student is "assigned to a teacher".
+  enrollClassId: z.string().optional().nullable(),
 });
 
 type Result<T = unknown> = { ok: true; data: T } | { ok: false; error: string };
@@ -99,7 +102,18 @@ export async function createStudentAction(input: z.infer<typeof createSchema>): 
           },
         },
       },
+      include: { studentProfile: true },
     });
+    // Optional assignment-by-class: enroll into the chosen class (→ its teacher).
+    if (parsed.data.enrollClassId && user.studentProfile) {
+      try {
+        await prisma.enrollment.create({
+          data: { studentId: user.studentProfile.id, classId: parsed.data.enrollClassId },
+        });
+      } catch (e) {
+        console.error("[createStudentAction] enroll failed (non-fatal):", e);
+      }
+    }
     await logAudit({
       userId: session.user.id,
       action: "STUDENT_CREATED",

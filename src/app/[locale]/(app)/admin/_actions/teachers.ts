@@ -28,6 +28,7 @@ const createSchema = z.object({
   oneToOneRateSar: z.number().nonnegative().optional().nullable(),
   oneToOneRateUsd: z.number().nonnegative().optional().nullable(),
   zoomHostEmail: z.string().email().optional().nullable(),
+  zoomAccountId: z.string().optional().nullable(),
   ageGroup: z.string().optional().nullable(),
   availabilityDays: z.array(z.enum(DAY_VALUES)).default([]),
   availabilityHours: z.string().optional().nullable(),
@@ -40,7 +41,41 @@ async function ip() {
   return h.get("x-forwarded-for")?.split(",")[0] ?? null;
 }
 
-export async function createTeacherAction(input: z.infer<typeof createSchema>): Promise<Result<{ id: string }>> {
+/** Readable one-time password, e.g. "Hajr-7K3M42" (mirrors the marketer flow). */
+function makeTempPassword(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no ambiguous I/O/0/1
+  let s = "";
+  for (let i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return `Hajr-${s}`;
+}
+
+/**
+ * Enforce the max-teachers-per-Zoom-account cap. Returns an error code string
+ * if the target account is full or missing, else null.
+ */
+async function assertCapacity(
+  zoomAccountId: string | null | undefined,
+  excludeTeacherProfileId?: string
+): Promise<string | null> {
+  if (!zoomAccountId) return null;
+  const acc = await prisma.zoomAccount.findUnique({
+    where: { id: zoomAccountId },
+    select: { capacity: true },
+  });
+  if (!acc) return "ZOOM_ACCOUNT_NOT_FOUND";
+  const count = await prisma.teacherProfile.count({
+    where: {
+      zoomAccountId,
+      ...(excludeTeacherProfileId ? { id: { not: excludeTeacherProfileId } } : {}),
+    },
+  });
+  if (count >= acc.capacity) return "ZOOM_ACCOUNT_FULL";
+  return null;
+}
+
+export async function createTeacherAction(
+  input: z.infer<typeof createSchema>
+): Promise<Result<{ id: string; credentials: { username: string; tempPassword: string } }>> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const parsed = createSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "VALIDATION" };
@@ -48,7 +83,12 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
   if (!phone) return { ok: false, error: "INVALID_PHONE" };
   const exists = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (exists) return { ok: false, error: "EMAIL_EXISTS" };
-  const passwordHash = await bcrypt.hash("Hajr@2026", 10);
+  const capErr = await assertCapacity(parsed.data.zoomAccountId);
+  if (capErr) return { ok: false, error: capErr };
+  // Generate a one-time password and return it to the admin (never stored as
+  // plaintext) so they can deliver it to the teacher.
+  const tempPassword = makeTempPassword();
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
   const user = await prisma.user.create({
     data: {
       email: parsed.data.email.toLowerCase(),
@@ -71,6 +111,7 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
           oneToOneRateSar: parsed.data.oneToOneRateSar ?? null,
           oneToOneRateUsd: parsed.data.oneToOneRateUsd ?? null,
           zoomHostEmail: parsed.data.zoomHostEmail ?? null,
+          zoomAccountId: parsed.data.zoomAccountId ?? null,
           ageGroup: parsed.data.ageGroup ?? null,
           availabilityDays: parsed.data.availabilityDays,
           availabilityHours: parsed.data.availabilityHours ?? null,
@@ -80,7 +121,7 @@ export async function createTeacherAction(input: z.infer<typeof createSchema>): 
   });
   await logAudit({ userId: session.user.id, action: "TEACHER_CREATED", entity: "User", entityId: user.id, ipAddress: await ip() });
   revalidatePath("/admin/teachers");
-  return { ok: true, data: { id: user.id } };
+  return { ok: true, data: { id: user.id, credentials: { username: user.email, tempPassword } } };
 }
 
 const updateSchema = createSchema.partial().extend({ id: z.string() });
@@ -90,6 +131,11 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   const parsed = updateSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "VALIDATION" };
   const { id, ...patch } = parsed.data;
+  if (patch.zoomAccountId) {
+    const tp = await prisma.teacherProfile.findUnique({ where: { userId: id }, select: { id: true } });
+    const capErr = await assertCapacity(patch.zoomAccountId, tp?.id);
+    if (capErr) return { ok: false, error: capErr };
+  }
   const userPatch: any = {};
   if (patch.name) userPatch.name = patch.name;
   if (patch.nameAr !== undefined) userPatch.nameAr = patch.nameAr;
@@ -110,6 +156,7 @@ export async function updateTeacherAction(input: z.infer<typeof updateSchema>): 
   if (patch.oneToOneRateSar !== undefined) profilePatch.oneToOneRateSar = patch.oneToOneRateSar;
   if (patch.oneToOneRateUsd !== undefined) profilePatch.oneToOneRateUsd = patch.oneToOneRateUsd;
   if (patch.zoomHostEmail !== undefined) profilePatch.zoomHostEmail = patch.zoomHostEmail;
+  if (patch.zoomAccountId !== undefined) profilePatch.zoomAccountId = patch.zoomAccountId;
   if (patch.ageGroup !== undefined) profilePatch.ageGroup = patch.ageGroup;
   if (patch.availabilityDays !== undefined) profilePatch.availabilityDays = patch.availabilityDays;
   if (patch.availabilityHours !== undefined) profilePatch.availabilityHours = patch.availabilityHours;
@@ -144,4 +191,22 @@ export async function deleteTeacherAction(id: string): Promise<Result> {
   await logAudit({ userId: session.user.id, action: "TEACHER_DELETED", entity: "User", entityId: id, ipAddress: await ip() });
   revalidatePath("/admin/teachers");
   return { ok: true, data: null };
+}
+
+/**
+ * Reset an existing teacher's password to a fresh one-time password and return
+ * it to the admin once (plaintext is never stored). For delivering credentials
+ * to teachers created before the show-on-create flow existed.
+ */
+export async function resetTeacherPasswordAction(
+  id: string
+): Promise<Result<{ credentials: { username: string; tempPassword: string } }>> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+  const u = await prisma.user.findUnique({ where: { id }, select: { email: true, role: true } });
+  if (!u || u.role !== "TEACHER") return { ok: false, error: "NOT_FOUND" };
+  const tempPassword = makeTempPassword();
+  const passwordHash = await bcrypt.hash(tempPassword, 10);
+  await prisma.user.update({ where: { id }, data: { passwordHash } });
+  await logAudit({ userId: session.user.id, action: "TEACHER_PASSWORD_RESET", entity: "User", entityId: id, ipAddress: await ip() });
+  return { ok: true, data: { credentials: { username: u.email, tempPassword } } };
 }

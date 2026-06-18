@@ -24,14 +24,28 @@ const ZOOM_OAUTH = "https://zoom.us/oauth/token";
  * The S2S OAuth access token (valid 1h) is cached in module memory and
  * refreshed automatically ~5 min before expiry.
  */
+export interface ZoomS2SCreds {
+  accountId: string;
+  clientId: string;
+  clientSecret: string;
+}
+
 export class ZoomProvider implements VideoProvider {
-  // .trim() defends against the #1 cause of OAuth failures: an env var
-  // pasted into the dashboard with a trailing space or newline.
-  private accountId = (process.env.ZOOM_ACCOUNT_ID ?? "").trim();
-  private clientId = (process.env.ZOOM_CLIENT_ID ?? "").trim();
-  private clientSecret = (process.env.ZOOM_CLIENT_SECRET ?? "").trim();
+  // S2S OAuth creds — default to the global env connection, but a per-account
+  // ZoomAccount may pass its own (separate Zoom login). .trim() defends against
+  // the #1 cause of OAuth failures: a value pasted with a trailing space/newline.
+  private accountId: string;
+  private clientId: string;
+  private clientSecret: string;
+  // The Meeting-SDK signing app stays global regardless of which account hosts.
   private sdkKey = (process.env.ZOOM_SDK_KEY ?? "").trim();
   private sdkSecret = (process.env.ZOOM_SDK_SECRET ?? "").trim();
+
+  constructor(creds?: Partial<ZoomS2SCreds>) {
+    this.accountId = (creds?.accountId ?? process.env.ZOOM_ACCOUNT_ID ?? "").trim();
+    this.clientId = (creds?.clientId ?? process.env.ZOOM_CLIENT_ID ?? "").trim();
+    this.clientSecret = (creds?.clientSecret ?? process.env.ZOOM_CLIENT_SECRET ?? "").trim();
+  }
 
   private tokenCache: { token: string; expiresAt: number } | null = null;
   // The API base for this account. Defaults to api.zoom.us but is

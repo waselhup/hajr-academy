@@ -1,10 +1,10 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import {
@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { createTeacherAction, updateTeacherAction } from "../../_actions/teachers";
+import { TeacherCredentialsDialog } from "./teacher-credentials-dialog";
 
 const SPEC = ["STEP", "IELTS", "UNIVERSITY_PREP", "GENERAL", "BUSINESS"] as const;
 const DAYS = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"] as const;
@@ -37,16 +38,20 @@ const schema = z.object({
   groupRateUsd: z.coerce.number().nonnegative().optional(),
   oneToOneRateSar: z.coerce.number().nonnegative().optional(),
   oneToOneRateUsd: z.coerce.number().nonnegative().optional(),
-  zoomHostEmail: z.union([z.string().email(), z.literal("")]).optional(),
+  zoomAccountId: z.string().optional(),
   ageGroup: z.string().optional(),
   availabilityDays: z.array(z.enum(DAYS)).default([]),
   availabilityHours: z.string().optional(),
 });
 type FormData = z.infer<typeof schema>;
 
-export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edit"; existing?: any; onClose: () => void; onDone: () => void }) {
+type ZoomAccountOpt = { id: string; label: string; capacity: number; teacherCount: number };
+
+export function TeacherFormDialog({ mode, existing, zoomAccounts = [], onClose, onDone }: { mode: "create" | "edit"; existing?: any; zoomAccounts?: ZoomAccountOpt[]; onClose: () => void; onDone: () => void }) {
   const t = useTranslations();
+  const isAr = useLocale() === "ar";
   const [isPending, startTransition] = useTransition();
+  const [creds, setCreds] = useState<{ username: string; tempPassword: string } | null>(null);
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: existing
@@ -65,7 +70,7 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           groupRateUsd: existing.profile?.groupRateUsd != null ? Number(existing.profile.groupRateUsd) : undefined,
           oneToOneRateSar: existing.profile?.oneToOneRateSar != null ? Number(existing.profile.oneToOneRateSar) : undefined,
           oneToOneRateUsd: existing.profile?.oneToOneRateUsd != null ? Number(existing.profile.oneToOneRateUsd) : undefined,
-          zoomHostEmail: existing.profile?.zoomHostEmail ?? "",
+          zoomAccountId: existing.profile?.zoomAccountId ?? "",
           ageGroup: existing.profile?.ageGroup ?? "",
           availabilityDays: existing.profile?.availabilityDays ?? [],
           availabilityHours: existing.profile?.availabilityHours ?? "",
@@ -88,7 +93,7 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
     startTransition(async () => {
       const payload = {
         ...data,
-        zoomHostEmail: data.zoomHostEmail || null,
+        zoomAccountId: data.zoomAccountId && data.zoomAccountId !== "__none__" ? data.zoomAccountId : null,
         salaryBaseUsd: Number.isFinite(data.salaryBaseUsd as number) ? data.salaryBaseUsd : null,
         hourlyRateUsd: Number.isFinite(data.hourlyRateUsd as number) ? data.hourlyRateUsd : null,
         groupRateSar: Number.isFinite(data.groupRateSar as number) ? data.groupRateSar : null,
@@ -96,18 +101,26 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
         oneToOneRateSar: Number.isFinite(data.oneToOneRateSar as number) ? data.oneToOneRateSar : null,
         oneToOneRateUsd: Number.isFinite(data.oneToOneRateUsd as number) ? data.oneToOneRateUsd : null,
       };
-      const res = mode === "create"
-        ? await createTeacherAction(payload as any)
-        : await updateTeacherAction({ id: existing.id, ...payload } as any);
-      if (!res.ok) { toast.error(res.error); return; }
-      toast.success(mode === "create" ? t("Teachers.createSuccess") : t("Teachers.updateSuccess"));
+      if (mode === "create") {
+        const res = await createTeacherAction(payload as any);
+        if (!res.ok) { toast.error(zoomErr(res.error, isAr) ?? res.error); return; }
+        toast.success(t("Teachers.createSuccess"));
+        onDone();
+        // Keep this component mounted so the one-time credentials show.
+        setCreds(res.data.credentials);
+        return;
+      }
+      const res = await updateTeacherAction({ id: existing.id, ...payload } as any);
+      if (!res.ok) { toast.error(zoomErr(res.error, isAr) ?? res.error); return; }
+      toast.success(t("Teachers.updateSuccess"));
       onDone();
       onClose();
     });
   };
 
   return (
-    <Dialog open onOpenChange={(o) => !o && onClose()}>
+    <>
+    <Dialog open={!creds} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{mode === "create" ? t("Teachers.addNew") : t("Teachers.edit")}</DialogTitle>
@@ -130,7 +143,23 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
           <Field label={t("Teachers.groupRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("groupRateUsd")} /></Field>
           <Field label={t("Teachers.oneToOneRateSar")}><Input type="number" step="5" {...register("oneToOneRateSar")} /></Field>
           <Field label={t("Teachers.oneToOneRateUsd")}><Input type="number" step="5" dir="ltr" placeholder="USD" {...register("oneToOneRateUsd")} /></Field>
-          <Field label={t("Teachers.zoomHostEmail")}><Input type="email" {...register("zoomHostEmail")} /></Field>
+          <Field label={isAr ? "حساب Zoom" : "Zoom account"}>
+            <Select value={watch("zoomAccountId") || "__none__"} onValueChange={(v) => setValue("zoomAccountId", v)}>
+              <SelectTrigger><SelectValue placeholder={isAr ? "بدون" : "None"} /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">{isAr ? "بدون حساب" : "No account"}</SelectItem>
+                {zoomAccounts.map((a) => {
+                  const isCurrent = a.id === existing?.profile?.zoomAccountId;
+                  const full = a.teacherCount >= a.capacity && !isCurrent;
+                  return (
+                    <SelectItem key={a.id} value={a.id} disabled={full}>
+                      {a.label} ({a.teacherCount}/{a.capacity}){full ? (isAr ? " — ممتلئ" : " — full") : ""}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </Field>
           <div className="sm:col-span-2">
             <Label>{t("Teachers.specializations")}</Label>
             <div className="mt-2 flex flex-wrap gap-3">
@@ -179,7 +208,21 @@ export function TeacherFormDialog({ mode, existing, onClose, onDone }: { mode: "
         </form>
       </DialogContent>
     </Dialog>
+    {creds && (
+      <TeacherCredentialsDialog
+        username={creds.username}
+        tempPassword={creds.tempPassword}
+        onClose={() => { setCreds(null); onClose(); }}
+      />
+    )}
+    </>
   );
+}
+
+function zoomErr(code: string, isAr: boolean): string | null {
+  if (code === "ZOOM_ACCOUNT_FULL") return isAr ? "حساب Zoom ممتلئ (تم بلوغ الحد الأقصى للمعلّمين)." : "That Zoom account is full (max teachers reached).";
+  if (code === "ZOOM_ACCOUNT_NOT_FOUND") return isAr ? "حساب Zoom غير موجود." : "Zoom account not found.";
+  return null;
 }
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {

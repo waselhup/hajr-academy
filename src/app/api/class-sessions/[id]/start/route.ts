@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getVideoProvider } from "@/lib/video";
+import { resolveZoomTarget } from "@/lib/video";
 import { broadcastClassStarted } from "@/lib/class/realtime";
 import { fanOutSessionStarted } from "@/lib/class/live-realtime";
 import { triggerClassStarted } from "@/lib/comms/triggers";
@@ -49,7 +49,7 @@ export async function POST(
       include: {
         class: {
           include: {
-            teacher: { include: { user: true } },
+            teacher: { include: { user: true, zoomAccount: true } },
             enrollments: {
               where: { status: "ACTIVE" },
               include: { student: { include: { user: true } } },
@@ -85,9 +85,10 @@ export async function POST(
     let zoomJoinUrl = cs.zoomJoinUrl;
     let zoomPassword = cs.zoomPassword;
 
-    const provider = getVideoProvider();
+    // Host on the teacher's assigned Zoom account (falls back to the global
+    // env connection + ZOOM_HOST_EMAIL when the teacher has no account).
+    const { provider, hostEmail } = resolveZoomTarget(cs.class.teacher.zoomAccount);
     if (!zoomMeetingId) {
-      const hostEmail = (process.env.ZOOM_HOST_EMAIL ?? "").trim();
       if (hostEmail) {
         try {
           const passcode = randomPasscode();

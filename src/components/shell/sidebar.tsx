@@ -181,6 +181,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { key: "Nav.live", href: "/admin/live", icon: Radio },
       { key: "Nav.recordings", href: "/admin/recordings", icon: Video },
+      { key: "Nav.zoomAccounts", href: "/admin/zoom-accounts", icon: Video },
       { key: "Nav.hajrAI", href: "/admin/ai", icon: Bot },
       { key: "Nav.delivery", href: "/admin/delivery", icon: Package },
       { key: "Nav.validation", href: "/admin/validation", icon: ShieldCheck },

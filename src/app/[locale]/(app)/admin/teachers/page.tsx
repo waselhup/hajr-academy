@@ -32,6 +32,7 @@ export default async function AdminTeachersPage({
 
   let total = 0;
   let data: any[] = [];
+  let zoomAccounts: any[] = [];
 
   try {
     const [_total, rows] = await Promise.all([
@@ -67,6 +68,7 @@ export default async function AdminTeachersPage({
             oneToOneRateSar: u.teacherProfile.oneToOneRateSar?.toString() ?? null,
             oneToOneRateUsd: u.teacherProfile.oneToOneRateUsd?.toString() ?? null,
             zoomHostEmail: u.teacherProfile.zoomHostEmail,
+            zoomAccountId: u.teacherProfile.zoomAccountId,
             ageGroup: u.teacherProfile.ageGroup,
             availabilityDays: u.teacherProfile.availabilityDays,
             availabilityHours: u.teacherProfile.availabilityHours,
@@ -76,9 +78,15 @@ export default async function AdminTeachersPage({
           }
         : null,
     }));
+    const zacc = await prisma.zoomAccount.findMany({
+      where: { isActive: true },
+      include: { _count: { select: { teachers: true } } },
+      orderBy: { label: "asc" },
+    });
+    zoomAccounts = zacc.map((a) => ({ id: a.id, label: a.label, capacity: a.capacity, teacherCount: a._count.teachers }));
   } catch (e) {
     console.error("[admin-teachers] DB query failed:", e);
   }
 
-  return <TeachersClient rows={data} total={total} page={page} pageSize={PAGE_SIZE} />;
+  return <TeachersClient rows={data} total={total} page={page} pageSize={PAGE_SIZE} zoomAccounts={zoomAccounts} />;
 }

@@ -140,6 +140,7 @@ export function StudentsClient({
   pageSize,
   schools,
   gradeOptions = [],
+  classes = [],
 }: {
   rows: Row[];
   total: number;
@@ -147,6 +148,7 @@ export function StudentsClient({
   pageSize: number;
   schools: { id: string; name: string }[];
   gradeOptions?: string[];
+  classes?: { id: string; label: string }[];
 }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -462,7 +464,7 @@ export function StudentsClient({
       </div>
 
       {showAddDialog && (
-        <StudentFormDialog mode="create" schools={schools} onClose={() => setShowAddDialog(false)} onDone={() => router.refresh()} />
+        <StudentFormDialog mode="create" schools={schools} classes={classes} onClose={() => setShowAddDialog(false)} onDone={() => router.refresh()} />
       )}
       {editing && (
         <StudentFormDialog mode="edit" existing={editing} schools={schools} onClose={() => setEditing(null)} onDone={() => router.refresh()} />

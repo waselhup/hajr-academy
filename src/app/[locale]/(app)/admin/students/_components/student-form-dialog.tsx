@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import {
@@ -47,20 +47,23 @@ const formSchema = z.object({
   residenceAddress: z.string().optional(),
   englishTeacherName: z.string().optional(),
   importantNotes: z.string().optional(),
+  enrollClassId: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
 
 export function StudentFormDialog({
-  mode, existing, schools, onClose, onDone,
+  mode, existing, schools, classes = [], onClose, onDone,
 }: {
   mode: "create" | "edit";
   existing?: any;
   schools: { id: string; name: string }[];
+  classes?: { id: string; label: string }[];
   onClose: () => void;
   onDone: () => void;
 }) {
   const t = useTranslations();
+  const isAr = useLocale() === "ar";
   const [isPending, startTransition] = useTransition();
 
   const {
@@ -98,6 +101,12 @@ export function StudentFormDialog({
       const payload: any = { ...data };
       if (payload.activePackage === "") delete payload.activePackage;
       if (!payload.schoolId) payload.schoolId = null;
+      if (mode === "create") {
+        payload.enrollClassId =
+          payload.enrollClassId && payload.enrollClassId !== "_none_" ? payload.enrollClassId : null;
+      } else {
+        delete payload.enrollClassId;
+      }
       const res = mode === "create"
         ? await createStudentAction(payload)
         : await updateStudentAction({ id: existing.id, ...payload });
@@ -168,6 +177,18 @@ export function StudentFormDialog({
               </SelectContent>
             </Select>
           </Field>
+
+          {mode === "create" && (
+            <Field label={isAr ? "إسناد إلى صف (المعلّم)" : "Assign to class (teacher)"}>
+              <Select defaultValue={watch("enrollClassId") ?? "_none_"} onValueChange={(v) => setValue("enrollClassId", v === "_none_" ? "" : v)}>
+                <SelectTrigger><SelectValue placeholder={isAr ? "بدون" : "None"} /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none_">{isAr ? "بدون إسناد" : "No class"}</SelectItem>
+                  {classes.map((c) => <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </Field>
+          )}
 
           <Field label={t("Common.package")}>
             <Select defaultValue={(watch("activePackage") ?? "") as string} onValueChange={(v) => setValue("activePackage", (v === "_none_" ? "" : v) as any)}>

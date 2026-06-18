@@ -86,7 +86,13 @@ model TeacherProfile {
   // Owner batch 5 — #5: first-login onboarding gate. null = not completed yet;
   // a server guard in the teacher layout redirects until this is set. Idempotent.
   onboardingCompletedAt DateTime?
+  // Legacy single-host field (kept as a fallback). Prefer zoomAccount below.
   zoomHostEmail   String?
+  // Multi-Zoom-account: which connected Zoom account hosts this teacher's
+  // classes. null => fall back to the global env host. Capacity (max teachers
+  // per account) is enforced in the assign action, not the DB.
+  zoomAccountId   String?
+  zoomAccount     ZoomAccount? @relation(fields: [zoomAccountId], references: [id], onDelete: SetNull)
   rating          Decimal? @db.Decimal(3, 2)
   totalStudents   Int      @default(0)
   active          Boolean  @default(true)
@@ -120,6 +126,29 @@ model TeacherProfile {
   openingAudiences    OpeningAudienceMember[]
   studentEvaluations  StudentEvaluation[]
   teacherRequests     TeacherRequest[]
+}
+
+// A connected Zoom account/host. The platform can host classes across many
+// Zoom accounts; each teacher is assigned to one (max `capacity` teachers per
+// account — they must teach at different times since one host = one live
+// meeting at a time). `accountId`/`clientId`/`clientSecretEnc` are OPTIONAL:
+//   - set  => this account uses its OWN Server-to-Server OAuth app (separate Zoom login)
+//   - null => reuse the global env Zoom connection, hosting as `hostEmail`
+// clientSecretEnc is AES-256-GCM encrypted (see src/lib/crypto.ts).
+model ZoomAccount {
+  id              String           @id @default(uuid())
+  label           String
+  hostEmail       String
+  accountId       String?
+  clientId        String?
+  clientSecretEnc String?
+  capacity        Int              @default(6)
+  isActive        Boolean          @default(true)
+  lastCheckedAt   DateTime?
+  lastCheckOk     Boolean?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  teachers        TeacherProfile[]
 }
 
 model StudentProfile {

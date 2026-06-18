@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { getVideoProvider } from "@/lib/video";
+import { resolveZoomTarget } from "@/lib/video";
 import { logAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
@@ -37,19 +37,12 @@ export async function POST(req: Request) {
     );
   }
 
-  const provider = getVideoProvider();
-  // .trim() guards against a trailing space/newline in the env var.
-  const hostEmail = (process.env.ZOOM_HOST_EMAIL ?? "").trim();
-  if (!hostEmail) {
-    return NextResponse.json({ ok: false, error: "ZOOM_HOST_NOT_CONFIGURED" }, { status: 500 });
-  }
-
   try {
     // ─── Class session ───
     if (parsed.data.classSessionId) {
       const cs = await prisma.classSession.findUnique({
         where: { id: parsed.data.classSessionId },
-        include: { class: { include: { teacher: true, program: true } } },
+        include: { class: { include: { teacher: { include: { zoomAccount: true } }, program: true } } },
       });
       if (!cs) return NextResponse.json({ ok: false, error: "SESSION_NOT_FOUND" }, { status: 404 });
 
@@ -69,6 +62,10 @@ export async function POST(req: Request) {
         });
       }
 
+      const { provider, hostEmail } = resolveZoomTarget(cs.class.teacher.zoomAccount);
+      if (!hostEmail) {
+        return NextResponse.json({ ok: false, error: "ZOOM_HOST_NOT_CONFIGURED" }, { status: 500 });
+      }
       const passcode = randomPasscode();
       const meeting = await provider.createMeeting({
         topic: `${cs.class.nameAr ?? cs.class.name} — ${cs.class.cohortCode}`,
@@ -107,7 +104,7 @@ export async function POST(req: Request) {
     // ─── Private lesson ───
     const pl = await prisma.privateLesson.findUnique({
       where: { id: parsed.data.privateLessonId! },
-      include: { teacher: true, student: { include: { user: true } } },
+      include: { teacher: { include: { zoomAccount: true } }, student: { include: { user: true } } },
     });
     if (!pl) return NextResponse.json({ ok: false, error: "LESSON_NOT_FOUND" }, { status: 404 });
 
@@ -125,6 +122,10 @@ export async function POST(req: Request) {
       });
     }
 
+    const { provider, hostEmail } = resolveZoomTarget(pl.teacher.zoomAccount);
+    if (!hostEmail) {
+      return NextResponse.json({ ok: false, error: "ZOOM_HOST_NOT_CONFIGURED" }, { status: 500 });
+    }
     const passcode = randomPasscode();
     const meeting = await provider.createMeeting({
       topic: `Private Lesson — ${pl.student.user.name}`,
