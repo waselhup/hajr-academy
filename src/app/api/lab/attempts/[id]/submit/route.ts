@@ -10,6 +10,8 @@ import {
   evaluateMultipleChoice,
 } from "@/lib/lab/ai-evaluator";
 import { updateSkillLevel, exerciseTypeToSkill } from "@/lib/lab/skill-tracker";
+import { isBlockContent } from "@/lib/lab/blocks";
+import { gradeBlocks } from "@/lib/lab/grade-blocks";
 
 export const dynamic = "force-dynamic";
 
@@ -72,6 +74,12 @@ export async function POST(
     let score = 0;
     let aiEvaluation: Record<string, unknown> | null = null;
 
+    // Lab Studio v2 — block-based content auto-grades objective blocks instantly.
+    if (isBlockContent(exercise.content)) {
+      const result = gradeBlocks(exercise.content.blocks, (submission as Record<string, unknown>) ?? {});
+      score = result.autoScore;
+      aiEvaluation = { engine: "blocks", ...result };
+    } else
     switch (exercise.type) {
       case "WRITING": {
         const text = String((submission as Record<string, unknown>).text ?? "");

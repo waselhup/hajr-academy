@@ -185,6 +185,7 @@ model StudentProfile {
   invoices              Invoice[]
   subscriptions         Subscription[]
   labAttempts           LabAttempt[]
+  labTargets            LabExerciseTarget[]
   skillLevels           SkillLevel[]
   examAttempts          ExamAttempt[]
   privateLessons        PrivateLesson[]
@@ -669,12 +670,39 @@ model LabExercise {
   tags             String[]
   isPublished      Boolean      @default(false)
   createdBy        String?
+  // Lab Studio v2 — targeting. LIBRARY = self-discovery (default, legacy behaviour).
+  // ALL_CLASS / SELECTED = assigned homework to a class (optionally specific students).
+  audience         LabAudience  @default(LIBRARY)
+  classId          String?
+  dueDate          DateTime?
+  assignedById     String?
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 
   attempts LabAttempt[]
+  targets  LabExerciseTarget[]
 
   @@index([type, level, isPublished])
+  @@index([classId, audience])
+}
+
+// Which specific students an ALL-but-SELECTED lab exercise is assigned to
+// (mirrors AssignmentTarget). Only populated when audience = SELECTED.
+model LabExerciseTarget {
+  id         String         @id @default(uuid())
+  exerciseId String
+  exercise   LabExercise    @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  studentId  String
+  student    StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([exerciseId, studentId])
+  @@index([studentId])
+}
+
+enum LabAudience {
+  LIBRARY
+  ALL_CLASS
+  SELECTED
 }
 
 model LabAttempt {

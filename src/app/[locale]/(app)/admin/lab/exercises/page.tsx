@@ -1,6 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { Link } from "@/i18n/routing";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { AdminLabClient } from "./admin-lab-client";
 
 export const dynamic = "force-dynamic";
@@ -11,6 +14,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminLabExercisesPage() {
   await requireRole("ADMIN", "SUPER_ADMIN");
   const t = await getTranslations("Lab");
+  const isAr = (await getLocale()) === "ar";
 
   let exercises: any[] = [];
   let stats = { total: 0, published: 0, attempts: 0 };
@@ -44,7 +48,12 @@ export default async function AdminLabExercisesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t("adminExercises")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{t("adminExercises")}</h1>
+        <Button asChild variant="cta" size="sm">
+          <Link href="/admin/lab/create"><Plus className="me-2 h-4 w-4" />{isAr ? "تمرين جديد" : "New exercise"}</Link>
+        </Button>
+      </div>
       <AdminLabClient exercises={exercises} stats={stats} />
     </div>
   );

@@ -1,6 +1,9 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { Link } from "@/i18n/routing";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { TeacherLabClient } from "./teacher-lab-client";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +15,7 @@ export const dynamic = "force-dynamic";
 export default async function TeacherLabPage() {
   const session = await requireRole("TEACHER");
   const t = await getTranslations("Lab");
+  const isAr = (await getLocale()) === "ar";
 
   let myExercises: any[] = [];
   let libraryExercises: any[] = [];
@@ -48,7 +52,12 @@ export default async function TeacherLabPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{t("teacherDashboard")}</h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{t("teacherDashboard")}</h1>
+        <Button asChild variant="cta" size="sm">
+          <Link href="/teacher/lab/create"><Plus className="me-2 h-4 w-4" />{isAr ? "تمرين جديد" : "New exercise"}</Link>
+        </Button>
+      </div>
       <TeacherLabClient
         myExercises={myExercises}
         libraryExercises={libraryExercises}
