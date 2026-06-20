@@ -71,14 +71,44 @@ export async function POST(
     const content = (exercise.content ?? {}) as Record<string, unknown>;
     const level = exercise.level;
 
-    let score = 0;
+    let score: number | null = 0;
     let aiEvaluation: Record<string, unknown> | null = null;
+    let pendingReview = false;
 
-    // Lab Studio v2 — block-based content auto-grades objective blocks instantly.
+    // Lab Studio v2 — block-based content: objective blocks auto-grade instantly,
+    // writing is AI-graded, speaking is AI-graded when a transcript exists else it
+    // goes to teacher review (never a misleading 0%).
     if (isBlockContent(exercise.content)) {
-      const result = gradeBlocks(exercise.content.blocks, (submission as Record<string, unknown>) ?? {});
-      score = result.autoScore;
-      aiEvaluation = { engine: "blocks", ...result };
+      const sub = (submission as Record<string, any>) ?? {};
+      const blocks = exercise.content.blocks;
+      const graded = gradeBlocks(blocks, sub);
+      const pcts: number[] = [];
+      for (const r of graded.perBlock) {
+        if (r.points > 0) pcts.push(Math.round((r.earned / r.points) * 100));
+      }
+      const aiByBlock: Record<string, unknown> = {};
+      for (const b of blocks) {
+        if (b.kind === "SHORT_TEXT") {
+          const text = String(sub[b.id] ?? "");
+          if (!text.trim()) { pendingReview = true; continue; }
+          try {
+            const ev: any = await evaluateWriting(text, (b as any).prompt ?? exercise.title, [], level);
+            if (ev && typeof ev.score === "number" && !ev.needsManualReview) { aiByBlock[b.id] = ev; pcts.push(ev.score); }
+            else pendingReview = true;
+          } catch { pendingReview = true; }
+        } else if (b.kind === "RECORD") {
+          const rec = sub[b.id];
+          const transcript = rec && typeof rec === "object" ? String(rec.transcript ?? "") : "";
+          if (!transcript.trim()) { pendingReview = true; continue; } // → teacher review
+          try {
+            const ev: any = await evaluateSpeaking(transcript, (b as any).targetText ?? "", level);
+            if (ev && typeof ev.score === "number" && !ev.needsManualReview) { aiByBlock[b.id] = ev; pcts.push(ev.score); }
+            else pendingReview = true;
+          } catch { pendingReview = true; }
+        }
+      }
+      score = pcts.length ? Math.round(pcts.reduce((a, c) => a + c, 0) / pcts.length) : null;
+      aiEvaluation = { engine: "blocks", ...graded, ai: aiByBlock, pendingReview, blendedScore: score };
     } else
     switch (exercise.type) {
       case "WRITING": {
@@ -149,7 +179,11 @@ export async function POST(
       }
     }
 
-    const pointsEarned = Math.round((score / 100) * exercise.pointsValue);
+    // Pending (awaiting review) → award participation XP so submitting still counts.
+    const pointsEarned =
+      score == null
+        ? Math.round(exercise.pointsValue * 0.3)
+        : Math.round((score / 100) * exercise.pointsValue);
     const skill = exerciseTypeToSkill(exercise.type);
 
     const updated = await prisma.labAttempt.update({

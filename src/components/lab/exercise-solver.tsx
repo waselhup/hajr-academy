@@ -84,15 +84,23 @@ export function ExerciseSolver({
   };
 
   if (phase === "done") {
-    const hasSubjective = result?.hasSubjective;
+    const pending = score == null || result?.pendingReview;
     return (
       <div className="space-y-4" dir={isAr ? "rtl" : "ltr"}>
         <Card>
           <CardContent className="space-y-3 p-6 text-center">
-            <span className="mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full bg-hajr-rose text-white"><Trophy className="h-8 w-8" /></span>
-            <h2 className="text-xl font-bold text-hajr-deep-navy">{isAr ? "أحسنت!" : "Great job!"}</h2>
+            <span className={`mx-auto inline-flex h-16 w-16 items-center justify-center rounded-full text-white ${pending ? "bg-hajr-deep-navy" : "bg-hajr-rose"}`}>
+              {pending ? <CheckCircle2 className="h-8 w-8" /> : <Trophy className="h-8 w-8" />}
+            </span>
+            <h2 className="text-xl font-bold text-hajr-deep-navy">
+              {pending ? (isAr ? "تم الإرسال ✓" : "Submitted ✓") : (isAr ? "أحسنت!" : "Great job!")}
+            </h2>
             {score != null && <p className="num text-3xl font-extrabold text-hajr-rose">{score}%</p>}
-            {hasSubjective && <p className="text-sm text-muted-foreground">{isAr ? "بعض الإجابات بانتظار مراجعة المعلّم." : "Some answers are awaiting teacher review."}</p>}
+            {pending && (
+              <p className="text-sm text-muted-foreground">
+                {isAr ? "إجابتك (تحدّث/كتابة) بانتظار تقييم المعلّم — وستحصل على نقاط المشاركة الآن." : "Your speaking/writing answer is awaiting teacher review — you earned participation points now."}
+              </p>
+            )}
           </CardContent>
         </Card>
         {/* Per-block review */}
