@@ -2189,6 +2189,24 @@ enum TeacherRatingKind {
   PARENT_MONTHLY
 }
 
+// Records that a feedback prompt was SHOWN-and-resolved (submitted OR skipped)
+// so it is never shown again. One row per (user, kind, refKey):
+//   kind="CLASS"   refKey=<sessionId>   → the after-class rating, once per class
+//   kind="MONTHLY" refKey="YYYY-MM"     → the monthly subscription feedback, once per month
+// DB-backed (not sessionStorage) so a skip persists across devices/reloads — this
+// is what stops the popup re-nagging students on every page.
+model FeedbackPromptLog {
+  id        String   @id @default(uuid())
+  userId    String
+  kind      String
+  refKey    String
+  status    String   // "SUBMITTED" | "SKIPPED"
+  createdAt DateTime @default(now())
+
+  @@unique([userId, kind, refKey])
+  @@index([userId, kind])
+}
+
 // ─────────────────────── SPRINT 4 — RETENTION & TRUST ───────────────────────
 
 enum EventStatus {
