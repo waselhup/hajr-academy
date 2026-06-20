@@ -1945,9 +1945,17 @@ model StudentEvaluation {
   classId       String?
   class         Class?         @relation(fields: [classId], references: [id], onDelete: SetNull)
   skillLevel    CefrLevel
-  participation Int // 1–5
-  improvement   Improvement
+  participation Int // 1–5 (legacy; now DERIVED from criteria.participation)
+  improvement   Improvement // legacy; now DERIVED from criteria.overall
   note          String?        @db.Text
+  // Evaluation rubric (2026-06-20): 8 criteria each rated
+  // EXCELLENT|GOOD|SATISFACTORY|NEEDS_IMPROVEMENT as a JSON map { attendance,
+  // participation, communication, comprehension, homework, behavior, confidence,
+  // overall } + three teacher-feedback texts.
+  criteria            Json?
+  strengths           String?  @db.Text
+  areasForImprovement String?  @db.Text
+  nextAction          String?  @db.Text
   createdAt     DateTime       @default(now())
 
   @@index([studentId, createdAt])

@@ -182,8 +182,10 @@ export default async function TeacherStudentDetailPage({
   const evaluations: EvaluationVM[] = evaluationRows.map((e) => ({
     id: e.id,
     skillLevel: e.skillLevel,
-    participation: e.participation,
-    improvement: e.improvement,
+    criteria: (e.criteria as Record<string, string> | null) ?? null,
+    strengths: e.strengths,
+    areasForImprovement: e.areasForImprovement,
+    nextAction: e.nextAction,
     note: e.note,
     createdAt: e.createdAt.toISOString(),
     teacherName: locale === "ar" ? e.teacher.user.nameAr ?? e.teacher.user.name : e.teacher.user.name,

@@ -1,13 +1,12 @@
 "use server";
 
 /**
- * Teacher → student evaluations (batch 4C, F3).
- *
- * A teacher records a periodic assessment (CEFR skill level, 1–5 participation,
- * an improvement trend, optional note). A teacher may ONLY evaluate students who
- * are enrolled in one of THEIR classes — enforced here on the server via the
- * canonical enrollment ownership query; admins are not the actor here. Each
- * create is audited.
+ * Teacher → student evaluations. The teacher rates 8 criteria on a 4-point
+ * rubric (Excellent / Good / Satisfactory / Needs Improvement) and writes three
+ * feedback notes (Strengths, Areas for Improvement, Next Action). The legacy
+ * participation (1–5) and improvement columns are DERIVED from the rubric so
+ * existing admin aggregates keep working. Ownership is enforced server-side: a
+ * teacher may only evaluate students enrolled in one of THEIR classes.
  */
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
@@ -17,14 +16,24 @@ import { audit } from "@/lib/audit";
 
 type Result<T = {}> = ({ ok: true } & T) | { ok: false; error: string };
 
+export const EVAL_CRITERIA = [
+  "attendance", "participation", "communication", "comprehension",
+  "homework", "behavior", "confidence", "overall",
+] as const;
+const RATING = z.enum(["EXCELLENT", "GOOD", "SATISFACTORY", "NEEDS_IMPROVEMENT"]);
+
 const schema = z.object({
   studentId: z.string().min(1),
   classId: z.string().min(1).optional().nullable(),
   skillLevel: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
-  participation: z.coerce.number().int().min(1).max(5),
-  improvement: z.enum(["IMPROVED", "SAME", "DECLINED"]),
+  criteria: z.record(RATING).optional().default({}),
+  strengths: z.string().max(2000).optional().nullable(),
+  areasForImprovement: z.string().max(2000).optional().nullable(),
+  nextAction: z.string().max(2000).optional().nullable(),
   note: z.string().max(2000).optional().nullable(),
 });
+
+const PART: Record<string, number> = { EXCELLENT: 5, GOOD: 4, SATISFACTORY: 3, NEEDS_IMPROVEMENT: 2 };
 
 export async function createEvaluationAction(
   input: z.infer<typeof schema>
@@ -39,18 +48,12 @@ export async function createEvaluationAction(
   });
   if (!teacher) return { ok: false, error: "NO_TEACHER" };
 
-  // Ownership guard: the student must be enrolled in one of THIS teacher's
-  // classes. Reuses the same chain as the teacher's student roster.
   const enrollment = await prisma.enrollment.findFirst({
-    where: {
-      studentId: parsed.data.studentId,
-      class: { teacherId: teacher.id },
-    },
+    where: { studentId: parsed.data.studentId, class: { teacherId: teacher.id } },
     select: { id: true },
   });
   if (!enrollment) return { ok: false, error: "STUDENT_NOT_IN_YOUR_CLASS" };
 
-  // If a class was named, it must also be one of this teacher's classes.
   let classId: string | null = null;
   if (parsed.data.classId) {
     const klass = await prisma.class.findFirst({
@@ -61,14 +64,26 @@ export async function createEvaluationAction(
     classId = klass.id;
   }
 
+  // Derive legacy columns from the rubric.
+  const c = parsed.data.criteria ?? {};
+  const participation = PART[c.participation ?? ""] ?? 3;
+  const overall = c.overall;
+  const improvement =
+    overall === "EXCELLENT" || overall === "GOOD" ? "IMPROVED"
+    : overall === "NEEDS_IMPROVEMENT" ? "DECLINED" : "SAME";
+
   const created = await prisma.studentEvaluation.create({
     data: {
       studentId: parsed.data.studentId,
       teacherId: teacher.id,
       classId,
       skillLevel: parsed.data.skillLevel,
-      participation: parsed.data.participation,
-      improvement: parsed.data.improvement,
+      participation,
+      improvement,
+      criteria: Object.keys(c).length ? (c as any) : undefined,
+      strengths: parsed.data.strengths?.trim() || null,
+      areasForImprovement: parsed.data.areasForImprovement?.trim() || null,
+      nextAction: parsed.data.nextAction?.trim() || null,
       note: parsed.data.note?.trim() || null,
     },
     select: { id: true },
@@ -77,8 +92,7 @@ export async function createEvaluationAction(
   await audit.mutation(session.user.id, "STUDENT_EVALUATED", "StudentEvaluation", created.id, {
     studentId: parsed.data.studentId,
     skillLevel: parsed.data.skillLevel,
-    participation: parsed.data.participation,
-    improvement: parsed.data.improvement,
+    criteria: c,
   });
 
   revalidatePath(`/teacher/students/${parsed.data.studentId}`);
