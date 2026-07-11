@@ -56,8 +56,8 @@ const SWATCHES: ColorSwatch[] = [
     share: 70,
   },
   {
-    name: "Charcoal",
-    nameAr: "فحمي",
+    name: "Charcoal Navy",
+    nameAr: "كحلي فحمي",
     hex: "#2C3E50",
     rgb: "44, 62, 80",
     cmyk: "45, 23, 0, 69",

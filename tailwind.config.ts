@@ -18,36 +18,36 @@ const config: Config = {
     extend: {
       colors: {
         hajr: {
-          // ── BRAND v4 "airy cards" — locked palette ──
-          // Flat warm-ivory canvas, navy structure, rose ACCENT ONLY
-          // (primary actions, LIVE pill, active-nav dot, progress, "popular").
-          "deep-navy": "#16243F", // STRUCTURE — sidebar, heroes, headings, avatars
-          navy: "#22344F",        // slightly lighter navy — hovers, secondary text
-          ivory: "#F4F1EA",       // CANVAS — flat warm ivory page bg + inner sub-rows
+          // ── CANONICAL BRAND BOOK — official identity ──
+          // Deep Navy structure on Ivory Silk canvas, Rose Mauve as a 3% accent
+          // (primary actions, LIVE, active-nav dot, progress, "most popular").
+          "deep-navy": "#1E2A36", // Deep Navy — primary 70%: sidebar, heroes, headings, footer
+          navy: "#2C3E50",        // Charcoal Navy — secondary 15%: hovers, secondary text/surfaces
+          ivory: "#FAF6EE",       // Ivory Silk — background 10%: page canvas + inner sub-rows
           white: "#FFFFFF",
-          rose: "#C8546B",        // ACCENT ONLY — actions, LIVE, active dot, progress
-          mint: "#B5E5D8",        // support / success
+          rose: "#B86E7B",        // Rose Mauve — accent 3% ONLY: actions, LIVE, active dot, progress
+          mint: "#B5E5D8",        // Mint Frost — support 2% / success
           chip: "#EFF1F4",        // neutral grey utility icon-chip fill (navy icon)
           // text scale
-          text: "#16243F",
+          text: "#1E2A36",
           body: "#2C3E50",
           muted: "#64748B",
           light: "#94A3B8",
           // surfaces & lines
-          border: "#E7E2D7",      // hairline tuned for white card on ivory canvas
-          surface: "#F4F1EA",     // inner sub-row fill = canvas ivory
-          hover: "#F1F5F9",
+          border: "#ECE5D8",      // warm hairline tuned for white card on Ivory Silk
+          surface: "#FAF6EE",     // inner sub-row fill = Ivory Silk canvas
+          hover: "#F1ECE1",       // warm hover on ivory
           // status
           error: "#DC2626",
           warning: "#F59E0B",
           success: "#059669",
           info: "#2563EB",
           // Compat slots so existing utility classes resolve.
-          black: "#16243F",
+          black: "#1E2A36",
           gray: {
-            50: "#F7F5EF",
+            50: "#F7F3EA",
             100: "#EFF1F4",
-            200: "#E7E2D7",
+            200: "#ECE5D8",
             300: "#CBD5E1",
             500: "#64748B",
           },
@@ -57,12 +57,12 @@ const config: Config = {
         // `bg-brand-rose` paints navy, not pink. True rose CTAs use
         // `variant="cta"`.
         brand: {
-          "deep-navy": "#16243F",
-          navy: "#22344F",
-          rose: "#22344F",        // ← still navy by design
-          accent: "#C8546B",      // the real rose for any rare opt-in
+          "deep-navy": "#1E2A36",
+          navy: "#2C3E50",
+          rose: "#2C3E50",        // ← still navy by design
+          accent: "#B86E7B",      // the real Rose Mauve for any rare opt-in
           mint: "#B5E5D8",
-          ivory: "#F4F1EA",
+          ivory: "#FAF6EE",
           lavender: "#D4C5E2",    // deprecated — remove once 0 refs
         },
         border: "hsl(var(--border))",
@@ -103,10 +103,11 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        // "airy cards" rounding — floating white cards ~20px.
+        // Brand book rounding — restrained premium cards ~14px (book: 10-12px),
+        // buttons/inputs use --radius (10px). Not pill-round.
         xl: "1rem",
         "2xl": "1.25rem",
-        card: "20px",
+        card: "14px",
       },
       fontFamily: {
         ar: ["var(--font-ar)", "IBM Plex Sans Arabic", "Cairo", "sans-serif"],
@@ -114,9 +115,9 @@ const config: Config = {
         sans: ["var(--font-en)", "Inter", "sans-serif"],
       },
       boxShadow: {
-        // "airy cards" — soft navy float on warm-ivory canvas.
-        card: "0 12px 30px -22px rgb(22 36 63 / 0.30)",
-        "card-hover": "0 20px 44px -22px rgb(22 36 63 / 0.40)",
+        // Brand book — soft Deep Navy float on Ivory Silk canvas.
+        card: "0 12px 30px -22px rgb(30 42 54 / 0.28)",
+        "card-hover": "0 20px 44px -22px rgb(30 42 54 / 0.38)",
       },
       keyframes: {
         "accordion-down": {

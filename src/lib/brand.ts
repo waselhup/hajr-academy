@@ -11,8 +11,8 @@ export const BRAND = {
     short: "HAJR A°",
   },
   tagline: {
-    en: "Learn with Confidence",
-    ar: "تعلّم بثقة",
+    en: "Master English with confidence",
+    ar: "أتقن الإنجليزية بثقة",
   },
   palette: {
     deepNavy:  "#1E2A36",
@@ -25,9 +25,9 @@ export const BRAND = {
     border:    "#E2E8F0",
     surface:   "#F8FAFC",
   },
-  site: "https://hajr-academy.vercel.app",
+  site: "https://hajracademy.com",
   contact: {
-    email: "hello@hajracademy.sa",
+    email: "hello@hajracademy.com",
     phone: "+966 11 000 0000",
     city:  "Al Ahsa, Saudi Arabia",
     cityAr: "الأحساء، المملكة العربية السعودية",
