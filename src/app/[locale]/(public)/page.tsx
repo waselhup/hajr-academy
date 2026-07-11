@@ -9,19 +9,28 @@ import { ContactForm } from "./contact-form";
 import { AnnouncementBar } from "@/components/public/AnnouncementBar";
 import { WhatsAppFab } from "@/components/public/WhatsAppFab";
 import { MobileStickyCta } from "@/components/public/MobileStickyCta";
+import { BRAND } from "@/lib/brand";
 import {
-  GraduationCap, BookOpen, School,
+  GraduationCap, BookOpen, Globe, Briefcase, FileText, FileCheck,
   Calendar, ClipboardCheck, Users, User, Award, Check, ArrowRight, Star, Quote,
-  Target, TrendingUp, HeartHandshake, ShieldCheck, Mail, Phone, MapPin,
+  ShieldCheck, Mail, Phone, MapPin, MonitorPlay, UserCheck, Building2, Gift,
   Twitter, Instagram, MessageCircle, Music2, Ghost, ShieldCheck as VerifyIcon,
-  PlayCircle, Rocket, Sparkles, Zap, Trophy, BadgeCheck, Lock, ReceiptText,
+  Rocket, Sparkles, Zap, Trophy, BadgeCheck, Lock, ReceiptText,
   BarChart3, ChevronDown, Compass,
 } from "lucide-react";
+
+const WA = BRAND.contact.whatsapp; // "966502456651"
 
 export default async function LandingPage() {
   const t = await getTranslations();
   const locale = await getLocale();
   const isAr = locale === "ar";
+
+  // WhatsApp deep links with a pre-filled message (booking is WhatsApp-first).
+  const wa = (msg: string) => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
+  const waTrial = wa(isAr ? "السلام عليكم، أرغب في حجز درس تجريبي مجاني في أكاديمية هجر" : "Hello, I'd like to book a free trial lesson at Hajr Academy");
+  const waPlan = (name: string) =>
+    wa(isAr ? `السلام عليكم، أرغب في الاشتراك في: ${name}` : `Hello, I'd like to enroll in: ${name}`);
 
   const stats = [
     { value: "1,200+", label: t("Landing.statStudents") },
@@ -30,19 +39,38 @@ export default async function LandingPage() {
     { value: "60k+", label: t("Landing.statHours") },
   ];
 
-  const howSteps: { n: string; icon: any; title: string; desc: string }[] = [
-    { n: "1", icon: ClipboardCheck, title: t("Landing.howStep1Title"), desc: t("Landing.howStep1Desc") },
-    { n: "2", icon: PlayCircle, title: t("Landing.howStep2Title"), desc: t("Landing.howStep2Desc") },
-    { n: "3", icon: Rocket, title: t("Landing.howStep3Title"), desc: t("Landing.howStep3Desc") },
+  // ── Where you need English (profile p.2) ──
+  const needs: { icon: any; title: string; desc: string }[] = [
+    { icon: GraduationCap, title: t("Landing.needUniTitle"), desc: t("Landing.needUniDesc") },
+    { icon: Briefcase, title: t("Landing.needJobTitle"), desc: t("Landing.needJobDesc") },
+    { icon: FileText, title: t("Landing.needExamTitle"), desc: t("Landing.needExamDesc") },
+    { icon: Globe, title: t("Landing.needWorldTitle"), desc: t("Landing.needWorldDesc") },
   ];
 
-  const services: { icon: any; title: string; desc: string }[] = [
-    { icon: ClipboardCheck, title: t("Landing.svcStepTitle"), desc: t("Landing.svcStepDesc") },
-    { icon: Award, title: t("Landing.svcIeltsTitle"), desc: t("Landing.svcIeltsDesc") },
-    { icon: GraduationCap, title: t("Landing.svcUniTitle"), desc: t("Landing.svcUniDesc") },
-    { icon: User, title: t("Landing.svcPrivateTitle"), desc: t("Landing.svcPrivateDesc") },
-    { icon: Users, title: t("Landing.svcGroupTitle"), desc: t("Landing.svcGroupDesc") },
-    { icon: School, title: t("Landing.svcSchoolTitle"), desc: t("Landing.svcSchoolDesc") },
+  // ── About items (profile p.3) ──
+  const aboutItems: { icon: any; title: string; desc: string }[] = [
+    { icon: MonitorPlay, title: t("Landing.about1Title"), desc: t("Landing.about1Desc") },
+    { icon: UserCheck, title: t("Landing.about2Title"), desc: t("Landing.about2Desc") },
+    { icon: BookOpen, title: t("Landing.about3Title"), desc: t("Landing.about3Desc") },
+    { icon: MapPin, title: t("Landing.about4Title"), desc: t("Landing.about4Desc") },
+  ];
+
+  // ── Programs (profile p.5) ──
+  const programs: { icon: any; title: string; desc: string }[] = [
+    { icon: BookOpen, title: t("Landing.progTermTitle"), desc: t("Landing.progTermDesc") },
+    { icon: FileCheck, title: t("Landing.progExamTitle"), desc: t("Landing.progExamDesc") },
+    { icon: Briefcase, title: t("Landing.progCpcTitle"), desc: t("Landing.progCpcDesc") },
+    { icon: User, title: t("Landing.progPrivateTitle"), desc: t("Landing.progPrivateDesc") },
+    { icon: Building2, title: t("Landing.progCorpTitle"), desc: t("Landing.progCorpDesc") },
+    { icon: Gift, title: t("Landing.progFreeTitle"), desc: t("Landing.progFreeDesc") },
+  ];
+
+  // ── Why HAJR (profile p.6) ──
+  const whys: { icon: any; title: string; desc: string }[] = [
+    { icon: Users, title: t("Landing.why1Title"), desc: t("Landing.why1Desc") },
+    { icon: BarChart3, title: t("Landing.why2Title"), desc: t("Landing.why2Desc") },
+    { icon: ShieldCheck, title: t("Landing.why3Title"), desc: t("Landing.why3Desc") },
+    { icon: BadgeCheck, title: t("Landing.why4Title"), desc: t("Landing.why4Desc") },
   ];
 
   const labPoints: { icon: any; label: string }[] = [
@@ -51,18 +79,57 @@ export default async function LandingPage() {
     { icon: Trophy, label: t("Landing.labPoint3") },
   ];
 
-  const values: { icon: any; title: string; desc: string }[] = [
-    { icon: Target, title: t("Landing.valueAchievementTitle"), desc: t("Landing.valueAchievementDesc") },
-    { icon: TrendingUp, title: t("Landing.valueGrowthTitle"), desc: t("Landing.valueGrowthDesc") },
-    { icon: HeartHandshake, title: t("Landing.valueCommunityTitle"), desc: t("Landing.valueCommunityDesc") },
-    { icon: ShieldCheck, title: t("Landing.valueConfidenceTitle"), desc: t("Landing.valueConfidenceDesc") },
+  // ── How to start / free trial (profile p.9) ──
+  const howSteps: { n: string; icon: any; title: string; desc: string }[] = [
+    { n: "1", icon: MessageCircle, title: t("Landing.howStep1Title"), desc: t("Landing.howStep1Desc") },
+    { n: "2", icon: Compass, title: t("Landing.howStep2Title"), desc: t("Landing.howStep2Desc") },
+    { n: "3", icon: Rocket, title: t("Landing.howStep3Title"), desc: t("Landing.howStep3Desc") },
   ];
 
-  const trust: { icon: any; title: string; desc: string }[] = [
-    { icon: BadgeCheck, title: t("Landing.trustCertTitle"), desc: t("Landing.trustCertDesc") },
-    { icon: Lock, title: t("Landing.trustSecureTitle"), desc: t("Landing.trustSecureDesc") },
-    { icon: ReceiptText, title: t("Landing.trustZatcaTitle"), desc: t("Landing.trustZatcaDesc") },
-    { icon: BarChart3, title: t("Landing.trustReportsTitle"), desc: t("Landing.trustReportsDesc") },
+  // ── Pricing (profile p.7) ──
+  const corePlans: { label: string; sub: string; price: string; was?: string; unit: string; star?: boolean }[] = [
+    { label: t("Landing.planMonthly"), sub: t("Landing.planMonthlySub"), price: "300", unit: t("Landing.unitPerMonth") },
+    { label: t("Landing.planTerm"), sub: t("Landing.planTermSub"), price: "1,215", was: "1,350", unit: t("Landing.unitPerTerm") },
+    { label: t("Landing.planYearly"), sub: t("Landing.planYearlySub"), price: "2,106", was: "2,700", unit: t("Landing.unitPerYear"), star: true },
+  ];
+  const courses: { title: string; desc: string; price: string }[] = [
+    { title: t("Landing.stepCourseTitle"), desc: t("Landing.stepCourseDesc"), price: "600" },
+    { title: t("Landing.intlCourseTitle"), desc: t("Landing.intlCourseDesc"), price: "1,200" },
+  ];
+  const priceChips = [t("Landing.priceChip1"), t("Landing.priceChip2"), t("Landing.priceChip3")];
+
+  // ── Summer intensive (profile p.8) ──
+  const summerTracks: {
+    title: string; dur: string; badge?: string; featured?: boolean;
+    tiers: { tier: string; per: string; freq: string; month: string; star?: boolean }[];
+  }[] = [
+    {
+      title: t("Landing.trackGroupTitle"), dur: t("Landing.trackGroupDur"), badge: t("Landing.trackGroupBadge"), featured: true,
+      tiers: [
+        { tier: t("Landing.tierStarter"), per: "33", freq: t("Landing.freq1"), month: "132" },
+        { tier: t("Landing.tierGrowth"), per: "30", freq: t("Landing.freq2"), month: "240", star: true },
+        { tier: t("Landing.tierIntensive"), per: "28", freq: t("Landing.freq3"), month: "336" },
+      ],
+    },
+    {
+      title: t("Landing.trackIntlTitle"), dur: t("Landing.trackIntlDur"),
+      tiers: [
+        { tier: t("Landing.tierStarter"), per: "42", freq: t("Landing.freq1"), month: "168" },
+        { tier: t("Landing.tierGrowth"), per: "38", freq: t("Landing.freq2"), month: "304", star: true },
+        { tier: t("Landing.tierIntensive"), per: "35", freq: t("Landing.freq3"), month: "420" },
+      ],
+    },
+    {
+      title: t("Landing.trackNativeTitle"), dur: t("Landing.trackNativeDur"),
+      tiers: [
+        { tier: t("Landing.tierStarter"), per: "62", freq: t("Landing.freq1"), month: "248" },
+        { tier: t("Landing.tierGrowth"), per: "58", freq: t("Landing.freq2"), month: "464", star: true },
+        { tier: t("Landing.tierIntensive"), per: "54", freq: t("Landing.freq3"), month: "648" },
+      ],
+    },
+  ];
+  const summerChips = [
+    t("Landing.summerChip1"), t("Landing.summerChip2"), t("Landing.summerChip3"), t("Landing.summerChip4"),
   ];
 
   const faqs = Array.from({ length: 8 }, (_, i) => ({
@@ -70,20 +137,9 @@ export default async function LandingPage() {
     a: t(`Landing.faqA${i + 1}` as any),
   }));
 
-  const packages: {
-    code: string; price: number; sessions: number; lab: boolean; featured: boolean;
-  }[] = [
-    { code: "ESSENTIAL", price: 250, sessions: 8, lab: false, featured: false },
-    { code: "INTEGRATED", price: 300, sessions: 12, lab: true, featured: true },
-    { code: "PRIVATE", price: 800, sessions: 16, lab: true, featured: false },
-    { code: "STEP_PREP_PKG", price: 600, sessions: 16, lab: true, featured: false },
-    { code: "IELTS_PREP_PKG", price: 800, sessions: 16, lab: true, featured: false },
-  ];
-
-  // Testimonials — navy avatars with initials (no invented photos). Bilingual.
   const testimonials = isAr
     ? [
-        { quote: "نتائج ولدي تحسنت بشكل ملحوظ خلال فصل واحد. متابعة ممتازة والمدربون محترفون.", name: "أم محمد", role: "ولية أمر", stars: 5 },
+        { quote: "نتائج ولدي تحسنت بشكل ملحوظ خلال فصل واحد. متابعة ممتازة والمعلمون محترفون.", name: "أم محمد", role: "ولية أمر", stars: 5 },
         { quote: "أفضل تجربة تعلم إنجليزي مررت بها. الإعداد لستيب دقيق ومنظّم.", name: "فهد العتيبي", role: "طالب", stars: 5 },
         { quote: "حصلت على 95 في ستيب بفضل التدريب المركّز هنا.", name: "عبدالرحمن", role: "طالب", stars: 5 },
         { quote: "متابعة مستمرة وتقارير شهرية واضحة عن مستوى ابنتي.", name: "نورة", role: "ولية أمر", stars: 5 },
@@ -91,7 +147,7 @@ export default async function LandingPage() {
         { quote: "نقلة حقيقية في تحضيري لاختبار آيلتس. أنصح بها بشدة.", name: "أحمد ك.", role: "طالب", stars: 5 },
       ]
     : [
-        { quote: "My son improved dramatically in a single term. Excellent follow-up and professional instructors.", name: "Umm Mohammed", role: "Parent", stars: 5 },
+        { quote: "My son improved dramatically in a single term. Excellent follow-up and professional teachers.", name: "Umm Mohammed", role: "Parent", stars: 5 },
         { quote: "Best English learning experience I've had. STEP prep is structured and precise.", name: "Fahd Al-Otaibi", role: "Student", stars: 5 },
         { quote: "I scored 95 on STEP thanks to the focused training here.", name: "Abdulrahman", role: "Student", stars: 5 },
         { quote: "Continuous follow-up and clear monthly reports on my daughter's progress.", name: "Noura", role: "Parent", stars: 5 },
@@ -100,8 +156,8 @@ export default async function LandingPage() {
       ];
 
   const navLinks = [
+    { href: "#need", label: t("Landing.needTitle") },
     { href: "#programs", label: t("Landing.navPrograms") },
-    { href: "#teachers", label: t("Landing.navTeachers") },
     { href: "#packages", label: t("Landing.navPricing") },
     { href: "#about", label: t("Landing.navAbout") },
     { href: "#contact", label: t("Landing.navContact") },
@@ -109,7 +165,6 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-screen bg-hajr-ivory">
-      {/* ── Announcement bar ─────────────────────────────── */}
       <AnnouncementBar
         message={t("Landing.announcementBar")}
         dismissLabel={t("Landing.announcementDismiss")}
@@ -121,11 +176,7 @@ export default async function LandingPage() {
           <HajrLogo size="sm" variant="full" />
           <nav className="hidden items-center gap-7 lg:flex">
             {navLinks.map((l) => (
-              <a
-                key={l.href}
-                href={l.href}
-                className="text-sm font-medium text-hajr-body transition-colors hover:text-hajr-deep-navy"
-              >
+              <a key={l.href} href={l.href} className="text-sm font-medium text-hajr-body transition-colors hover:text-hajr-deep-navy">
                 {l.label}
               </a>
             ))}
@@ -135,8 +186,8 @@ export default async function LandingPage() {
             <Button variant="ghost" size="sm" asChild>
               <Link href="/login">{t("Landing.ctaLogin")}</Link>
             </Button>
-            <Button size="lg" className="px-5 sm:px-6" asChild>
-              <Link href="/register">{t("Landing.ctaStickyMobile")}</Link>
+            <Button variant="cta" size="lg" className="px-5 sm:px-6" asChild>
+              <a href={waTrial} target="_blank" rel="noopener noreferrer">{t("Landing.ctaBookTrial")}</a>
             </Button>
           </div>
         </div>
@@ -144,14 +195,7 @@ export default async function LandingPage() {
 
       {/* ── Hero — Deep Navy ──────────────────────────────── */}
       <section className="relative overflow-hidden bg-hajr-deep-navy">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(58rem 30rem at 50% -12%, rgba(255,255,255,0.06), transparent 70%)",
-          }}
-        />
+        <div aria-hidden className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(58rem 30rem at 50% -12%, rgba(255,255,255,0.06), transparent 70%)" }} />
         <GatewayLines />
         <AoWatermark />
         <div className="container relative flex flex-col items-center pb-28 pt-16 text-center sm:pb-36 sm:pt-24">
@@ -171,21 +215,15 @@ export default async function LandingPage() {
           </p>
           <div className="animate-fade-in-up mt-9 flex flex-wrap items-center justify-center gap-3 [animation-delay:320ms]">
             <Button variant="cta" size="lg" asChild>
-              <Link href="/placement-test" className="gap-2">
-                {t("Landing.ctaPlacementFree")}
+              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+                {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
+              </a>
             </Button>
-            <Button
-              size="lg"
-              asChild
-              className="border border-white/25 bg-transparent text-white hover:bg-white/10"
-            >
-              <Link href="/contact?subject=PROGRAMS">{t("Landing.ctaBookTrial")}</Link>
+            <Button size="lg" asChild className="border border-white/25 bg-transparent text-white hover:bg-white/10">
+              <a href="#programs">{t("Landing.navPrograms")}</a>
             </Button>
           </div>
-
-          {/* feature chips */}
           <div className="animate-fade-in-up mt-12 flex flex-wrap items-center justify-center gap-3 [animation-delay:400ms]">
             <FeatureChip icon={Calendar} label={t("Landing.featureFlex")} />
             <FeatureChip icon={Users} label={t("Landing.featureCert")} />
@@ -195,7 +233,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Stats band — floating card overlapping the hero ─── */}
+      {/* ── Stats band ────────────────────────────────────── */}
       <section className="container relative z-10 -mt-16 sm:-mt-20">
         <div className="grid grid-cols-2 divide-y divide-hajr-border rounded-card border border-hajr-border bg-white p-2 shadow-card sm:grid-cols-4 sm:divide-y-0 sm:divide-x sm:rtl:divide-x-reverse">
           {stats.map((s) => (
@@ -207,106 +245,117 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── About / Mission / Vision (من نحن) ──────────────── */}
-      <section id="about" className="container py-20 sm:py-24">
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_1fr] lg:items-center">
-          <div>
-            <SectionEyebrow>{t("Landing.aboutEyebrow")}</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">
-              {t("Landing.aboutTitle")}
-            </h2>
-            <p className="mt-5 text-lg leading-relaxed text-hajr-body">{t("Landing.aboutBody")}</p>
-          </div>
-          <div className="grid gap-5">
-            <Card className="relative overflow-hidden p-6 sm:p-7">
-              <span className="absolute inset-y-0 start-0 w-1 bg-hajr-rose" />
-              <div className="flex items-start gap-4">
-                <span className="icon-chip h-11 w-11 shrink-0">
-                  <Compass className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold text-hajr-deep-navy">{t("Landing.missionTitle")}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-hajr-body">{t("Landing.missionBody")}</p>
-                </div>
-              </div>
-            </Card>
-            <Card className="relative overflow-hidden p-6 sm:p-7">
-              <span className="absolute inset-y-0 start-0 w-1 bg-hajr-deep-navy" />
-              <div className="flex items-start gap-4">
-                <span className="icon-chip h-11 w-11 shrink-0">
-                  <Target className="h-5 w-5" />
-                </span>
-                <div>
-                  <h3 className="text-lg font-semibold text-hajr-deep-navy">{t("Landing.visionTitle")}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-hajr-body">{t("Landing.visionBody")}</p>
-                </div>
-              </div>
-            </Card>
-          </div>
+      {/* ── Where you need English (profile p.2) ──────────── */}
+      <section id="need" className="container py-20 sm:py-24">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <SectionEyebrow center>{t("Landing.needEyebrow")}</SectionEyebrow>
+          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.needTitle")}</h2>
         </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {needs.map((n) => {
+            const Icon = n.icon;
+            return (
+              <Card key={n.title} className="p-6 text-center">
+                <span className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-hajr-mint/50 text-hajr-deep-navy ring-1 ring-hajr-rose/30">
+                  <Icon className="h-7 w-7" />
+                </span>
+                <h3 className="text-lg font-semibold text-hajr-deep-navy">{n.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{n.desc}</p>
+              </Card>
+            );
+          })}
+        </div>
+        <p className="mx-auto mt-10 max-w-2xl text-center text-base leading-relaxed text-hajr-body">{t("Landing.needFooter")}</p>
       </section>
 
-      {/* ── How it works ──────────────────────────────────── */}
-      <section className="bg-white py-20 sm:py-24">
+      {/* ── About (من نحن) — profile p.3 ──────────────────── */}
+      <section id="about" className="bg-white py-20 sm:py-24">
         <div className="container">
-          <div className="mx-auto mb-14 max-w-2xl text-center">
-            <SectionEyebrow center>{t("Landing.howTitle")}</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.howTitle")}</h2>
-            <p className="mt-3 text-hajr-muted">{t("Landing.howSubtitle")}</p>
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <SectionEyebrow center>{t("Landing.aboutEyebrow")}</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.aboutTitle")}</h2>
+            <p className="mt-4 text-lg leading-relaxed text-hajr-body">{t("Landing.aboutBody")}</p>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {howSteps.map((step) => {
-              const Icon = step.icon;
+          <div className="grid gap-4 sm:grid-cols-2">
+            {aboutItems.map((a) => {
+              const Icon = a.icon;
               return (
-                <div key={step.n} className="relative rounded-card border border-hajr-border bg-hajr-ivory/60 p-7 text-center">
-                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-hajr-deep-navy text-white">
-                    <Icon className="h-6 w-6" />
+                <div key={a.title} className="flex items-start gap-4 rounded-card border border-hajr-border bg-hajr-ivory/50 p-6">
+                  <span className="icon-chip h-11 w-11 shrink-0"><Icon className="h-5 w-5" /></span>
+                  <div>
+                    <h3 className="font-semibold text-hajr-deep-navy">{a.title}</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-hajr-muted">{a.desc}</p>
                   </div>
-                  <div className="num mt-4 text-xs font-semibold tracking-widest text-hajr-rose">
-                    {step.n} / 3
-                  </div>
-                  <h3 className="mt-1 text-lg font-semibold text-hajr-deep-navy">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-hajr-muted">{step.desc}</p>
                 </div>
               );
             })}
           </div>
-          <div className="mt-10 text-center">
-            <Button variant="cta" size="lg" asChild>
-              <Link href="/placement-test" className="gap-2">
-                {t("Landing.ctaPlacementFree")}
-                <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
-            </Button>
+        </div>
+      </section>
+
+      {/* ── Mission + Vision (profile p.4) ────────────────── */}
+      <section className="container py-20 sm:py-24">
+        <div className="mx-auto grid max-w-5xl gap-6 md:grid-cols-2">
+          <Card className="relative overflow-hidden p-8">
+            <span className="absolute inset-y-0 start-0 w-1 bg-hajr-rose" />
+            <SectionEyebrow>{t("Landing.missionTitle")}</SectionEyebrow>
+            <p className="mt-4 text-xl font-medium leading-relaxed text-hajr-deep-navy">{t("Landing.missionBody")}</p>
+          </Card>
+          <Card className="relative overflow-hidden p-8">
+            <span className="absolute inset-y-0 start-0 w-1 bg-hajr-deep-navy" />
+            <SectionEyebrow>{t("Landing.visionTitle")}</SectionEyebrow>
+            <p className="mt-4 text-xl font-medium leading-relaxed text-hajr-deep-navy">{t("Landing.visionBody")}</p>
+          </Card>
+        </div>
+      </section>
+
+      {/* ── Programs (ماذا نقدم) — profile p.5 ────────────── */}
+      <section id="programs" className="bg-white py-20 sm:py-24">
+        <div className="container">
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <SectionEyebrow center>{t("Landing.servicesEyebrow")}</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.servicesTitle")}</h2>
+            <p className="mt-3 text-hajr-muted">{t("Landing.servicesSubtitle")}</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {programs.map((p) => {
+              const Icon = p.icon;
+              return (
+                <Card key={p.title} className="group relative overflow-hidden p-6">
+                  <span className="absolute inset-x-0 top-0 h-1 bg-hajr-deep-navy" />
+                  <div className="icon-chip mb-4 h-14 w-14 rounded-2xl"><Icon className="h-7 w-7" /></div>
+                  <h3 className="text-lg font-semibold text-hajr-deep-navy">{p.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-hajr-muted">{p.desc}</p>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ── Services / Programs ───────────────────────────── */}
-      <section id="programs" className="container py-20 sm:py-24">
+      {/* ── Why HAJR (ليش هجر) — profile p.6 ──────────────── */}
+      <section className="container py-20 sm:py-24">
         <div className="mx-auto mb-14 max-w-2xl text-center">
-          <SectionEyebrow center>{t("Landing.servicesTitle")}</SectionEyebrow>
-          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.servicesTitle")}</h2>
-          <p className="mt-3 text-hajr-muted">{t("Landing.servicesSubtitle")}</p>
+          <SectionEyebrow center>{t("Landing.valuesEyebrow")}</SectionEyebrow>
+          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.valuesTitle")}</h2>
+          <p className="mt-3 text-hajr-muted">{t("Landing.valuesSubtitle")}</p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {services.map((s) => {
-            const Icon = s.icon;
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {whys.map((v, i) => {
+            const Icon = v.icon;
             return (
-              <Card key={s.title} className="group relative overflow-hidden p-6">
-                <span className="absolute inset-x-0 top-0 h-1 bg-hajr-deep-navy" />
-                <div className="icon-chip mb-4 h-14 w-14 rounded-2xl">
-                  <Icon className="h-7 w-7" />
-                </div>
-                <h3 className="text-lg font-semibold text-hajr-deep-navy">{s.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-hajr-muted">{s.desc}</p>
+              <Card key={v.title} className="relative p-6">
+                <span className="num absolute end-5 top-5 text-2xl font-bold text-hajr-border">{i + 1}</span>
+                <div className="icon-chip mb-4 h-12 w-12"><Icon className="h-6 w-6" /></div>
+                <h3 className="text-lg font-semibold text-hajr-deep-navy">{v.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{v.desc}</p>
               </Card>
             );
           })}
         </div>
       </section>
 
-      {/* ── English Lab spotlight — Deep Navy band ─────────── */}
+      {/* ── English Lab spotlight (owned platform) ────────── */}
       <section className="relative overflow-hidden bg-hajr-deep-navy py-20 sm:py-24">
         <AoWatermark />
         <div className="container relative grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-center">
@@ -316,10 +365,10 @@ export default async function LandingPage() {
             <p className="mt-5 text-lg leading-relaxed text-white/70">{t("Landing.labBody")}</p>
             <div className="mt-8">
               <Button variant="cta" size="lg" asChild>
-                <Link href="/register" className="gap-2">
-                  {t("Landing.labCta")}
+                <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+                  {t("Landing.ctaTrialFree")}
                   <ArrowRight className="h-4 w-4 rtl-flip" />
-                </Link>
+                </a>
               </Button>
             </div>
           </div>
@@ -328,9 +377,7 @@ export default async function LandingPage() {
               const Icon = p.icon;
               return (
                 <div key={p.label} className="flex items-center gap-4 rounded-card border border-white/10 bg-white/[0.04] p-5">
-                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-hajr-mint">
-                    <Icon className="h-5 w-5" />
-                  </span>
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 text-hajr-mint"><Icon className="h-5 w-5" /></span>
                   <span className="text-base font-medium text-white">{p.label}</span>
                 </div>
               );
@@ -339,238 +386,304 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Why HAJR — value pillars ──────────────────────── */}
-      <section className="container py-20 sm:py-24">
-        <div className="mx-auto mb-14 max-w-2xl text-center">
-          <SectionEyebrow center>{t("Landing.valuesTitle")}</SectionEyebrow>
-          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.valuesTitle")}</h2>
-          <p className="mt-3 text-hajr-muted">{t("Landing.valuesSubtitle")}</p>
+      {/* ── Teachers ──────────────────────────────────────── */}
+      <section id="teachers" className="container py-20 sm:py-24">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <SectionEyebrow center>{t("Landing.teachersEyebrow")}</SectionEyebrow>
+          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.teachersTitle")}</h2>
+          <p className="mt-3 text-hajr-muted">{t("Landing.teachersSubtitle")}</p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {values.map((v) => {
-            const Icon = v.icon;
-            return (
-              <Card key={v.title} className="p-6">
-                <div className="icon-chip mb-4 h-12 w-12">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <h3 className="text-lg font-semibold text-hajr-deep-navy">{v.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{v.desc}</p>
-              </Card>
-            );
-          })}
+        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
+          {[GraduationCap, BookOpen, Users, BadgeCheck].map((Icon, i) => (
+            <div key={i} className="rounded-card border border-hajr-border bg-white p-6 text-center shadow-card">
+              <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-hajr-deep-navy text-white"><Icon className="h-6 w-6" /></span>
+              <div className="mt-3 text-sm font-medium text-hajr-body">{t("Landing.featureCert")}</div>
+            </div>
+          ))}
+        </div>
+        <div className="mt-10 text-center">
+          <Button size="lg" asChild>
+            <Link href="/teachers" className="gap-2">
+              {t("Landing.teachersCta")}
+              <ArrowRight className="h-4 w-4 rtl-flip" />
+            </Link>
+          </Button>
         </div>
       </section>
 
-      {/* ── Teachers ──────────────────────────────────────── */}
-      <section id="teachers" className="bg-white py-20 sm:py-24">
+      {/* ── How to start / free trial (profile p.9) ───────── */}
+      <section className="bg-white py-20 sm:py-24">
         <div className="container">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <SectionEyebrow center>{t("Landing.teachersEyebrow")}</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.teachersTitle")}</h2>
-            <p className="mt-3 text-hajr-muted">{t("Landing.teachersSubtitle")}</p>
+          <div className="mx-auto mb-6 max-w-2xl text-center">
+            <SectionEyebrow center>{t("Landing.howTitle")}</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.howSubtitle")}</h2>
           </div>
-          <div className="mx-auto grid max-w-3xl grid-cols-2 gap-4 sm:grid-cols-4">
-            {[GraduationCap, BookOpen, Users, BadgeCheck].map((Icon, i) => (
-              <div key={i} className="rounded-card border border-hajr-border bg-hajr-ivory/50 p-6 text-center">
-                <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-hajr-deep-navy text-white">
-                  <Icon className="h-6 w-6" />
-                </span>
-                <div className="mt-3 text-sm font-medium text-hajr-body">{t("Landing.featureCert")}</div>
-              </div>
-            ))}
+          <p className="mx-auto mb-12 max-w-xl rounded-card bg-hajr-mint/40 px-5 py-3 text-center text-sm font-medium text-hajr-deep-navy">
+            {t("Landing.trialNote")}
+          </p>
+          <div className="grid gap-6 md:grid-cols-3">
+            {howSteps.map((step) => {
+              const Icon = step.icon;
+              return (
+                <div key={step.n} className="rounded-card border border-hajr-border bg-hajr-ivory/60 p-7 text-center">
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-hajr-deep-navy text-white"><Icon className="h-6 w-6" /></div>
+                  <div className="num mt-4 text-xs font-semibold tracking-widest text-hajr-rose">{step.n} / 3</div>
+                  <h3 className="mt-1 text-lg font-semibold text-hajr-deep-navy">{step.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-hajr-muted">{step.desc}</p>
+                </div>
+              );
+            })}
           </div>
           <div className="mt-10 text-center">
-            <Button size="lg" asChild>
-              <Link href="/teachers" className="gap-2">
-                {t("Landing.teachersCta")}
+            <Button variant="cta" size="lg" asChild>
+              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+                {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ── Packages / Pricing ────────────────────────────── */}
+      {/* ── Pricing (profile p.7) ─────────────────────────── */}
       <section id="packages" className="container py-20 sm:py-24">
-        <div className="mx-auto mb-6 max-w-2xl text-center">
-          <SectionEyebrow center>{t("Landing.packagesTitle")}</SectionEyebrow>
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <SectionEyebrow center>{t("Landing.packagesEyebrow")}</SectionEyebrow>
           <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.packagesTitle")}</h2>
           <p className="mt-3 text-hajr-muted">{t("Landing.packagesSubtitle")}</p>
         </div>
-        <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-2 lg:grid-cols-3 md:items-stretch">
-          {packages.map((pk) => {
-            const featured = pk.featured;
-            return (
-              <Card
-                key={pk.code}
-                className={
-                  featured
-                    ? "relative flex flex-col border-transparent bg-hajr-deep-navy text-white shadow-card-hover md:scale-[1.03]"
-                    : "relative flex flex-col"
-                }
-              >
-                {featured && (
-                  <div className="absolute -top-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
-                    <span className="inline-flex items-center rounded-full bg-hajr-rose px-3 py-1 text-xs font-semibold text-white shadow-sm">
-                      <Star className="me-1 h-3 w-3 fill-current" />
-                      {t("Landing.packageMostPopular")}
-                    </span>
+        <div className="mx-auto grid max-w-5xl gap-6 lg:grid-cols-3 lg:items-start">
+          {/* Core program — featured navy card with 3 plans */}
+          <div className="relative overflow-hidden rounded-card bg-hajr-deep-navy p-7 text-white shadow-card-hover lg:order-3">
+            <div className="absolute -top-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
+              <span className="inline-flex items-center rounded-full bg-hajr-rose px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                <Star className="me-1 h-3 w-3 fill-current" />{t("Landing.coreBadge")}
+              </span>
+            </div>
+            <div className="pt-4 text-center">
+              <h3 className="text-lg font-semibold text-white">{t("Landing.coreTitle")}</h3>
+              <p className="mt-2 text-xs leading-relaxed text-white/60">{t("Landing.coreDesc")}</p>
+            </div>
+            <div className="mt-6 space-y-3">
+              {corePlans.map((p) => (
+                <div key={p.label} className={`flex items-center justify-between gap-3 rounded-xl border p-4 ${p.star ? "border-hajr-rose/60 bg-white/[0.06]" : "border-white/10 bg-white/[0.03]"}`}>
+                  <div>
+                    <div className="flex items-center gap-1.5 text-sm font-semibold text-white">
+                      {p.label}{p.star && <Star className="h-3 w-3 fill-hajr-rose text-hajr-rose" />}
+                    </div>
+                    <div className="mt-0.5 text-[11px] text-white/55">{p.sub}</div>
                   </div>
-                )}
-                <CardHeader className="pt-8 text-center">
-                  <CardTitle className={featured ? "text-lg text-white" : "text-lg text-hajr-deep-navy"}>
-                    {t("Packages." + pk.code as any)}
-                  </CardTitle>
-                  <div className="mt-4 flex items-baseline justify-center gap-1.5">
-                    <span className={`num text-5xl font-semibold ${featured ? "text-white" : "text-hajr-deep-navy"}`}>
-                      {pk.price}
-                    </span>
-                    <span className={featured ? "text-sm text-white/70" : "text-sm text-hajr-muted"}>
-                      {t("Landing.sarPerMonth")}
-                    </span>
+                  <div className="text-end">
+                    <div className="flex items-baseline gap-1">
+                      <span className="num text-2xl font-semibold text-white">{p.price}</span>
+                      {p.was && <span className="num text-xs text-white/40 line-through">{p.was}</span>}
+                    </div>
+                    <div className="text-[10px] text-white/50">{p.unit}</div>
                   </div>
-                </CardHeader>
-                <CardContent className="flex flex-1 flex-col">
-                  <ul className={`space-y-3 text-sm ${featured ? "text-white/85" : "text-hajr-body"}`}>
-                    <PackageFeature featured={featured}>
-                      <span className="num font-semibold">{pk.sessions}</span>&nbsp;
-                      {t("Landing.packageFeatureSessions")}
-                    </PackageFeature>
-                    {pk.lab && <PackageFeature featured={featured}>{t("Landing.packageFeatureLab")}</PackageFeature>}
-                    <PackageFeature featured={featured}>{t("Landing.packageFeatureReports")}</PackageFeature>
-                    {featured && <PackageFeature featured={featured}>{t("Landing.packageFeatureSupport")}</PackageFeature>}
-                  </ul>
-                  <Button
-                    asChild
-                    variant={featured ? "success" : "default"}
-                    className={featured ? "mt-7 w-full bg-white text-hajr-deep-navy hover:bg-white/90" : "mt-7 w-full"}
-                  >
-                    <Link href={`/checkout?package=${pk.code}`}>{t("Landing.ctaChoosePlan")}</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-        <p className="mt-6 text-center text-xs text-hajr-muted">{t("Landing.packagesVatNote")}</p>
-      </section>
-
-      {/* ── Trust / guarantee ─────────────────────────────── */}
-      <section className="bg-white py-20 sm:py-24">
-        <div className="container">
-          <div className="mx-auto mb-14 max-w-2xl text-center">
-            <SectionEyebrow center>{t("Landing.trustTitle")}</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.trustTitle")}</h2>
-            <p className="mt-3 text-hajr-muted">{t("Landing.trustSubtitle")}</p>
-          </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {trust.map((tr) => {
-              const Icon = tr.icon;
-              return (
-                <Card key={tr.title} className="p-6 text-center">
-                  <div className="icon-chip mx-auto mb-4 h-12 w-12">
-                    <Icon className="h-6 w-6" />
-                  </div>
-                  <h3 className="text-base font-semibold text-hajr-deep-navy">{tr.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{tr.desc}</p>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ──────────────────────────────────── */}
-      <section className="container py-20 sm:py-24">
-        <div className="mx-auto mb-3 flex justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-hajr-border bg-white px-3 py-1 text-xs font-medium text-hajr-deep-navy shadow-card">
-            <VerifyIcon className="h-3.5 w-3.5" />
-            {t("Landing.trustBadge")}
-          </span>
-        </div>
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.testimonialsTitle")}</h2>
-          <p className="mt-3 text-hajr-muted">{t("Landing.testimonialsSubtitle")}</p>
-        </div>
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {testimonials.map((tm, i) => (
-            <Card key={tm.name + i} className="flex flex-col p-6">
-              <div className="mb-3 flex items-center gap-0.5">
-                {Array.from({ length: tm.stars }).map((_, j) => (
-                  <Star key={j} className="h-4 w-4 fill-hajr-rose text-hajr-rose" />
-                ))}
-              </div>
-              <Quote className="h-7 w-7 text-hajr-border" />
-              <p className="mt-3 flex-1 leading-relaxed text-hajr-body">&ldquo;{tm.quote}&rdquo;</p>
-              <div className="mt-5 flex items-center gap-3 border-t border-hajr-border pt-4">
-                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-hajr-deep-navy text-sm font-semibold text-white shadow-sm">
-                  {tm.name.charAt(0)}
-                </span>
-                <div>
-                  <div className="text-sm font-semibold text-hajr-deep-navy">{tm.name}</div>
-                  <div className="text-xs text-hajr-muted">{tm.role}</div>
                 </div>
+              ))}
+            </div>
+            <Button asChild className="mt-6 w-full bg-white text-hajr-deep-navy hover:bg-white/90">
+              <a href={waPlan(t("Landing.coreTitle"))} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
+            </Button>
+          </div>
+
+          {/* Two course cards */}
+          {courses.map((c, i) => (
+            <Card key={c.title} className={`flex flex-col p-7 text-center ${i === 0 ? "lg:order-2" : "lg:order-1"}`}>
+              <h3 className="text-lg font-semibold text-hajr-deep-navy">{c.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-hajr-muted">{c.desc}</p>
+              <div className="mt-6 flex items-baseline justify-center gap-1.5">
+                <span className="num text-5xl font-semibold text-hajr-deep-navy">{c.price}</span>
               </div>
+              <div className="text-sm text-hajr-muted">{t("Landing.unitPerCourse")}</div>
+              <Button asChild variant="default" className="mt-7 w-full">
+                <a href={waPlan(c.title)} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
+              </Button>
             </Card>
+          ))}
+        </div>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          {priceChips.map((c) => (
+            <span key={c} className="inline-flex items-center gap-1.5 rounded-full border border-hajr-border bg-white px-4 py-2 text-xs font-medium text-hajr-body">
+              <Check className="h-3.5 w-3.5 text-hajr-rose" />{c}
+            </span>
           ))}
         </div>
       </section>
 
-      {/* ── FAQ ───────────────────────────────────────────── */}
+      {/* ── Summer intensive (profile p.8) ────────────────── */}
       <section className="bg-white py-20 sm:py-24">
         <div className="container">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <SectionEyebrow center>{t("Landing.faqTitle")}</SectionEyebrow>
-            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.faqTitle")}</h2>
-            <p className="mt-3 text-hajr-muted">{t("Landing.faqSubtitle")}</p>
+          <div className="mx-auto mb-14 max-w-2xl text-center">
+            <SectionEyebrow center>{t("Landing.summerEyebrow")}</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.summerTitle")}</h2>
+            <p className="mt-3 text-hajr-muted">{t("Landing.summerSubtitle")}</p>
           </div>
-          <div className="mx-auto max-w-3xl divide-y divide-hajr-border overflow-hidden rounded-card border border-hajr-border bg-white">
-            {faqs.map((f, i) => (
-              <details key={i} className="group px-6">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-start [&::-webkit-details-marker]:hidden">
-                  <span className="text-base font-semibold text-hajr-deep-navy">{f.q}</span>
-                  <ChevronDown className="h-5 w-5 shrink-0 text-hajr-muted transition-transform duration-200 group-open:rotate-180" />
-                </summary>
-                <p className="pb-5 leading-relaxed text-hajr-body">{f.a}</p>
-              </details>
+          <div className="grid gap-6 lg:grid-cols-3 lg:items-start">
+            {summerTracks.map((tr) => (
+              <div
+                key={tr.title}
+                className={`relative flex flex-col rounded-card border p-6 ${tr.featured ? "border-hajr-rose/50 bg-hajr-ivory/60 shadow-card-hover" : "border-hajr-border bg-white shadow-card"}`}
+              >
+                {tr.badge && (
+                  <div className="absolute -top-3 start-1/2 -translate-x-1/2 rtl:translate-x-1/2">
+                    <span className="inline-flex items-center rounded-full bg-hajr-rose px-3 py-1 text-xs font-semibold text-white shadow-sm">
+                      <Star className="me-1 h-3 w-3 fill-current" />{tr.badge}
+                    </span>
+                  </div>
+                )}
+                <div className="pt-3 text-center">
+                  <h3 className="text-lg font-semibold text-hajr-deep-navy">{tr.title}</h3>
+                  <p className="mt-1 text-xs text-hajr-muted">{tr.dur}</p>
+                </div>
+                <div className="mt-5 space-y-2.5">
+                  {tr.tiers.map((ti) => (
+                    <div key={ti.tier} className={`flex items-center justify-between gap-3 rounded-xl border p-3.5 ${ti.star ? "border-hajr-rose/40 bg-white" : "border-hajr-border bg-white"}`}>
+                      <div>
+                        <div className="flex items-center gap-1.5 text-sm font-semibold text-hajr-deep-navy">
+                          {ti.tier}{ti.star && <Star className="h-3 w-3 fill-hajr-rose text-hajr-rose" />}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-hajr-muted">{ti.freq}</div>
+                      </div>
+                      <div className="text-end">
+                        <div className="num text-base font-semibold text-hajr-deep-navy">{ti.per} <span className="text-[10px] font-normal text-hajr-muted">{t("Landing.unitPerLesson")}</span></div>
+                        <div className="text-[11px] text-hajr-muted"><span className="num">{ti.month}</span> {t("Landing.unitMonthly")}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <Button asChild variant={tr.featured ? "cta" : "default"} className="mt-6 w-full">
+                  <a href={waPlan(tr.title)} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
+                </Button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            {summerChips.map((c) => (
+              <span key={c} className="inline-flex items-center gap-1.5 rounded-full border border-hajr-border bg-hajr-ivory/60 px-4 py-2 text-xs font-medium text-hajr-body">
+                <Check className="h-3.5 w-3.5 text-hajr-rose" />{c}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── Contact ───────────────────────────────────────── */}
-      <section id="contact" className="container py-20 sm:py-24">
-        <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-start">
-          <div>
-            <h2 className="text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.contactTitle")}</h2>
-            <p className="mt-3 leading-relaxed text-hajr-muted">{t("Landing.contactSubtitle")}</p>
-            <div className="mt-8 space-y-4">
-              <ContactRow icon={Mail} label={t("Landing.contactEmailLabel")} value="hello@hajracademy.com" />
-              <ContactRow icon={Phone} label={t("Landing.contactPhoneLabel")} value="+966 11 000 0000" />
-              <ContactRow icon={MapPin} label={t("Landing.contactAddressLabel")} value={t("Landing.contactAddressValue")} />
-            </div>
-          </div>
-          <Card className="p-6 sm:p-8">
-            <ContactForm />
-          </Card>
+      {/* ── Trust ─────────────────────────────────────────── */}
+      <section className="container py-20 sm:py-24">
+        <div className="mx-auto mb-14 max-w-2xl text-center">
+          <SectionEyebrow center>{t("Landing.trustTitle")}</SectionEyebrow>
+          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.trustTitle")}</h2>
+          <p className="mt-3 text-hajr-muted">{t("Landing.trustSubtitle")}</p>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            { icon: BadgeCheck, title: t("Landing.trustCertTitle"), desc: t("Landing.trustCertDesc") },
+            { icon: Lock, title: t("Landing.trustSecureTitle"), desc: t("Landing.trustSecureDesc") },
+            { icon: ReceiptText, title: t("Landing.trustZatcaTitle"), desc: t("Landing.trustZatcaDesc") },
+            { icon: BarChart3, title: t("Landing.trustReportsTitle"), desc: t("Landing.trustReportsDesc") },
+          ].map((tr) => {
+            const Icon = tr.icon;
+            return (
+              <Card key={tr.title} className="p-6 text-center">
+                <div className="icon-chip mx-auto mb-4 h-12 w-12"><Icon className="h-6 w-6" /></div>
+                <h3 className="text-base font-semibold text-hajr-deep-navy">{tr.title}</h3>
+                <p className="mt-1.5 text-sm leading-relaxed text-hajr-muted">{tr.desc}</p>
+              </Card>
+            );
+          })}
         </div>
       </section>
 
-      {/* ── Final CTA banner — Deep Navy ──────────────────── */}
-      <section className="container pb-20">
+      {/* ── Testimonials ──────────────────────────────────── */}
+      <section className="bg-white py-20 sm:py-24">
+        <div className="container">
+          <div className="mx-auto mb-3 flex justify-center">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-hajr-border bg-white px-3 py-1 text-xs font-medium text-hajr-deep-navy shadow-card">
+              <VerifyIcon className="h-3.5 w-3.5" />{t("Landing.trustBadge")}
+            </span>
+          </div>
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h2 className="text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.testimonialsTitle")}</h2>
+            <p className="mt-3 text-hajr-muted">{t("Landing.testimonialsSubtitle")}</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {testimonials.map((tm, i) => (
+              <Card key={tm.name + i} className="flex flex-col p-6">
+                <div className="mb-3 flex items-center gap-0.5">
+                  {Array.from({ length: tm.stars }).map((_, j) => (
+                    <Star key={j} className="h-4 w-4 fill-hajr-rose text-hajr-rose" />
+                  ))}
+                </div>
+                <Quote className="h-7 w-7 text-hajr-border" />
+                <p className="mt-3 flex-1 leading-relaxed text-hajr-body">&ldquo;{tm.quote}&rdquo;</p>
+                <div className="mt-5 flex items-center gap-3 border-t border-hajr-border pt-4">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-hajr-deep-navy text-sm font-semibold text-white shadow-sm">{tm.name.charAt(0)}</span>
+                  <div>
+                    <div className="text-sm font-semibold text-hajr-deep-navy">{tm.name}</div>
+                    <div className="text-xs text-hajr-muted">{tm.role}</div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── FAQ ───────────────────────────────────────────── */}
+      <section className="container py-20 sm:py-24">
+        <div className="mx-auto mb-12 max-w-2xl text-center">
+          <SectionEyebrow center>{t("Landing.faqTitle")}</SectionEyebrow>
+          <h2 className="mt-3 text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.faqTitle")}</h2>
+          <p className="mt-3 text-hajr-muted">{t("Landing.faqSubtitle")}</p>
+        </div>
+        <div className="mx-auto max-w-3xl divide-y divide-hajr-border overflow-hidden rounded-card border border-hajr-border bg-white">
+          {faqs.map((f, i) => (
+            <details key={i} className="group px-6">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 text-start [&::-webkit-details-marker]:hidden">
+                <span className="text-base font-semibold text-hajr-deep-navy">{f.q}</span>
+                <ChevronDown className="h-5 w-5 shrink-0 text-hajr-muted transition-transform duration-200 group-open:rotate-180" />
+              </summary>
+              <p className="pb-5 leading-relaxed text-hajr-body">{f.a}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Contact ───────────────────────────────────────── */}
+      <section id="contact" className="bg-white py-20 sm:py-24">
+        <div className="container">
+          <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-start">
+            <div>
+              <h2 className="text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.contactTitle")}</h2>
+              <p className="mt-3 leading-relaxed text-hajr-muted">{t("Landing.contactSubtitle")}</p>
+              <div className="mt-8 space-y-4">
+                <a href={waTrial} target="_blank" rel="noopener noreferrer" className="block">
+                  <ContactRow icon={Phone} label={t("Landing.contactPhoneLabel")} value="+966 50 245 6651" />
+                </a>
+                <ContactRow icon={Mail} label={t("Landing.contactEmailLabel")} value="hello@hajracademy.com" />
+                <ContactRow icon={MapPin} label={t("Landing.contactAddressLabel")} value={t("Landing.contactAddressValue")} />
+              </div>
+            </div>
+            <Card className="p-6 sm:p-8">
+              <ContactForm />
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Final CTA — Deep Navy (profile p.10) ──────────── */}
+      <section className="container py-20">
         <div className="relative overflow-hidden rounded-card bg-hajr-deep-navy px-8 py-14 text-center shadow-card sm:px-16">
           <AoWatermark />
           <div className="relative">
-            <h2 className="mx-auto max-w-2xl text-3xl font-semibold text-white sm:text-4xl">
-              {t("Landing.ctaSectionTitle")}
-            </h2>
+            <h2 className="mx-auto max-w-2xl text-3xl font-semibold text-white sm:text-4xl">{t("Landing.ctaSectionTitle")}</h2>
             <p className="mx-auto mt-3 max-w-lg text-white/70">{t("Landing.ctaSectionSubtitle")}</p>
             <Button variant="cta" size="lg" asChild className="mt-8">
-              <Link href="/placement-test" className="gap-2">
-                {t("Landing.ctaPlacementFree")}
+              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+                {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
-              </Link>
+              </a>
             </Button>
           </div>
         </div>
@@ -582,15 +695,13 @@ export default async function LandingPage() {
           <div className="grid gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
             <div>
               <HajrLogo size="md" variant="full" light />
-              <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/55">
-                {t("Landing.footerTagline")}
-              </p>
+              <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/55">{t("Landing.footerTagline")}</p>
             </div>
             <FooterCol title={t("Landing.footerProductsTitle")}>
-              <FooterLink href="#programs">{t("Landing.svcStepTitle")}</FooterLink>
-              <FooterLink href="#programs">{t("Landing.svcIeltsTitle")}</FooterLink>
-              <FooterLink href="#programs">{t("Landing.svcUniTitle")}</FooterLink>
-              <FooterLink href="/placement-test">{t("Landing.howStep1Title")}</FooterLink>
+              <FooterLink href="#programs">{t("Landing.progTermTitle")}</FooterLink>
+              <FooterLink href="#programs">{t("Landing.progExamTitle")}</FooterLink>
+              <FooterLink href="#programs">{t("Landing.progPrivateTitle")}</FooterLink>
+              <FooterLink href="#packages">{t("Landing.navPricing")}</FooterLink>
             </FooterCol>
             <FooterCol title={t("Landing.socialConnect")}>
               <SocialIconRow />
@@ -603,7 +714,6 @@ export default async function LandingPage() {
             <FooterCol title={t("Landing.footerContactTitle")}>
               <FooterLink href="/contact">{t("Landing.contactTitle")}</FooterLink>
               <FooterLink href="/login">{t("Landing.ctaLogin")}</FooterLink>
-              <FooterLink href="/register">{t("Landing.ctaChoosePlan")}</FooterLink>
             </FooterCol>
           </div>
           <div className="mt-12 border-t border-white/10 pt-6 text-center text-sm text-white/45">
@@ -617,15 +727,12 @@ export default async function LandingPage() {
         message={isAr ? "السلام عليكم، أرغب في الاستفسار عن برامج أكاديمية هجر" : "Hello, I'd like to ask about Hajr Academy programs"}
       />
       <MobileStickyCta label={t("Landing.ctaStickyMobile")} />
-
       <ChatBubble />
     </div>
   );
 }
 
 /* ── Signature brand motifs ──────────────────────────────── */
-// Gateway Lines: a pair of thin vertical hairlines near the leading edge —
-// a subtle structural motif from the brand book.
 function GatewayLines() {
   return (
     <div aria-hidden className="pointer-events-none absolute inset-y-0 start-6 hidden sm:block">
@@ -635,39 +742,19 @@ function GatewayLines() {
   );
 }
 
-// A° Watermark: a large, faint degree-mark A° for quiet brand presence on
-// navy bands.
 function AoWatermark() {
   return (
-    <span
-      aria-hidden
-      dir="ltr"
-      className="pointer-events-none absolute -bottom-10 end-6 select-none font-en text-[12rem] font-light leading-none text-white/[0.04] sm:text-[16rem]"
-    >
+    <span aria-hidden dir="ltr" className="pointer-events-none absolute -bottom-10 end-6 select-none font-en text-[12rem] font-light leading-none text-white/[0.04] sm:text-[16rem]">
       A°
     </span>
   );
 }
 
 /* ── small presentational helpers ───────────────────────── */
-function SectionEyebrow({
-  children,
-  center,
-  light,
-}: {
-  children: React.ReactNode;
-  center?: boolean;
-  light?: boolean;
-}) {
+function SectionEyebrow({ children, center, light }: { children: React.ReactNode; center?: boolean; light?: boolean }) {
   return (
     <div className={center ? "flex justify-center" : ""}>
-      <span
-        className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${
-          light
-            ? "border-white/20 bg-white/5 text-hajr-mint"
-            : "border-hajr-border bg-white text-hajr-rose"
-        }`}
-      >
+      <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-wider ${light ? "border-white/20 bg-white/5 text-hajr-mint" : "border-hajr-border bg-white text-hajr-rose"}`}>
         {children}
       </span>
     </div>
@@ -683,30 +770,13 @@ function FeatureChip({ icon: Icon, label }: { icon: any; label: string }) {
   );
 }
 
-function PackageFeature({ children, featured }: { children: React.ReactNode; featured?: boolean }) {
-  return (
-    <li className="flex items-start gap-2">
-      <span
-        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full ${
-          featured ? "bg-hajr-mint" : "bg-hajr-mint"
-        }`}
-      >
-        <Check className="h-3 w-3 text-hajr-deep-navy" />
-      </span>
-      <span>{children}</span>
-    </li>
-  );
-}
-
 function ContactRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="icon-chip shrink-0">
-        <Icon className="h-5 w-5" />
-      </span>
+      <span className="icon-chip shrink-0"><Icon className="h-5 w-5" /></span>
       <div>
         <div className="text-xs font-medium uppercase tracking-wide text-hajr-light">{label}</div>
-        <div className="text-sm font-semibold text-hajr-deep-navy">{value}</div>
+        <div className="num text-sm font-semibold text-hajr-deep-navy" dir="ltr">{value}</div>
       </div>
     </div>
   );
@@ -726,18 +796,11 @@ function FooterLink({ href, children }: { href: string; children: React.ReactNod
   const isInternalPath = href.startsWith("/");
   return (
     <li>
-      {isInternalPath ? (
-        <Link href={href} className={cls}>{children}</Link>
-      ) : (
-        <a href={href} className={cls}>{children}</a>
-      )}
+      {isInternalPath ? <Link href={href} className={cls}>{children}</Link> : <a href={href} className={cls}>{children}</a>}
     </li>
   );
 }
 
-// Social handles the academy is active on. Add a `href` to make an icon a real
-// link; entries without one render as non-interactive placeholders (never dead
-// "#" links). Owner can fill these in as accounts go live.
 const SOCIAL_LINKS: { Icon: any; label: string; href?: string }[] = [
   { Icon: Twitter, label: "Twitter / X" },
   { Icon: Instagram, label: "Instagram" },
@@ -752,15 +815,7 @@ function SocialIconRow() {
   return (
     <li className="!mt-0 flex gap-2">
       {live.map(({ Icon, label, href }) => (
-        <a
-          key={label}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label={label}
-          title={label}
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-white/70 transition-colors hover:bg-white/15 hover:text-white"
-        >
+        <a key={label} href={href} target="_blank" rel="noopener noreferrer" aria-label={label} title={label} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/15 bg-white/[0.06] text-white/70 transition-colors hover:bg-white/15 hover:text-white">
           <Icon className="h-4 w-4" />
         </a>
       ))}

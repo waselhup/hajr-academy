@@ -28,7 +28,9 @@ export const BRAND = {
   site: "https://hajracademy.com",
   contact: {
     email: "hello@hajracademy.com",
-    phone: "+966 11 000 0000",
+    phone: "+966 50 245 6651",
+    // Digits only, international format — for building wa.me / tel: links.
+    whatsapp: "966502456651",
     city:  "Al Ahsa, Saudi Arabia",
     cityAr: "الأحساء، المملكة العربية السعودية",
   },
