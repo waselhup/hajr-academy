@@ -19,13 +19,22 @@ export const dynamic = "force-dynamic";
  */
 export default async function ParentFinancePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams?: Promise<{ invoice?: string; reason?: string; pending?: string }>;
 }) {
   const { locale } = await params;
+  const sp = (await searchParams) ?? {};
   const session = await requireRole("PARENT");
   const t = await getTranslations("ParentPortal");
+  const tBilling = await getTranslations("Billing");
   const isAr = locale === "ar";
+
+  // Payment-callback outcome (set by /api/payments/callback).
+  const paymentPending = sp.pending === "1";
+  const paymentFailed = !paymentPending && !!sp.reason;
+  const paymentSucceeded = !paymentFailed && !paymentPending && !!sp.invoice;
 
   let invoices: {
     id: string;
@@ -82,6 +91,29 @@ export default async function ParentFinancePage({
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">{t("finance")}</h1>
+
+      {paymentSucceeded && (
+        <div className="rounded-lg border border-hajr-mint bg-hajr-mint/15 p-4 text-sm">
+          <span className="font-semibold">{tBilling("paymentSuccess")}</span>{" "}
+          {tBilling("paymentSuccessMsg")}
+        </div>
+      )}
+      {paymentPending && (
+        <div className="rounded-lg border border-hajr-mint bg-hajr-mint/15 p-4 text-sm">
+          <span className="font-semibold">
+            {isAr ? "جارٍ تأكيد عملية الدفع" : "Confirming your payment"}
+          </span>{" "}
+          {isAr
+            ? "استلمنا العملية ولم يكتمل التأكيد بعد. لا تدفع مرة أخرى — ستتحدث الفاتورة تلقائياً خلال دقائق."
+            : "We received it and are still confirming. Please do not pay again — the invoice updates automatically within a few minutes."}
+        </div>
+      )}
+      {paymentFailed && (
+        <div className="rounded-lg border border-hajr-error/30 bg-hajr-error/10 p-4 text-sm">
+          <span className="font-semibold">{tBilling("paymentFailed")}</span>{" "}
+          {tBilling("paymentFailedMsg")}
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-0">

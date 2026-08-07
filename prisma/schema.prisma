@@ -1046,8 +1046,8 @@ model Payment {
   amount   Decimal @db.Decimal(10, 2)
   currency String  @default("SAR")
 
-  // Moyasar
-  moyasarPaymentId String?
+  // Moyasar (unique so a callback/webhook race can't double-record)
+  moyasarPaymentId String? @unique
   moyasarSource    Json?
 
   status PayStatus @default(INITIATED)
@@ -1068,7 +1068,6 @@ model Payment {
   createdAt DateTime @default(now())
 
   @@index([invoiceId])
-  @@index([moyasarPaymentId])
 }
 
 /// PromoCode — discount coupons applicable to subscriptions.

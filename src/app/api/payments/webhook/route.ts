@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyMoyasarWebhook } from "@/lib/finance/moyasar";
-import { reconcileByMoyasarId } from "@/lib/finance/payments";
+import { adoptMoyasarPayment } from "@/lib/finance/payments";
 import { logAudit } from "@/lib/audit";
 
 export const dynamic = "force-dynamic";
@@ -40,8 +40,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, skipped: "no-payment-id" });
   }
 
+  // Moyasar also emits payout_* and balance_* events, whose `data.id` is a
+  // payout id, not a payment id. Feeding those to the payment reconciler
+  // would chase ids that can never resolve, so only payment events pass.
+  const eventType = payload.type ?? "";
+  if (eventType && !eventType.startsWith("payment_")) {
+    return NextResponse.json({ ok: true, skipped: eventType });
+  }
+
   try {
-    const res = await reconcileByMoyasarId(moyasarId);
+    // Adopt-or-reconcile: hosted-form payments have no local row yet if the
+    // user never returned through the callback (closed tab, dropped link).
+    const res = await adoptMoyasarPayment(moyasarId);
     await logAudit({
       action: "MOYASAR_WEBHOOK_PROCESSED",
       entity: "Payment",
@@ -49,8 +59,18 @@ export async function POST(req: NextRequest) {
         type: payload.type ?? "unknown",
         moyasarPaymentId: moyasarId,
         reconciled: res.ok,
+        transient: res.transient ?? false,
       },
     });
+    // Transient failure (gateway/DB unreachable): ask Moyasar to redeliver —
+    // a 200 would permanently consume the one delivery that is our only
+    // recovery path when the payer never returns through the callback.
+    if (!res.ok && res.transient) {
+      return NextResponse.json(
+        { ok: false, error: "Temporarily unable to verify — please retry." },
+        { status: 503 }
+      );
+    }
     return NextResponse.json({ ok: true, reconciled: res.ok });
   } catch (e) {
     console.error("[api/payments/webhook] failed:", e);

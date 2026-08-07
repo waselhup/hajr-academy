@@ -189,15 +189,12 @@ export async function markInvoicePaid(
     | "BANK_TRANSFER"
     | "CASH"
 ): Promise<{ ok: boolean; alreadyPaid?: boolean }> {
-  const inv = await prisma.invoice.findUnique({
-    where: { id: invoiceId },
-    select: { status: true },
-  });
-  if (!inv) return { ok: false };
-  if (inv.status === "PAID") return { ok: true, alreadyPaid: true };
-
-  await prisma.invoice.update({
-    where: { id: invoiceId },
+  // Atomic claim: only the caller whose UPDATE actually flips the row from
+  // not-PAID to PAID proceeds. Two concurrent settlements (the Moyasar
+  // callback and its webhook fire at the same instant) would otherwise both
+  // pass a read-then-write check and each advance the subscription period.
+  const claimed = await prisma.invoice.updateMany({
+    where: { id: invoiceId, status: { not: "PAID" } },
     data: {
       status: "PAID",
       invoiceStatus: "PAID",
@@ -205,6 +202,14 @@ export async function markInvoicePaid(
       paymentMethod: paymentMethod ?? "MOYASAR_CARD",
     },
   });
+  if (claimed.count === 0) {
+    const inv = await prisma.invoice.findUnique({
+      where: { id: invoiceId },
+      select: { status: true },
+    });
+    if (!inv) return { ok: false };
+    return { ok: true, alreadyPaid: true };
+  }
   await logAudit({
     action: "INVOICE_PAID",
     entity: "Invoice",

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { initiatePayment } from "@/lib/finance/payments";
+import { moyasar } from "@/lib/finance/moyasar";
 
 export const dynamic = "force-dynamic";
 
@@ -9,12 +10,21 @@ export const dynamic = "force-dynamic";
  * POST /api/payments/create — create a Moyasar payment for an invoice.
  *
  * Body: { invoiceId, source }. The caller must own the invoice (student)
- * or be an admin. In mock mode the payment resolves immediately as paid.
+ * or be an admin. In mock mode (development only) the payment resolves
+ * immediately as paid; on the live site card data never reaches this route
+ * — the hosted form charges the card and /api/payments/callback adopts it.
  */
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // The mock path marks invoices paid without any real charge. It exists for
+  // development only and must never be reachable on the live site, even for
+  // a moment during a half-finished configuration.
+  if (moyasar.isMockMode) {
+    console.warn("[api/payments/create] mock mode — development only");
   }
 
   try {

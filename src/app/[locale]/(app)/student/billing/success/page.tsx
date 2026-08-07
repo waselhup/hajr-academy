@@ -19,7 +19,7 @@ export default async function BillingSuccessPage({
   params: { locale: string };
   searchParams: { invoice?: string };
 }) {
-  await requireRole("STUDENT");
+  const session = await requireRole("STUDENT");
   const t = await getTranslations("Billing");
   const isAr = params.locale === "ar";
 
@@ -30,8 +30,13 @@ export default async function BillingSuccessPage({
   } | null = null;
 
   if (searchParams.invoice) {
-    const inv = await prisma.invoice.findUnique({
-      where: { id: searchParams.invoice },
+    // Scope to the signed-in student — the invoice id travels in a URL, so
+    // ownership must be enforced here rather than assumed.
+    const inv = await prisma.invoice.findFirst({
+      where: {
+        id: searchParams.invoice,
+        student: { userId: session.user.id },
+      },
       select: { invoiceNumber: true, totalSar: true, paidAt: true },
     });
     if (inv) {

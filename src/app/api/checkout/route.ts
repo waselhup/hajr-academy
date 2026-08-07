@@ -2,15 +2,20 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { gatewayMode } from "@/lib/finance/moyasar";
 import type { PackageType } from "@prisma/client";
 
 /**
  * POST /api/checkout — public landing-page purchase.
- * Customer submits student name + phone (required) + email (optional) + package.
- * Creates a PurchaseOrder. In mock payment mode (no MOYASAR_SECRET_KEY) the order
- * is marked PAID immediately so the flow is demoable end-to-end; when a real
- * Moyasar key is configured, swap the mock block for a real charge + callback.
- * Admins are notified to provision the student account.
+ *
+ * Customer submits student name + phone (required) + email (optional) +
+ * package. Creates a PENDING PurchaseOrder and returns it; the browser then
+ * goes to /checkout/pay/[orderId], where Moyasar's hosted form takes the
+ * actual payment. The order only becomes PAID when the gateway says so —
+ * see adoptPurchaseOrderPayment.
+ *
+ * Mock mode (localhost, no keys) still settles immediately so the flow stays
+ * demoable; on any deployed environment that path is unreachable.
  */
 
 // Server-authoritative package prices (SAR). Never trust a client-sent price.
@@ -51,8 +56,10 @@ export async function POST(req: Request) {
     const pkg = parsed.data.packageType as PackageType;
     const amountSar = PACKAGE_PRICE_SAR[pkg];
 
-    // Mock payment: succeed immediately when no real Moyasar key is configured.
-    const mockMode = !process.env.MOYASAR_SECRET_KEY;
+    // Only localhost-without-keys settles without a charge. Anywhere the
+    // gateway is live (or half-configured) the order stays PENDING until
+    // Moyasar confirms the payment.
+    const mockMode = gatewayMode() === "mock";
     const paymentStatus = mockMode ? ("PAID" as const) : ("PENDING" as const);
 
     const order = await prisma.purchaseOrder.create({
@@ -70,7 +77,9 @@ export async function POST(req: Request) {
       },
     });
 
-    // Notify all active admins to provision the student.
+    // Notify all active admins. When the order still has to be paid this is
+    // a lead, not a sale — the paid notification fires from the gateway
+    // settlement instead.
     const admins = await prisma.user.findMany({
       where: { role: { in: ["SUPER_ADMIN", "ADMIN"] }, isActive: true },
       select: { id: true },
@@ -80,10 +89,16 @@ export async function POST(req: Request) {
         data: admins.map((a) => ({
           userId: a.id,
           type: "PAYMENT_RECEIVED" as const,
-          title: `New purchase from ${parsed.data.studentName}`,
-          titleAr: `عملية شراء جديدة من ${parsed.data.studentName}`,
-          body: `Package: ${pkg}, Amount: ${amountSar} SAR, Phone: ${parsed.data.phone}`,
-          bodyAr: `الباقة: ${pkg}، المبلغ: ${amountSar} ر.س، الجوال: ${parsed.data.phone}`,
+          title:
+            paymentStatus === "PAID"
+              ? `New purchase from ${parsed.data.studentName}`
+              : `New checkout started by ${parsed.data.studentName}`,
+          titleAr:
+            paymentStatus === "PAID"
+              ? `عملية شراء جديدة من ${parsed.data.studentName}`
+              : `بدء عملية شراء من ${parsed.data.studentName}`,
+          body: `Package: ${pkg}, Amount: ${amountSar} SAR, Phone: ${parsed.data.phone} — payment ${paymentStatus}`,
+          bodyAr: `الباقة: ${pkg}، المبلغ: ${amountSar} ر.س، الجوال: ${parsed.data.phone} — حالة الدفع ${paymentStatus}`,
           actionUrl: "/admin/orders",
           actionLabel: "View order",
           actionLabelAr: "عرض الطلب",
@@ -105,6 +120,8 @@ export async function POST(req: Request) {
       success: true,
       orderId: order.id,
       paymentStatus,
+      /** false → the browser must go to /checkout/pay/[orderId] to pay. */
+      settled: paymentStatus === "PAID",
     });
   } catch (err) {
     console.error("[checkout] error:", err);

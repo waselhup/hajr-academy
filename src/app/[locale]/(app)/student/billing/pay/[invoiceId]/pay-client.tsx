@@ -20,10 +20,16 @@ interface InvoiceData {
 export function PayInvoiceClient({
   invoice,
   successPath,
+  failurePath,
+  gatewayMode,
 }: {
   invoice: InvoiceData;
   /** Path the user lands on once paid. Defaults to the student success page. */
   successPath?: string;
+  /** Path on failure. Defaults to the student billing failure page. */
+  failurePath?: string;
+  /** Server-derived gateway state — see MoyasarPaymentForm. */
+  gatewayMode: "live" | "mock" | "misconfigured";
 }) {
   const t = useTranslations("Billing");
   const locale = useLocale();
@@ -100,6 +106,8 @@ export function PayInvoiceClient({
             description={`HAJR Academy — ${invoice.invoiceNumber}`}
             invoiceId={invoice.id}
             successUrl={successPath ?? `/${locale}/student/billing/success`}
+            failureUrl={failurePath}
+            gatewayMode={gatewayMode}
           />
         </CardContent>
       </Card>

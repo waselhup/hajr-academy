@@ -16,6 +16,18 @@
 
 const MOYASAR_BASE = "https://api.moyasar.com/v1";
 
+/**
+ * Production = the live site. Mock mode is a development affordance and must
+ * never activate here: a missing key in production is a hard error, never a
+ * synthesised "paid" response.
+ */
+export function isProductionEnv(): boolean {
+  // ANY deployed environment counts — preview/branch deployments run against
+  // the same live database, so mock mode there would mint free PAID invoices
+  // just as surely as on the production domain. Mock is for localhost only.
+  return !!process.env.VERCEL || process.env.NODE_ENV === "production";
+}
+
 /** 250.00 SAR → 25000 halalas. */
 export function sarToHalalas(sar: number): number {
   return Math.round(sar * 100);
@@ -94,9 +106,27 @@ export class MoyasarClient {
     this.secretKey = secretKey ?? process.env.MOYASAR_SECRET_KEY ?? "";
   }
 
-  /** When true, no real API calls are made — responses are synthesised. */
+  /**
+   * When true, no real API calls are made — responses are synthesised.
+   * Never true in production: there, a missing key fails closed instead
+   * (see `notConfigured`), so nothing can be marked paid for free.
+   */
   get isMockMode(): boolean {
-    return !this.secretKey;
+    return !this.secretKey && !isProductionEnv();
+  }
+
+  /** Live site with no secret key — every call must fail, never synthesise. */
+  private get failClosed(): boolean {
+    return !this.secretKey && isProductionEnv();
+  }
+
+  private notConfigured<T>(): MoyasarResult<T> {
+    console.error("[moyasar] MOYASAR_SECRET_KEY missing in production");
+    return {
+      ok: false,
+      error: "Payment gateway is not configured.",
+      mock: false,
+    };
   }
 
   private get headers(): Record<string, string> {
@@ -148,6 +178,7 @@ export class MoyasarClient {
   async createPayment(
     params: CreatePaymentParams
   ): Promise<MoyasarResult<MoyasarPayment>> {
+    if (this.failClosed) return this.notConfigured<MoyasarPayment>();
     if (this.isMockMode) {
       const data = this.mockPayment(params);
       console.log("[moyasar:mock] createPayment", {
@@ -191,7 +222,11 @@ export class MoyasarClient {
 
   /** Fetch a payment's current status. */
   async getPayment(paymentId: string): Promise<MoyasarResult<MoyasarPayment>> {
-    if (this.isMockMode || paymentId.startsWith("mock_")) {
+    if (this.failClosed) return this.notConfigured<MoyasarPayment>();
+    // The `mock_` shortcut is honoured only while actually in mock mode —
+    // with a live key a `mock_…` id (every pre-launch row has one) must not
+    // resolve to a synthetic "paid" payment.
+    if (this.isMockMode || (!this.secretKey && paymentId.startsWith("mock_"))) {
       const data = this.mockPayment({ id: paymentId, status: "paid" });
       console.log("[moyasar:mock] getPayment", paymentId);
       return { ok: true, data, mock: true };
@@ -228,7 +263,8 @@ export class MoyasarClient {
     paymentId: string,
     amount?: number
   ): Promise<MoyasarResult<MoyasarPayment>> {
-    if (this.isMockMode || paymentId.startsWith("mock_")) {
+    if (this.failClosed) return this.notConfigured<MoyasarPayment>();
+    if (this.isMockMode || (!this.secretKey && paymentId.startsWith("mock_"))) {
       const base = this.mockPayment({ id: paymentId, status: "refunded" });
       const refunded = amount ?? base.amount;
       console.log("[moyasar:mock] refundPayment", { paymentId, amount: refunded });
@@ -274,6 +310,9 @@ export class MoyasarClient {
     created_after?: string;
     created_before?: string;
   }): Promise<MoyasarResult<{ payments: MoyasarPayment[]; meta: unknown }>> {
+    if (this.failClosed) {
+      return this.notConfigured<{ payments: MoyasarPayment[]; meta: unknown }>();
+    }
     if (this.isMockMode) {
       console.log("[moyasar:mock] listPayments", params);
       return { ok: true, data: { payments: [], meta: { mock: true } }, mock: true };
@@ -315,14 +354,19 @@ export class MoyasarClient {
  * Verify a Moyasar webhook against the configured shared secret.
  *
  * Moyasar webhooks carry a `secret_token` field in the JSON body that must
- * equal `MOYASAR_WEBHOOK_SECRET`. When no secret is configured (mock mode)
- * verification is skipped so local testing works.
+ * equal `MOYASAR_WEBHOOK_SECRET`. Locally (no secret configured) the check
+ * is skipped so the flow can be exercised; in production it fails CLOSED —
+ * the webhook mutates invoice state, so an unauthenticated caller must
+ * never reach it.
  */
 export function verifyMoyasarWebhook(payload: {
   secret_token?: string;
 }): { valid: boolean; reason?: string } {
   const expected = process.env.MOYASAR_WEBHOOK_SECRET ?? "";
   if (!expected) {
+    if (isProductionEnv()) {
+      return { valid: false, reason: "webhook-secret-not-configured" };
+    }
     return { valid: true, reason: "no-secret-configured" };
   }
   if (payload.secret_token && payload.secret_token === expected) {
@@ -331,17 +375,28 @@ export function verifyMoyasarWebhook(payload: {
   return { valid: false, reason: "secret-token-mismatch" };
 }
 
-/** Map a Moyasar payment status to our Prisma `PayStatus`. */
+/**
+ * Map a Moyasar payment status to our Prisma `PayStatus`.
+ *
+ * `authorized` is deliberately NOT paid: it is an authorisation hold with
+ * no funds captured, and it expires. Only a captured/paid payment settles
+ * an invoice.
+ */
 export function mapMoyasarStatus(
   status: MoyasarPaymentStatus,
   refunded: number,
   amount: number
 ): "INITIATED" | "PAID" | "FAILED" | "REFUNDED" | "PARTIALLY_REFUNDED" {
-  if (status === "refunded") return "REFUNDED";
-  if (refunded > 0 && refunded < amount) return "PARTIALLY_REFUNDED";
-  if (status === "paid" || status === "captured" || status === "authorized") {
-    return "PAID";
+  const settled = status === "paid" || status === "captured";
+  if (status === "refunded" || (settled && refunded >= amount && amount > 0)) {
+    return "REFUNDED";
   }
+  // A partial refund only makes sense on top of a settled payment — check it
+  // AFTER settlement so a paid-then-partially-refunded charge is still
+  // recognised as having settled its invoice.
+  if (settled && refunded > 0 && refunded < amount) return "PARTIALLY_REFUNDED";
+  if (settled) return "PAID";
+  if (refunded > 0 && refunded < amount) return "PARTIALLY_REFUNDED";
   if (status === "failed" || status === "voided") return "FAILED";
   return "INITIATED";
 }
@@ -360,3 +415,29 @@ export function extractCardInfo(source: MoyasarSource): {
 
 /** Singleton client bound to the process environment. */
 export const moyasar = new MoyasarClient();
+
+/**
+ * What the SERVER can actually do with payments right now — computed on the
+ * server and handed to the payment form, because the publishable key alone
+ * cannot tell the browser whether the server will be able to verify the
+ * charge it is about to make.
+ *
+ *   live          both halves configured — take real payments
+ *   mock          development, neither half configured — simulate
+ *   misconfigured the halves disagree — refuse to take money
+ */
+export function gatewayMode(): "live" | "mock" | "misconfigured" {
+  const secret = process.env.MOYASAR_SECRET_KEY ?? "";
+  const publishable = process.env.NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY ?? "";
+  if (secret && publishable) {
+    // Both halves must belong to the SAME Moyasar environment: a live
+    // publishable key with a test secret would charge real cards and then
+    // fail every server-side verification.
+    const secretLive = secret.startsWith("sk_live_");
+    const publishableLive = publishable.startsWith("pk_live_");
+    if (secretLive !== publishableLive) return "misconfigured";
+    return "live";
+  }
+  if (!secret && !publishable && !isProductionEnv()) return "mock";
+  return "misconfigured";
+}

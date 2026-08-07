@@ -57,7 +57,13 @@ export function CheckoutForm({
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
-        router.push(`/${locale}/checkout/success?order=${data.orderId}`);
+        // Paid orders (mock mode only) go straight to the confirmation; a
+        // real order still has to be paid through Moyasar.
+        router.push(
+          data.settled
+            ? `/${locale}/checkout/success?order=${data.orderId}`
+            : `/${locale}/checkout/pay/${data.orderId}`
+        );
         return;
       }
       setStatus("error");

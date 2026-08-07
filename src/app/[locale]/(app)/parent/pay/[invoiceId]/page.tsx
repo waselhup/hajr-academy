@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import type { InvoiceLineItem } from "@/lib/finance/invoice-pdf";
+import { gatewayMode } from "@/lib/finance/moyasar";
 import { PayInvoiceClient } from "@/app/[locale]/(app)/student/billing/pay/[invoiceId]/pay-client";
 import { ParentRatingCard } from "@/components/ratings/parent-rating-card";
 
@@ -65,6 +66,8 @@ export default async function ParentPayInvoicePage({
           lineItems,
         }}
         successPath={`/${locale}/parent/finance`}
+        failurePath={`/${locale}/parent/finance`}
+        gatewayMode={gatewayMode()}
       />
     </div>
   );

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import type { InvoiceLineItem } from "@/lib/finance/invoice-pdf";
+import { gatewayMode } from "@/lib/finance/moyasar";
 import { PayInvoiceClient } from "./pay-client";
 
 export const dynamic = "force-dynamic";
@@ -53,6 +54,7 @@ export default async function PayInvoicePage({
           totalAmount: Number(invoice.totalSar),
           lineItems,
         }}
+        gatewayMode={gatewayMode()}
       />
     </div>
   );

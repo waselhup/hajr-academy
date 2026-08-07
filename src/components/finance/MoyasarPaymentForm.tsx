@@ -35,8 +35,18 @@ interface MoyasarPaymentFormProps {
   description: string;
   /** Our invoice id — round-tripped through metadata + callback. */
   invoiceId: string;
-  /** Success page the student lands on once the payment settles. */
+  /** Success page the payer lands on once the payment settles. */
   successUrl: string;
+  /** Failure page; defaults to the student billing failure page. */
+  failureUrl?: string;
+  /**
+   * Server's view of the gateway: `live` when MOYASAR_SECRET_KEY is set,
+   * `mock` in local development, `misconfigured` when the two halves of the
+   * configuration disagree. Passed from a server component because the
+   * publishable key alone cannot tell the client whether the SERVER can
+   * verify the resulting payment.
+   */
+  gatewayMode: "live" | "mock" | "misconfigured";
 }
 
 function loadScript(src: string): Promise<void> {
@@ -67,23 +77,34 @@ export function MoyasarPaymentForm({
   description,
   invoiceId,
   successUrl,
+  failureUrl,
+  gatewayMode,
 }: MoyasarPaymentFormProps) {
   const locale = useLocale();
   const isAr = locale === "ar";
   const containerRef = useRef<HTMLDivElement>(null);
   const initialised = useRef(false);
-  const [status, setStatus] = useState<"loading" | "ready" | "error" | "mock">(
-    "loading"
-  );
+  const [status, setStatus] = useState<
+    "loading" | "ready" | "error" | "mock" | "misconfigured"
+  >("loading");
   const [mockSubmitting, setMockSubmitting] = useState(false);
 
   const publishableKey = process.env.NEXT_PUBLIC_MOYASAR_PUBLISHABLE_KEY ?? "";
+  const applePayEnabled =
+    process.env.NEXT_PUBLIC_MOYASAR_APPLE_PAY === "1";
 
   useEffect(() => {
     if (initialised.current) return;
 
-    // No key → mock mode. Render our own button instead of the hosted form.
-    if (!publishableKey) {
+    // The server cannot verify what the browser would charge (or vice
+    // versa) — refuse to take money rather than strand a real payment.
+    if (gatewayMode === "misconfigured" || (gatewayMode === "live" && !publishableKey)) {
+      setStatus("misconfigured");
+      return;
+    }
+
+    // Development without keys → mock button instead of the hosted form.
+    if (gatewayMode === "mock") {
       setStatus("mock");
       return;
     }
@@ -98,7 +119,15 @@ export function MoyasarPaymentForm({
         }
         // Real Moyasar redirects to our server callback, which reconciles
         // the payment and then forwards to the success/failure page.
-        const apiCallback = `${window.location.origin}/api/payments/callback?locale=${locale}`;
+        const cb = new URL("/api/payments/callback", window.location.origin);
+        cb.searchParams.set("locale", locale);
+        cb.searchParams.set("success", successUrl);
+        if (failureUrl) cb.searchParams.set("failure", failureUrl);
+        const apiCallback = cb.toString();
+        // Apple Pay additionally requires Moyasar's domain-association file
+        // to be served from /.well-known on this domain and the domain to be
+        // registered in the Moyasar dashboard. Until that is done the sheet
+        // errors for every Safari user, so it stays behind a flag.
         window.Moyasar.init({
           element: ".moyasar-form",
           amount: amountHalalas,
@@ -106,20 +135,37 @@ export function MoyasarPaymentForm({
           description,
           publishable_api_key: publishableKey,
           callback_url: apiCallback,
-          methods: ["creditcard", "applepay", "stcpay"],
+          methods: applePayEnabled
+            ? ["creditcard", "applepay", "stcpay"]
+            : ["creditcard", "stcpay"],
           metadata: { invoice_id: invoiceId },
-          apple_pay: {
-            country: "SA",
-            label: "HAJR Academy",
-            validate_merchant_url:
-              "https://api.moyasar.com/v1/applepay/initiate",
-          },
+          ...(applePayEnabled
+            ? {
+                apple_pay: {
+                  country: "SA",
+                  label: "HAJR Academy",
+                  validate_merchant_url:
+                    "https://api.moyasar.com/v1/applepay/initiate",
+                },
+              }
+            : {}),
           language: isAr ? "ar" : "en",
         });
         setStatus("ready");
       })
       .catch(() => setStatus("error"));
-  }, [publishableKey, amountHalalas, description, invoiceId, locale, isAr]);
+  }, [
+    publishableKey,
+    amountHalalas,
+    description,
+    invoiceId,
+    locale,
+    isAr,
+    gatewayMode,
+    successUrl,
+    failureUrl,
+    applePayEnabled,
+  ]);
 
   /**
    * Mock-mode "pay" — creates + reconciles the payment server-side (the
@@ -134,19 +180,31 @@ export function MoyasarPaymentForm({
         body: JSON.stringify({ invoiceId, source: { type: "creditcard" } }),
       });
       const json = await res.json();
+      const failBase = failureUrl ?? `/${locale}/student/billing/failure`;
       if (json.ok) {
         window.location.href = `${successUrl}?invoice=${encodeURIComponent(
           invoiceId
         )}`;
       } else {
-        window.location.href = `/${locale}/student/billing/failure?reason=${encodeURIComponent(
+        window.location.href = `${failBase}?reason=${encodeURIComponent(
           json.error ?? "mock-failed"
         )}`;
       }
     } catch {
       setMockSubmitting(false);
-      window.location.href = `/${locale}/student/billing/failure?reason=network`;
+      const failBase = failureUrl ?? `/${locale}/student/billing/failure`;
+      window.location.href = `${failBase}?reason=network`;
     }
+  }
+
+  if (status === "misconfigured") {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        {isAr
+          ? "الدفع الإلكتروني غير متاح حالياً. يرجى التواصل مع الأكاديمية لإتمام السداد — لم يتم خصم أي مبلغ."
+          : "Online payment is temporarily unavailable. Please contact the academy to settle this invoice — nothing has been charged."}
+      </div>
+    );
   }
 
   if (status === "mock") {

@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import {
   moyasar,
   sarToHalalas,
+  halalasToSar,
   mapMoyasarStatus,
   extractCardInfo,
   type MoyasarPayment,
@@ -23,6 +24,7 @@ import {
 import { markInvoicePaid, setInvoiceStatus } from "./invoices";
 import { advanceSubscriptionPeriod } from "./subscriptions";
 import { logAudit } from "@/lib/audit";
+import { notifyAdmins } from "@/lib/notify";
 import {
   triggerPaymentReceived,
   triggerPaymentFailed,
@@ -153,9 +155,44 @@ export async function initiatePayment(params: {
 }
 
 /**
+ * Alert every admin about money that needs a human decision (a duplicate
+ * charge, or a real payment that arrived for an invoice we cannot settle).
+ */
+async function alertAdmins(params: {
+  title: string;
+  titleAr: string;
+  body: string;
+  bodyAr: string;
+  invoiceId: string;
+}): Promise<void> {
+  try {
+    await notifyAdmins({
+      type: "PAYMENT_RECEIVED",
+      title: params.title,
+      titleAr: params.titleAr,
+      body: params.body,
+      bodyAr: params.bodyAr,
+      channels: ["inApp", "email"],
+      priority: "URGENT",
+      refType: "Invoice",
+      refId: params.invoiceId,
+      actionUrl: `/admin/finance/invoices/${params.invoiceId}`,
+    });
+  } catch (e) {
+    console.error("[payments] admin alert failed:", e);
+  }
+}
+
+/**
  * Reconcile a local Payment from a fetched Moyasar payment object: update
  * the Payment + Invoice + Subscription, and fire Phase 7 notifications.
- * Idempotent — safe to call from the callback and the webhook.
+ * Idempotent — safe to call from the callback and the webhook, which race.
+ *
+ * This is the ONLY place an invoice is settled from a gateway payment, so
+ * every safety check lives here rather than at the call sites: the hosted
+ * form charges the card in the browser, so the amount, the currency and the
+ * target invoice are all attacker-controllable and must be re-verified
+ * against our own invoice on EVERY pass — not just on first adoption.
  */
 export async function reconcileFromMoyasarPayment(
   paymentId: string,
@@ -169,29 +206,117 @@ export async function reconcileFromMoyasarPayment(
 
   const localStatus = mapMoyasarStatus(mp.status, mp.refunded, mp.amount);
   const { cardBrand, cardLast4 } = extractCardInfo(mp.source);
-  const isPaid = localStatus === "PAID";
+  const gatewayPaid = localStatus === "PAID";
+  const wasPaid = payment.status === "PAID";
+  const wasFailed = payment.status === "FAILED";
+
+  // ── Settlement gate 1: the money must match this invoice exactly. ──
+  const expectedHalalas = sarToHalalas(Number(payment.invoice.totalSar));
+  const amountMatches =
+    mp.currency === "SAR" && mp.amount === expectedHalalas;
+
+  // ── Settlement gate 2: the invoice must still be payable. ──
+  const invoiceStatus = payment.invoice.status; // legacy PaymentStatus
+  const invoiceAlreadyPaid = invoiceStatus === "PAID";
+  const invoiceNotPayable =
+    invoiceStatus === "WAIVED" || invoiceStatus === "REFUNDED";
+
+  const maySettle = gatewayPaid && amountMatches && !invoiceNotPayable;
+
+  // Refund figures always come from the gateway (dashboard refunds included).
+  const refundedSar = halalasToSar(mp.refunded ?? 0);
+  const isRefundState =
+    localStatus === "REFUNDED" || localStatus === "PARTIALLY_REFUNDED";
 
   await prisma.payment.update({
     where: { id: paymentId },
     data: {
-      status: localStatus,
+      // A gateway-paid charge we refuse to settle is recorded as FAILED so
+      // it can never be mistaken for a settled payment.
+      status: gatewayPaid && !amountMatches ? "FAILED" : localStatus,
       cardBrand,
       cardLast4,
       moyasarSource: mp.source as never,
-      paidAt: isPaid ? new Date() : payment.paidAt,
-      failedAt: localStatus === "FAILED" ? new Date() : payment.failedAt,
-      failureMessage:
-        localStatus === "FAILED"
+      paidAt: maySettle ? payment.paidAt ?? new Date() : payment.paidAt,
+      failedAt:
+        localStatus === "FAILED" || (gatewayPaid && !amountMatches)
+          ? payment.failedAt ?? new Date()
+          : payment.failedAt,
+      failureMessage: !amountMatches && gatewayPaid
+        ? `Amount mismatch: expected ${expectedHalalas} halalas SAR, got ${mp.amount} ${mp.currency}`
+        : localStatus === "FAILED"
           ? (mp.source.message as string | undefined) ?? "Payment failed"
           : payment.failureMessage,
+      refundedAmount: isRefundState ? refundedSar : payment.refundedAmount,
+      refundedAt: isRefundState
+        ? payment.refundedAt ?? new Date()
+        : payment.refundedAt,
     },
   });
 
-  if (isPaid && payment.invoice.status !== "PAID") {
-    const method = sourceToPaymentMethod(mp.source.type, cardBrand);
-    await markInvoicePaid(payment.invoiceId, method);
+  // A real charge whose amount does not match the invoice: never settle,
+  // always escalate — this is either tampering or a pricing bug. Escalate
+  // once per payment, not once per delivery (the callback is replayable and
+  // Moyasar retries webhooks).
+  if (gatewayPaid && !amountMatches) {
+    if (wasFailed) return;
+    await logAudit({
+      action: "PAYMENT_AMOUNT_MISMATCH",
+      entity: "Payment",
+      entityId: paymentId,
+      metadata: {
+        invoiceId: payment.invoiceId,
+        moyasarPaymentId: mp.id,
+        expectedHalalas,
+        receivedHalalas: mp.amount,
+        currency: mp.currency,
+      },
+    });
+    await alertAdmins({
+      invoiceId: payment.invoiceId,
+      title: "Payment amount mismatch — not settled",
+      titleAr: "مبلغ الدفعة لا يطابق الفاتورة — لم تُسوَّ",
+      body: `Invoice ${payment.invoice.invoiceNumber}: expected ${halalasToSar(expectedHalalas).toFixed(2)} SAR, received ${halalasToSar(mp.amount).toFixed(2)} ${mp.currency} (Moyasar ${mp.id}). Review and refund.`,
+      bodyAr: `الفاتورة ${payment.invoice.invoiceNumber}: المتوقع ${halalasToSar(expectedHalalas).toFixed(2)} ر.س والمستلم ${halalasToSar(mp.amount).toFixed(2)} ${mp.currency} (ميسر ${mp.id}). يرجى المراجعة والاسترجاع.`,
+    });
+    return;
+  }
 
-    // Advance the subscription period, if this invoice belongs to one.
+  // A real, correctly-priced charge against an invoice we cannot settle
+  // (already paid → duplicate charge; waived/refunded → shouldn't be paid).
+  if (gatewayPaid && amountMatches && (invoiceAlreadyPaid || invoiceNotPayable)) {
+    // Only escalate when this specific payment is newly settled, so repeat
+    // callbacks/webhooks for the same charge don't spam.
+    if (!wasPaid) {
+      const dup = invoiceAlreadyPaid;
+      await logAudit({
+        action: dup ? "PAYMENT_DUPLICATE" : "PAYMENT_ON_UNPAYABLE_INVOICE",
+        entity: "Payment",
+        entityId: paymentId,
+        metadata: {
+          invoiceId: payment.invoiceId,
+          moyasarPaymentId: mp.id,
+          invoiceStatus,
+        },
+      });
+      await alertAdmins({
+        invoiceId: payment.invoiceId,
+        title: dup ? "Duplicate payment received" : "Payment on a non-payable invoice",
+        titleAr: dup ? "دفعة مكررة" : "دفعة على فاتورة غير قابلة للسداد",
+        body: `Invoice ${payment.invoice.invoiceNumber} is ${invoiceStatus}, but a payment of ${Number(payment.amount).toFixed(2)} SAR settled at Moyasar (${mp.id}). A refund is probably due.`,
+        bodyAr: `الفاتورة ${payment.invoice.invoiceNumber} حالتها ${invoiceStatus}، ومع ذلك تم تحصيل ${Number(payment.amount).toFixed(2)} ر.س عبر ميسر (${mp.id}). غالباً يلزم استرجاع المبلغ.`,
+      });
+    }
+    return;
+  }
+
+  if (maySettle) {
+    const method = sourceToPaymentMethod(mp.source.type, cardBrand);
+    // Atomic — only the winner of a callback/webhook race gets alreadyPaid
+    // false and therefore advances the period and sends the receipt once.
+    const settle = await markInvoicePaid(payment.invoiceId, method);
+    if (!settle.ok || settle.alreadyPaid) return;
+
     if (payment.invoice.subscriptionId) {
       await advanceSubscriptionPeriod(payment.invoice.subscriptionId);
     }
@@ -213,7 +338,30 @@ export async function reconcileFromMoyasarPayment(
     } catch (e) {
       console.error("[payments] triggerPaymentReceived failed:", e);
     }
-  } else if (localStatus === "FAILED") {
+    return;
+  }
+
+  // Refund arriving from the gateway (e.g. refunded in the Moyasar
+  // dashboard) — mirror it onto the invoice.
+  if (localStatus === "REFUNDED" && invoiceStatus !== "REFUNDED") {
+    await setInvoiceStatus(payment.invoiceId, "REFUNDED");
+    await logAudit({
+      action: "PAYMENT_REFUNDED",
+      entity: "Payment",
+      entityId: paymentId,
+      metadata: {
+        invoiceId: payment.invoiceId,
+        moyasarPaymentId: mp.id,
+        refundedAmount: refundedSar,
+        source: "gateway",
+      },
+    });
+    return;
+  }
+
+  // Failure notifications fire only on the transition into FAILED — the
+  // callback GET is user-replayable, and this trigger is URGENT email+SMS.
+  if (localStatus === "FAILED" && !wasFailed) {
     await logAudit({
       action: "PAYMENT_FAILED",
       entity: "Payment",
@@ -257,6 +405,302 @@ export async function reconcileByMoyasarId(
   });
   if (!payment) return { ok: false, error: "Unknown Moyasar payment." };
   return reconcilePayment(payment.id);
+}
+
+export interface AdoptResult {
+  ok: boolean;
+  error?: string;
+  paymentId?: string;
+  invoiceId?: string;
+  /** Local PayStatus after reconciliation. */
+  status?: string;
+  /**
+   * True when the outcome is unknown rather than negative — the gateway or
+   * the database could not be reached. The payer may well have been charged,
+   * so callers must show "verifying", not "failed", and the webhook must ask
+   * Moyasar to retry.
+   */
+  transient?: boolean;
+}
+
+/**
+ * Adopt a payment created outside our API — the Moyasar hosted form (MPF)
+ * charges the card client-side with the publishable key, so no local
+ * Payment row exists when the user lands on the callback. This fetches the
+ * payment from Moyasar (authoritative), matches it to our invoice via
+ * `metadata.invoice_id`, records it locally and reconciles.
+ *
+ * Idempotent: an already-adopted payment is just re-reconciled, so the
+ * callback and the webhook can race freely. Every safety decision (amount,
+ * currency, invoice payability, settlement) is made inside
+ * `reconcileFromMoyasarPayment`, which runs on every pass — this function
+ * deliberately holds no security logic of its own that a second delivery
+ * could skip.
+ */
+export async function adoptMoyasarPayment(
+  moyasarPaymentId: string
+): Promise<AdoptResult> {
+  const finish = async (paymentId: string): Promise<AdoptResult> => {
+    const fresh = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      select: { status: true, invoiceId: true },
+    });
+    return {
+      ok: true,
+      paymentId,
+      invoiceId: fresh?.invoiceId,
+      status: fresh?.status,
+    };
+  };
+
+  // Public landing-page purchase (no Invoice yet — the order is provisioned
+  // by an admin afterwards). Handled by its own settler.
+  const order = await prisma.purchaseOrder.findFirst({
+    where: { moyasarPaymentId },
+    select: { id: true },
+  });
+  if (order) return adoptPurchaseOrderPayment(moyasarPaymentId);
+
+  // Already known → plain reconcile (re-runs every gate).
+  const existing = await prisma.payment.findFirst({
+    where: { moyasarPaymentId },
+    select: { id: true, invoiceId: true },
+  });
+  if (existing) {
+    const re = await reconcilePayment(existing.id);
+    if (!re.ok) {
+      // Could not reach Moyasar — the local status is stale, so report the
+      // outcome as unknown rather than letting the caller call it a failure.
+      return {
+        ok: false,
+        transient: true,
+        error: re.error ?? "Could not verify payment.",
+        paymentId: existing.id,
+        invoiceId: existing.invoiceId,
+      };
+    }
+    return finish(existing.id);
+  }
+
+  // Fetch the authoritative payment object from Moyasar.
+  const res = await moyasar.getPayment(moyasarPaymentId);
+  if (!res.ok || !res.data) {
+    return {
+      ok: false,
+      transient: true,
+      error: res.error ?? "Could not fetch payment.",
+    };
+  }
+  const mp = res.data;
+
+  // A landing-page purchase carries an order id instead of an invoice id.
+  if (mp.metadata?.purchase_order_id) {
+    return adoptPurchaseOrderPayment(moyasarPaymentId, mp);
+  }
+
+  const invoiceId = mp.metadata?.invoice_id ?? "";
+  if (!invoiceId) {
+    // Real money at the gateway that we cannot attribute to anything —
+    // a human must reconcile it, so never fail silently.
+    await orphanPaymentAlert(mp, "no invoice reference in metadata");
+    return { ok: false, error: "Payment carries no invoice reference." };
+  }
+  const invoice = await prisma.invoice.findUnique({
+    where: { id: invoiceId },
+    select: { id: true, totalSar: true },
+  });
+  if (!invoice) {
+    await orphanPaymentAlert(mp, `invoice ${invoiceId} not found`);
+    return { ok: false, error: "Unknown invoice.", invoiceId };
+  }
+
+  // Record the payment against its invoice. The amount stored is what
+  // Moyasar actually charged (never the invoice total), so a mismatch stays
+  // visible in the ledger; reconciliation decides whether it may settle.
+  let paymentId: string;
+  try {
+    const created = await prisma.payment.create({
+      data: {
+        invoiceId: invoice.id,
+        amount: halalasToSar(mp.amount),
+        currency: mp.currency,
+        status: "INITIATED",
+        moyasarPaymentId,
+        moyasarSource: mp.source as never,
+      },
+    });
+    paymentId = created.id;
+  } catch {
+    // Unique-constraint race (webhook vs. callback): the other writer won —
+    // reuse its row.
+    const winner = await prisma.payment.findFirst({
+      where: { moyasarPaymentId },
+      select: { id: true },
+    });
+    if (!winner) {
+      return {
+        ok: false,
+        transient: true,
+        error: "Payment could not be recorded.",
+        invoiceId,
+      };
+    }
+    paymentId = winner.id;
+  }
+
+  await reconcileFromMoyasarPayment(paymentId, mp);
+  return finish(paymentId);
+}
+
+/**
+ * A settled charge we cannot attribute to an invoice or an order. The money
+ * is real, so this always reaches a human rather than being swallowed.
+ */
+async function orphanPaymentAlert(
+  mp: MoyasarPayment,
+  why: string
+): Promise<void> {
+  if (mapMoyasarStatus(mp.status, mp.refunded, mp.amount) !== "PAID") return;
+  await logAudit({
+    action: "PAYMENT_UNATTRIBUTED",
+    entity: "Payment",
+    metadata: {
+      moyasarPaymentId: mp.id,
+      amountHalalas: mp.amount,
+      currency: mp.currency,
+      reason: why,
+    },
+  });
+  try {
+    await notifyAdmins({
+      type: "PAYMENT_RECEIVED",
+      title: "Unattributed payment received",
+      titleAr: "دفعة غير مرتبطة بأي فاتورة",
+      body: `Moyasar ${mp.id} captured ${halalasToSar(mp.amount).toFixed(2)} ${mp.currency} but ${why}. Reconcile or refund it manually.`,
+      bodyAr: `تم تحصيل ${halalasToSar(mp.amount).toFixed(2)} ${mp.currency} عبر ميسر (${mp.id}) لكن ${why}. يرجى المطابقة أو الاسترجاع يدوياً.`,
+      channels: ["inApp", "email"],
+      priority: "URGENT",
+      refType: "Payment",
+      refId: mp.id,
+      actionUrl: "/admin/finance",
+    });
+  } catch (e) {
+    console.error("[payments] orphan alert failed:", e);
+  }
+}
+
+/**
+ * Settle a public landing-page purchase (PurchaseOrder) from a Moyasar
+ * payment. Same discipline as invoices: the gateway is authoritative, the
+ * amount is re-validated against our own server-side package price on every
+ * delivery, and settlement is an atomic conditional update so the callback
+ * and the webhook cannot both "first-settle" the same order.
+ */
+export async function adoptPurchaseOrderPayment(
+  moyasarPaymentId: string,
+  prefetched?: MoyasarPayment
+): Promise<AdoptResult> {
+  let mp = prefetched;
+  if (!mp) {
+    const res = await moyasar.getPayment(moyasarPaymentId);
+    if (!res.ok || !res.data) {
+      return {
+        ok: false,
+        transient: true,
+        error: res.error ?? "Could not fetch payment.",
+      };
+    }
+    mp = res.data;
+  }
+
+  const orderId = mp.metadata?.purchase_order_id ?? "";
+  if (!orderId) {
+    await orphanPaymentAlert(mp, "no order reference in metadata");
+    return { ok: false, error: "Payment carries no order reference." };
+  }
+  const order = await prisma.purchaseOrder.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      amountSar: true,
+      paymentStatus: true,
+      studentName: true,
+      phone: true,
+      packageType: true,
+    },
+  });
+  if (!order) {
+    await orphanPaymentAlert(mp, `order ${orderId} not found`);
+    return { ok: false, error: "Unknown order." };
+  }
+
+  const status = mapMoyasarStatus(mp.status, mp.refunded, mp.amount);
+  const expectedHalalas = sarToHalalas(Number(order.amountSar));
+  const amountMatches = mp.currency === "SAR" && mp.amount === expectedHalalas;
+
+  if (status !== "PAID") {
+    return {
+      ok: true,
+      invoiceId: order.id,
+      status: status === "FAILED" ? "FAILED" : "INITIATED",
+    };
+  }
+
+  if (!amountMatches) {
+    await logAudit({
+      action: "PAYMENT_AMOUNT_MISMATCH",
+      entity: "PurchaseOrder",
+      entityId: order.id,
+      metadata: {
+        moyasarPaymentId,
+        expectedHalalas,
+        receivedHalalas: mp.amount,
+        currency: mp.currency,
+      },
+    });
+    await orphanPaymentAlert(
+      mp,
+      `amount does not match order ${order.id} (expected ${expectedHalalas} halalas SAR)`
+    );
+    return { ok: false, error: "Payment amount mismatch.", invoiceId: order.id };
+  }
+
+  // Atomic settle — only the first delivery flips PENDING → PAID.
+  const claimed = await prisma.purchaseOrder.updateMany({
+    where: { id: order.id, paymentStatus: { not: "PAID" } },
+    data: {
+      paymentStatus: "PAID",
+      paidAt: new Date(),
+      moyasarPaymentId,
+    },
+  });
+
+  if (claimed.count > 0) {
+    await logAudit({
+      action: "PURCHASE_ORDER_PAID",
+      entity: "PurchaseOrder",
+      entityId: order.id,
+      metadata: { moyasarPaymentId, amountSar: Number(order.amountSar) },
+    });
+    try {
+      await notifyAdmins({
+        type: "PAYMENT_RECEIVED",
+        title: `Paid order — provision ${order.studentName}`,
+        titleAr: `طلب مدفوع — تجهيز حساب ${order.studentName}`,
+        body: `${order.studentName} (${order.phone}) paid ${Number(order.amountSar).toFixed(2)} SAR for ${order.packageType}. Create the student account.`,
+        bodyAr: `${order.studentName} (${order.phone}) دفع ${Number(order.amountSar).toFixed(2)} ر.س لباقة ${order.packageType}. يرجى إنشاء حساب الطالب.`,
+        channels: ["inApp", "email"],
+        priority: "HIGH",
+        refType: "PurchaseOrder",
+        refId: order.id,
+        actionUrl: "/admin/orders",
+      });
+    } catch (e) {
+      console.error("[payments] order-paid notify failed:", e);
+    }
+  }
+
+  return { ok: true, invoiceId: order.id, status: "PAID" };
 }
 
 export interface RefundResult {
