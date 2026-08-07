@@ -29,7 +29,10 @@ const checkoutSchema = z.object({
   phone: z
     .string()
     .regex(/^(\+966|05)\d{8,}$/, "Phone must start with 05 or +966"),
-  email: z.string().email().optional().or(z.literal("")),
+  // Required: it is the identity the buyer's account is created under and
+  // the address the "choose your password" link is sent to. Without it the
+  // purchase cannot be turned into a login.
+  email: z.string().email(),
   /** Catalogue slug — the only thing that determines the price. */
   product: z.string().min(1).max(80),
   promoCode: z.string().max(40).optional(),
@@ -97,7 +100,7 @@ export async function POST(req: Request) {
       data: {
         studentName: parsed.data.studentName,
         phone: parsed.data.phone,
-        email: parsed.data.email || null,
+        email: parsed.data.email.trim().toLowerCase(),
         packageType: (product.packageType as never) ?? "INTEGRATED",
         productSlug: product.slug,
         notes: parsed.data.notes || null,

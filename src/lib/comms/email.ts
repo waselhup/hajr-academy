@@ -2,10 +2,14 @@
  * Email sending via Resend.
  *
  * Server-side only — `RESEND_API_KEY` must never reach the client.
- * When the key is absent (local dev), the email is mock-sent: logged to
- * the console and reported as a success so the rest of the pipeline runs.
+ *
+ * Mock mode is a LOCAL affordance only. On the live site a missing key
+ * returns a failure instead of a fake success: silently "sending" password
+ * resets, receipts and login credentials that never arrive is far worse
+ * than a caller that can see the send failed and fall back.
  */
 import { Resend } from "resend";
+import { isProductionEnv } from "@/lib/finance/moyasar";
 
 const apiKey = process.env.RESEND_API_KEY;
 const DEFAULT_FROM =
@@ -63,8 +67,20 @@ async function withRetry<T>(
   return last as T;
 }
 
+/** True when real email can actually leave this deployment. */
+export function emailConfigured(): boolean {
+  return !!apiKey;
+}
+
 export async function sendEmail(params: SendEmailParams): Promise<SendResult> {
   if (!apiKey) {
+    if (isProductionEnv()) {
+      console.error("[email] RESEND_API_KEY missing in production — not sent", {
+        to: params.to,
+        subject: params.subject,
+      });
+      return { success: false, error: "Email is not configured." };
+    }
     console.log("[email mock]", {
       to: params.to,
       subject: params.subject,

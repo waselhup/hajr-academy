@@ -305,7 +305,7 @@ function adminChapters(lang: Lang): ManualChapter[] {
               <li>افتح <b>طلبات الشراء</b> واضغط <b>إنشاء طالب</b> على الطلب الجديد</li>
               <li>أكمل/أكّد البيانات: الاسم، <b>البريد الإلكتروني (إلزامي لإنشاء الدخول)</b>، الجنس، المستوى، المدرسة (اختياري)</li>
               <li>اختياري: عيّن الطالب في فصل مباشرةً (يتحقق النظام من السعة والجنس)</li>
-              <li>اضغط <b>إنشاء الحساب</b> — يُنشأ حساب الطالب بكلمة مرور افتراضية (<code>Hajr@2026</code>)، ويصله إشعار ترحيب، وتتحدّث حالة الطلب</li>
+              <li>اضغط <b>إنشاء الحساب</b> — يُنشأ حساب الطالب ويصله رابط لاختيار كلمة مروره بنفسه (لا توجد كلمة مرور افتراضية)، وتتحدّث حالة الطلب</li>
             </ol>
             <p>العميل يكون قد رأى صفحة ترحيب تخبره أن معلومات الدخول ستصله خلال ٢٤ ساعة وأن فريق هجر سيتواصل معه — فمهمتك إكمال التجهيز خلال هذه المدة.</p>`
             : `<p>When a customer buys a package on the landing page, a new order arrives in <b>Finance → Purchase Orders</b> (<code>/admin/orders</code>) and you get an instant notification. The order holds: student name, phone, email (if given), package, and amount, with payment status.</p>
@@ -314,7 +314,7 @@ function adminChapters(lang: Lang): ManualChapter[] {
               <li>Open <b>Purchase Orders</b> and click <b>Provision</b> on the new order</li>
               <li>Complete/confirm details: name, <b>email (required to create the login)</b>, gender, level, school (optional)</li>
               <li>Optionally assign the student to a class right away (the system checks capacity and gender)</li>
-              <li>Click <b>Create account</b> — a student account is created with the default password (<code>Hajr@2026</code>), a welcome notification is sent, and the order status advances</li>
+              <li>Click <b>Create account</b> — a student account is created and the student receives a link to choose their own password (there is no default password), and the order status advances</li>
             </ol>
             <p>The customer has already seen a welcome page telling them login details arrive within 24 hours and that the Hajr team will contact them — so your job is to finish provisioning within that window.</p>`,
           tip: ar

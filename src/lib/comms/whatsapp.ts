@@ -7,6 +7,7 @@
  *
  * Server-side only. Mock-sends to the console when keys are absent.
  */
+import { isProductionEnv } from "@/lib/finance/moyasar";
 import { normalizeSaudiPhone, sendSms } from "./sms";
 
 const appSid = process.env.UNIFONIC_APP_SID;
@@ -34,6 +35,10 @@ export async function sendWhatsapp(
   }
 
   if (!appSid) {
+    if (isProductionEnv()) {
+      console.error("[whatsapp] not configured in production — not sent");
+      return { success: false, error: "WhatsApp is not configured." };
+    }
     console.log("[whatsapp mock]", {
       to: phone,
       body: params.body.slice(0, 100),

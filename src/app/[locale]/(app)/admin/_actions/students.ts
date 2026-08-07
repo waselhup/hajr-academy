@@ -29,7 +29,7 @@ const createSchema = z.object({
   nameAr: z.string().optional().nullable(),
   email: z.string().email(),
   phone: z.string().min(8),
-  password: z.string().min(8).default("Hajr@2026"),
+  password: z.string().min(8).optional(),
   birthDate: PastBirthDate,
   gradeLevel: z.string().optional().nullable(),
   englishLevel: LevelEnum.default("BEGINNER"),
@@ -69,7 +69,11 @@ export async function createStudentAction(input: z.infer<typeof createSchema>): 
   const exists = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (exists) return { ok: false, error: "EMAIL_EXISTS" };
 
-  const passwordHash = await bcrypt.hash(parsed.data.password ?? "Hajr@2026", 10);
+  // An admin may set a password explicitly; otherwise the student receives
+  // an activation link and chooses their own. Never a shared default.
+  const passwordHash = parsed.data.password
+    ? await bcrypt.hash(parsed.data.password, 12)
+    : `nologin:${crypto.randomUUID()}`;
 
   try {
     const user = await prisma.user.create({
@@ -343,7 +347,7 @@ export async function bulkImportStudentsAction(input: z.infer<typeof importSchem
   const parsed = importSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: "VALIDATION" };
 
-  const passwordHash = await bcrypt.hash("Hajr@2026", 10);
+  const passwordHash = `nologin:${crypto.randomUUID()}`;
   let imported = 0;
   let failed = 0;
   const errors: string[] = [];

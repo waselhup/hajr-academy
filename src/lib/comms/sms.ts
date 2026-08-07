@@ -7,6 +7,8 @@
  * Unifonic SMS REST API: POST https://el.cloud.unifonic.com/rest/SMS/messages
  * (x-www-form-urlencoded). Saudi numbers are stored/sent as 9665XXXXXXXX.
  */
+import { isProductionEnv } from "@/lib/finance/moyasar";
+
 const appSid = process.env.UNIFONIC_APP_SID;
 const DEFAULT_SENDER = process.env.UNIFONIC_SENDER_ID ?? "Hajr";
 
@@ -71,6 +73,10 @@ export async function sendSms(params: SendSmsParams): Promise<SmsResult> {
   }
 
   if (!appSid) {
+    if (isProductionEnv()) {
+      console.error("[sms] UNIFONIC_APP_SID missing in production — not sent");
+      return { success: false, error: "SMS is not configured." };
+    }
     console.log("[sms mock]", {
       to: phone,
       body: params.body.slice(0, 100),

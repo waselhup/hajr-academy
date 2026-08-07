@@ -2631,6 +2631,13 @@ model PurchaseOrder {
   amountSar            Decimal            @db.Decimal(10, 2)
   /// Catalogue product bought (slug). Null for legacy orders.
   productSlug          String?
+  /// Single-use "choose your password" link handed to the buyer. Kept so an
+  /// admin can re-send it by WhatsApp when the welcome email did not land.
+  /// Cleared once the buyer sets their password.
+  setupUrl             String?
+  /// Set by whichever settlement delivery claims fulfilment first, so the
+  /// callback and the webhook cannot both provision the same purchase.
+  fulfilmentClaimedAt  DateTime?
   /// Price before any promo discount, and what the promo took off.
   listPriceSar         Decimal?           @db.Decimal(10, 2)
   discountSar          Decimal            @default(0) @db.Decimal(10, 2)
@@ -2725,6 +2732,12 @@ model PasswordResetToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
+
+  /// RESET = the user asked to reset a password they already have.
+  /// SETUP = the account was created for them (a purchase, an approval) and
+  /// this link is how they choose their first password. The wording of the
+  /// page and the email differ; the mechanism is identical.
+  purpose TokenPurpose @default(RESET)
 
   @@index([userId])
   @@index([expiresAt])
@@ -2852,4 +2865,52 @@ enum CatalogGroup {
   CORE
   COURSE
   SUMMER
+}
+
+enum TokenPurpose {
+  RESET
+  SETUP
+}
+
+/// A public application to become a Success Partner (charity, school or
+/// individual). Kept separate from PartnerSchool so an application can be
+/// reviewed and rejected without ever creating a partner record — the
+/// partner row is written only on approval.
+model PartnerApplication {
+  id           String      @id @default(uuid())
+  orgNameAr    String
+  orgNameEn    String?
+  partnerType  PartnerType @default(SCHOOL)
+  contactName  String
+  contactEmail String
+  contactPhone String
+  city         String
+  crNumber     String?
+  /// Roughly how many students they expect to sponsor or refer.
+  expectedStudents Int?
+  /// Free text: who they serve and why they want to partner.
+  about        String  @db.Text
+
+  status       PartnerApplicationStatus @default(PENDING)
+  reviewedBy   String?
+  reviewedAt   DateTime?
+  reviewNote   String?
+  /// Set on approval — the partner record this application became.
+  partnerSchoolId String?
+  /// Promo code minted for the partner on approval.
+  promoCode    String?
+  /// Activation link for the partner contact — persisted so an admin can
+  /// re-open the page and still hand it over.
+  setupUrl     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+enum PartnerApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }

@@ -1,7 +1,8 @@
 import { getTranslations } from "next-intl/server";
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
-import { getPackage, PACKAGE_LIST } from "@/lib/finance/packages";
+import { getPackage } from "@/lib/finance/packages";
+import { listActiveProducts } from "@/lib/finance/catalog";
 import { StudentBillingClient } from "./billing-client";
 
 export const dynamic = "force-dynamic";
@@ -29,21 +30,22 @@ export default async function StudentBillingPage() {
     ]);
   }
 
-  const packages = PACKAGE_LIST.map((p) => {
-    const vat = +(p.pricePerMonth * 0.15).toFixed(2);
-    return {
-      key: p.key,
-      nameAr: p.nameAr,
-      nameEn: p.nameEn,
-      pricePerMonth: p.pricePerMonth,
-      vatAmount: vat,
-      totalWithVat: +(p.pricePerMonth + vat).toFixed(2),
-      sessionsPerMonth: p.sessionsPerMonth,
-      featuresAr: p.featuresAr,
-      featuresEn: p.featuresEn,
-      labAccess: p.labAccess,
-    };
-  });
+  // Prices come from the same catalogue the public site sells from. The old
+  // in-code package table had drifted (IELTS 800 here vs 1,200 published), so
+  // a student buying from inside the app would have been charged a different
+  // price from one buying on the landing page.
+  const catalogue = await listActiveProducts();
+  const packages = catalogue.map((p) => ({
+    slug: p.slug,
+    nameAr: p.nameAr,
+    nameEn: p.nameEn,
+    price: p.priceSar,
+    unitAr: p.unitAr,
+    unitEn: p.unitEn,
+    descAr: p.descAr,
+    descEn: p.descEn,
+    group: p.group,
+  }));
 
   return (
     <div className="space-y-6">

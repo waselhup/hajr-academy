@@ -16,6 +16,7 @@ type Order = {
   email: string | null;
   packageType: string;
   productSlug?: string | null;
+  setupUrl?: string | null;
   promoCode?: string | null;
   discountSar?: string | null;
   notes: string | null;
@@ -132,14 +133,21 @@ export function OrdersClient({
                       </span>
                     </td>
                     <td className="px-3 py-3">
-                      {!done && !cancelled ? (
-                        <Button size="sm" variant="cta" onClick={() => setActive(o)}>
-                          <UserPlus className="me-1 h-3.5 w-3.5" />
-                          {isAr ? "إنشاء طالب" : "Provision"}
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-hajr-muted">—</span>
-                      )}
+                      {/* A paid order now provisions itself and stores the
+                          buyer's activation link. The admin's remaining job
+                          is to hand that link over if the email bounced. */}
+                      <div className="space-y-1.5">
+                        {o.setupUrl && <SetupLinkActions isAr={isAr} order={o} />}
+                        {!cancelled && !o.provisionedStudentId && (
+                          <Button size="sm" variant="cta" onClick={() => setActive(o)}>
+                            <UserPlus className="me-1 h-3.5 w-3.5" />
+                            {isAr ? "إنشاء طالب" : "Provision"}
+                          </Button>
+                        )}
+                        {!o.setupUrl && (cancelled || o.provisionedStudentId) && (
+                          <span className="text-xs text-hajr-muted">—</span>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -162,6 +170,50 @@ export function OrdersClient({
           }}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Hand the buyer their activation link. The welcome email is sent
+ * automatically, but email is the one channel we cannot guarantee — so the
+ * same link is always one click from WhatsApp.
+ */
+function SetupLinkActions({ isAr, order }: { isAr: boolean; order: Order }) {
+  const [copied, setCopied] = useState(false);
+  const url = order.setupUrl ?? "";
+
+  const waHref = (() => {
+    const digits = order.phone.replace(/\D/g, "");
+    const intl = digits.startsWith("966")
+      ? digits
+      : digits.startsWith("0")
+        ? `966${digits.slice(1)}`
+        : digits;
+    const msg = isAr
+      ? `أهلاً ${order.studentName}، حياك الله في أكاديمية هجر. فعّل حسابك واختر كلمة مرورك من هنا: ${url}`
+      : `Hello ${order.studentName}, welcome to HAJR Academy. Set your password here: ${url}`;
+    return `https://wa.me/${intl}?text=${encodeURIComponent(msg)}`;
+  })();
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <Button size="sm" variant="cta" asChild>
+        <a href={waHref} target="_blank" rel="noopener noreferrer">
+          {isAr ? "إرسال واتساب" : "Send on WhatsApp"}
+        </a>
+      </Button>
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          navigator.clipboard?.writeText(url);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }}
+      >
+        {copied ? (isAr ? "تم النسخ" : "Copied") : isAr ? "نسخ الرابط" : "Copy link"}
+      </Button>
     </div>
   );
 }
@@ -342,7 +394,9 @@ function ProvisionDialog({
             </Button>
           </div>
           <p className="text-center text-xs text-hajr-muted">
-            {isAr ? "كلمة المرور الافتراضية: Hajr@2026" : "Default password: Hajr@2026"}
+            {isAr
+              ? "سيصل الطالب رابط لاختيار كلمة مروره — لا توجد كلمة مرور افتراضية."
+              : "The student receives a link to choose their own password — there is no default password."}
           </p>
         </div>
       </div>

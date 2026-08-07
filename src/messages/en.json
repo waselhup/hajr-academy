@@ -286,7 +286,8 @@
     "applicantOverview": "Overview",
     "feedback": "Feedback",
     "teacherRequests": "Teacher requests",
-    "catalogProducts": "Products & pricing"
+    "catalogProducts": "Products & pricing",
+    "partnerApplications": "Partner applications"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",

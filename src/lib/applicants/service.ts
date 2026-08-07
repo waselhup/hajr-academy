@@ -324,7 +324,10 @@ export async function closeApplicant(args: {
 export async function convertToTeacher(args: {
   applicantId: string;
   adminUserId: string;
-}): Promise<{ ok: true; teacherProfileId: string } | { ok: false; error: string }> {
+}): Promise<
+  | { ok: true; teacherProfileId: string; whatsappUrl?: string }
+  | { ok: false; error: string }
+> {
   const applicant = await prisma.applicantProfile.findUnique({
     where: { id: args.applicantId },
     include: { user: { select: { id: true, role: true, name: true } } },
@@ -367,18 +370,23 @@ export async function convertToTeacher(args: {
     { applicantId: applicant.id, teacherProfileId: result.id }
   );
 
+  // Tell the new teacher what actually happens next, not just "welcome".
+  // The tech check gates their first class, so it belongs in the very first
+  // message rather than being discovered later.
   try {
     await notify({
       userId: applicant.user.id,
       type: "SYSTEM_ANNOUNCEMENT",
       title: "Welcome to the Hajr Academy teaching team!",
       titleAr: "أهلاً بك في فريق التدريس بأكاديمية هَجر!",
-      body: "Congratulations — your teacher account is now active. Sign in to access your teaching dashboard.",
-      bodyAr: "مبارك — تم تفعيل حساب المعلّم الخاص بك. سجّل الدخول للوصول إلى لوحة التدريس.",
+      body:
+        "Congratulations — your teacher account is now active. Your next step is the technical check (camera, microphone and connection); it must pass before your first class. Sign in and open Tech check.",
+      bodyAr:
+        "مبارك — تم تفعيل حساب المعلّم الخاص بك. خطوتك التالية هي الفحص التقني (الكاميرا والمايك والاتصال)، وهو شرط قبل أول حصة. سجّل الدخول وافتح صفحة الفحص التقني.",
       channels: ["inApp", "email"],
-      actionUrl: "/teacher",
-      actionLabel: "Open teacher dashboard",
-      actionLabelAr: "افتح لوحة المعلّم",
+      actionUrl: "/teacher/tech-check",
+      actionLabel: "Run the tech check",
+      actionLabelAr: "ابدأ الفحص التقني",
       priority: "HIGH",
       refType: "User",
       refId: applicant.user.id,
@@ -387,7 +395,30 @@ export async function convertToTeacher(args: {
     console.error("[applicants] convert notify failed (non-fatal):", e);
   }
 
-  return { ok: true, teacherProfileId: result.id };
+  // Email is the only channel that reaches someone who is not signed in, and
+  // it is the one we cannot guarantee. Hand the admin a WhatsApp fallback so
+  // an accepted teacher is never left waiting on a mail server.
+  let whatsappUrl: string | undefined;
+  try {
+    const { whatsappHandoverLink, appBaseUrl } = await import(
+      "@/lib/auth/account-setup"
+    );
+    const u = await prisma.user.findUnique({
+      where: { id: applicant.user.id },
+      select: { phone: true, name: true },
+    });
+    if (u?.phone) {
+      whatsappUrl = whatsappHandoverLink({
+        phone: u.phone,
+        name: u.name,
+        setupUrl: `${appBaseUrl()}/ar/login`,
+      });
+    }
+  } catch (e) {
+    console.error("[applicants] handover link failed (non-fatal):", e);
+  }
+
+  return { ok: true, teacherProfileId: result.id, whatsappUrl };
 }
 
 /**

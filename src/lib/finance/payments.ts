@@ -774,6 +774,16 @@ export async function adoptPurchaseOrderPayment(
       entityId: order.id,
       metadata: { moyasarPaymentId, amountSar: Number(order.amountSar) },
     });
+    // Turn the paid order into a usable account + a booked invoice. Best
+    // effort by design: the money is already settled, so nothing here may
+    // undo it — a failure escalates to an admin instead.
+    try {
+      const { fulfilPaidOrder } = await import("./order-fulfilment");
+      await fulfilPaidOrder(order.id);
+    } catch (e) {
+      console.error("[payments] order fulfilment failed:", e);
+    }
+
     try {
       await notifyAdmins({
         type: "PAYMENT_RECEIVED",

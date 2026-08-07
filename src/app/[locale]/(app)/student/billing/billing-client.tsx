@@ -20,16 +20,15 @@ import {
 import { Check, CreditCard, Download, Sparkles, Tag } from "lucide-react";
 
 interface PackageInfo {
-  key: string;
+  slug: string;
   nameAr: string;
   nameEn: string;
-  pricePerMonth: number;
-  vatAmount: number;
-  totalWithVat: number;
-  sessionsPerMonth: number;
-  featuresAr: string[];
-  featuresEn: string[];
-  labAccess: boolean;
+  price: number;
+  unitAr: string;
+  unitEn: string;
+  descAr: string | null;
+  descEn: string | null;
+  group: string;
 }
 interface Subscription {
   id: string;
@@ -234,7 +233,9 @@ export function StudentBillingClient({
           </CardContent>
         </Card>
       ) : (
-        /* Package selection */
+        /* Package selection — one catalogue, one price, one checkout.
+           Buying here goes through the same public checkout as the landing
+           page; the payment then finds this student's account by email. */
         <Card>
           <CardHeader>
             <CardTitle>{t("choosePackage")}</CardTitle>
@@ -242,99 +243,45 @@ export function StudentBillingClient({
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               {packages.map((p) => {
-                const active = selectedPkg === p.key;
+                const active = selectedPkg === p.slug;
                 return (
                   <button
-                    key={p.key}
-                    onClick={() => {
-                      setSelectedPkg(p.key);
-                      setPromoResult(null);
-                    }}
+                    key={p.slug}
+                    onClick={() => setSelectedPkg(p.slug)}
                     className={`rounded-xl border-2 p-4 text-start transition-all ${
                       active
                         ? "border-hajr-rose bg-hajr-rose/5 shadow-sm"
                         : "border-border hover:border-hajr-rose/40"
                     }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold">
-                        {isAr ? p.nameAr : p.nameEn}
-                      </span>
-                      {active && (
-                        <Check className="h-4 w-4 text-hajr-rose" />
-                      )}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold">{isAr ? p.nameAr : p.nameEn}</span>
+                      {active && <Check className="h-4 w-4 shrink-0 text-hajr-rose" />}
                     </div>
                     <div className="mt-2">
-                      <span className="text-2xl font-bold num">
-                        {money(p.totalWithVat)}
-                      </span>
+                      <span className="num text-2xl font-bold">{money(p.price)}</span>
                       <span className="text-sm text-muted-foreground">
                         {" "}
-                        {isAr ? "ر.س" : "SAR"} {t("perMonth")}
+                        {isAr ? p.unitAr : p.unitEn}
                       </span>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                      {t("vatIncluded")}
-                    </div>
-                    <ul className="mt-3 space-y-1">
-                      {(isAr ? p.featuresAr : p.featuresEn).map((f, i) => (
-                        <li
-                          key={i}
-                          className="flex items-start gap-1.5 text-xs"
-                        >
-                          <Check className="mt-0.5 h-3 w-3 shrink-0 text-hajr-mint" />
-                          {f}
-                        </li>
-                      ))}
-                    </ul>
+                    {(isAr ? p.descAr : p.descEn) && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {isAr ? p.descAr : p.descEn}
+                      </p>
+                    )}
                   </button>
                 );
               })}
             </div>
 
             {selectedPkg && (
-              <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-                {/* Promo */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <Tag className="h-4 w-4 text-hajr-rose" />
-                  <Input
-                    placeholder={t("enterPromo")}
-                    value={promo}
-                    onChange={(e) => setPromo(e.target.value.toUpperCase())}
-                    className="max-w-[200px]"
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={checkPromo}
-                    disabled={busy || !promo.trim()}
-                  >
-                    {t("apply")}
-                  </Button>
-                  {promoResult && (
-                    <Badge variant="success">
-                      −{money(promoResult.discount)} {isAr ? "ر.س" : "SAR"}
-                    </Badge>
-                  )}
-                </div>
-                {/* Auto-renew consent */}
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={autoRenew}
-                    onCheckedChange={(c) => setAutoRenew(c === true)}
-                  />
-                  <span>{t("autoRenewHint")}</span>
-                </label>
-                <Button
-                  className="w-full"
-                  size="lg"
-                  onClick={subscribe}
-                  disabled={busy}
-                >
+              <Button asChild className="w-full" size="lg">
+                <a href={`/${locale}/checkout?product=${selectedPkg}`}>
                   <Sparkles className="me-2 h-4 w-4" />
-                  {busy ? t("processing") : t("subscribe")}
-                </Button>
-              </div>
+                  {t("subscribe")}
+                </a>
+              </Button>
             )}
           </CardContent>
         </Card>

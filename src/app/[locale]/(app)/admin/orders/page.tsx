@@ -46,6 +46,7 @@ export default async function AdminOrdersPage({
       email: o.email,
       packageType: o.packageType,
       productSlug: o.productSlug,
+      setupUrl: o.setupUrl,
       promoCode: o.promoCode,
       discountSar: o.discountSar ? o.discountSar.toString() : "0",
       notes: o.notes,

@@ -286,7 +286,8 @@
     "applicantOverview": "نظرة عامة",
     "feedback": "التقييمات",
     "teacherRequests": "طلبات المعلّمين",
-    "catalogProducts": "المنتجات والأسعار"
+    "catalogProducts": "المنتجات والأسعار",
+    "partnerApplications": "طلبات الشراكة"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",

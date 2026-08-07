@@ -194,6 +194,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.ratingsHub", href: "/admin/ratings", icon: Star },
       { key: "Nav.tickets", href: "/admin/tickets", icon: LifeBuoy },
       { key: "Nav.schools", href: "/admin/schools", icon: Building2 },
+      { key: "Nav.partnerApplications", href: "/admin/schools/applications", icon: Building2 },
       // Nav.qaI18n (i18n parity check) hidden from the menu per owner request —
       // internal QA tool, not needed in the dashboard. The page at /admin/qa/i18n
       // stays reachable by URL so this slot can flip back on without route churn.

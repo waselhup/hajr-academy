@@ -1,72 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
-import { createSubscription } from "@/lib/finance/subscriptions";
-import { isSubscribablePackage } from "@/lib/finance/packages";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
 /**
- * POST /api/subscriptions/create — start a subscription + first invoice.
+ * POST /api/subscriptions/create — RETIRED.
  *
- * Body: { packageType, autoRenew?, promoCode? }. Students only; creates
- * the subscription for the caller's own student profile.
+ * Subscriptions used to be sold from an in-code price table that drifted
+ * from the published catalogue (IELTS 800 here against 1,200 advertised).
+ * Students now buy through /checkout, which prices from CatalogProduct —
+ * the same source the public site quotes and the payment settles against.
+ *
+ * The route stays so a stale client gets a clear answer instead of quietly
+ * being sold at the wrong price. The subscription machinery itself remains
+ * for admin-created subscriptions; only this self-serve entry point is gone.
  */
-export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (session.user.role !== "STUDENT") {
-    return NextResponse.json({ error: "Students only" }, { status: 403 });
-  }
-
-  try {
-    const body = await req.json();
-    const packageType =
-      typeof body.packageType === "string" ? body.packageType : "";
-    if (!isSubscribablePackage(packageType)) {
-      return NextResponse.json(
-        { error: "Invalid package type" },
-        { status: 400 }
-      );
-    }
-
-    const student = await prisma.studentProfile.findUnique({
-      where: { userId: session.user.id },
-      select: { id: true },
-    });
-    if (!student) {
-      return NextResponse.json({ error: "No student profile" }, { status: 403 });
-    }
-
-    const result = await createSubscription({
-      studentId: student.id,
-      packageType,
-      autoRenew: body.autoRenew === true,
-      promoCode:
-        typeof body.promoCode === "string" && body.promoCode.trim()
-          ? body.promoCode.trim()
-          : null,
-    });
-
-    if (!result.ok) {
-      return NextResponse.json(
-        { ok: false, error: result.error, errorAr: result.errorAr },
-        { status: 400 }
-      );
-    }
-
-    return NextResponse.json({
-      ok: true,
-      subscriptionId: result.subscriptionId,
-      invoiceId: result.invoiceId,
-    });
-  } catch (e) {
-    console.error("[api/subscriptions/create] failed:", e);
-    return NextResponse.json(
-      { ok: false, error: "Could not create subscription" },
-      { status: 500 }
-    );
-  }
+export async function POST() {
+  return NextResponse.json(
+    {
+      ok: false,
+      error: "Subscriptions are now purchased through the catalogue checkout.",
+      errorAr: "أصبح الشراء يتم عبر صفحة الدفع الموحّدة.",
+      redirectTo: "/checkout",
+    },
+    { status: 410 }
+  );
 }

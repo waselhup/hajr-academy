@@ -68,8 +68,13 @@ export function CheckoutForm({
   }, [products]);
 
   const phoneOk = /^(\+966|05)\d{8,}$/.test(phone.trim());
+  const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
   const canSubmit =
-    studentName.trim().length >= 2 && phoneOk && !!selected && status !== "sending";
+    studentName.trim().length >= 2 &&
+    phoneOk &&
+    emailOk &&
+    !!selected &&
+    status !== "sending";
 
   const money = (n: number) =>
     new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
@@ -213,7 +218,7 @@ export function CheckoutForm({
 
         <div className="space-y-1.5">
           <Label htmlFor="email">
-            {isAr ? "البريد الإلكتروني (اختياري)" : "Email (optional)"}
+            {isAr ? "البريد الإلكتروني *" : "Email *"}
           </Label>
           <Input
             id="email"
@@ -222,8 +227,19 @@ export function CheckoutForm({
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="email"
             dir="ltr"
+            required
             placeholder="you@example.com"
           />
+          <p className="text-xs text-hajr-muted">
+            {isAr
+              ? "سنرسل عليه رابط تفعيل حسابك مباشرة بعد الدفع."
+              : "We send your account activation link here right after payment."}
+          </p>
+          {email.length > 0 && !emailOk && (
+            <p className="text-xs text-destructive">
+              {isAr ? "بريد إلكتروني غير صالح" : "Invalid email address"}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">

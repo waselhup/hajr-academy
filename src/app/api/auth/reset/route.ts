@@ -25,7 +25,13 @@ export async function POST(req: Request) {
   try {
     const record = await prisma.passwordResetToken.findUnique({
       where: { tokenHash },
-      select: { id: true, userId: true, expiresAt: true, usedAt: true },
+      select: {
+        id: true,
+        userId: true,
+        expiresAt: true,
+        usedAt: true,
+        purpose: true,
+      },
     });
 
     if (!record || record.usedAt || record.expiresAt < new Date()) {
@@ -37,17 +43,42 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 12);
 
-    // Set the password and burn the token atomically.
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: record.userId },
-        data: { passwordHash },
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: record.id },
-        data: { usedAt: new Date() },
-      }),
-    ]);
+    // Burn the token FIRST, conditionally. The raw link legitimately reaches
+    // more than one party (the emailed copy and the admin's WhatsApp copy),
+    // so two people really can submit it at once; a check-then-write would
+    // let both set a password and the second would silently win.
+    const burn = await prisma.passwordResetToken.updateMany({
+      where: { id: record.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (burn.count === 0) {
+      return NextResponse.json(
+        { ok: false, error: "TOKEN_INVALID_OR_EXPIRED" },
+        { status: 400 }
+      );
+    }
+
+    // Following a SETUP link proves control of the mailbox it was sent to,
+    // which is what verifying an address means — so an account activated
+    // this way starts out verified.
+    await prisma.user.update({
+      where: { id: record.userId },
+      data: {
+        passwordHash,
+        ...(record.purpose === "SETUP" ? { emailVerified: true } : {}),
+      },
+    });
+
+    // The stored copy of this link is now spent — clear it so a used token
+    // stops being readable from the admin pages and from any DB backup.
+    if (record.purpose === "SETUP") {
+      await prisma.purchaseOrder
+        .updateMany({
+          where: { provisionedStudentId: record.userId },
+          data: { setupUrl: null },
+        })
+        .catch(() => {});
+    }
 
     return NextResponse.json({ ok: true });
   } catch (e) {

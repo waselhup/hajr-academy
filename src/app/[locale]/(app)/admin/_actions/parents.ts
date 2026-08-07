@@ -34,7 +34,9 @@ export async function createParentAction(input: z.infer<typeof createSchema>): P
   const exists = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (exists) return { ok: false, error: "EMAIL_EXISTS" };
 
-  const passwordHash = await bcrypt.hash("Hajr@2026", 10);
+  // No shared default password — the account is created unusable and the
+  // parent chooses their own through a single-use activation link.
+  const passwordHash = `nologin:${crypto.randomUUID()}`;
   const inviteCode = generateInviteCode(8);
   const user = await prisma.user.create({
     data: {

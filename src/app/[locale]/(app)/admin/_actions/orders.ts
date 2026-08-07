@@ -54,7 +54,7 @@ const provisionSchema = z.object({
  */
 export async function provisionOrderAction(
   input: z.infer<typeof provisionSchema>
-): Promise<Result<{ studentId: string }>> {
+): Promise<Result<{ studentId: string; setupUrl?: string; whatsappUrl?: string }>> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const parsed = provisionSchema.safeParse(input);
   if (!parsed.success)
@@ -78,7 +78,13 @@ export async function provisionOrderAction(
   const exists = await prisma.user.findUnique({ where: { email } });
   if (exists) return { ok: false, error: "EMAIL_EXISTS" };
 
-  const passwordHash = await bcrypt.hash(parsed.data.password ?? "Hajr@2026", 10);
+  // No shared default password. When the admin does not set one, the
+  // account is created unusable and the student receives a single-use link
+  // to choose their own — the same mechanism the automated flow uses.
+  const useSetupLink = !parsed.data.password;
+  const passwordHash = useSetupLink
+    ? `nologin:${crypto.randomUUID()}`
+    : await bcrypt.hash(parsed.data.password!, 12);
 
   try {
     // 1) Create the student account.
@@ -154,6 +160,31 @@ export async function provisionOrderAction(
       },
     });
 
+    // Hand the student a way in. Returned to the admin as well, so a mail
+    // failure never leaves a paying customer locked out.
+    let setupUrl: string | undefined;
+    let whatsappUrl: string | undefined;
+    if (useSetupLink) {
+      try {
+        const { issueAndSendSetupLink } = await import("@/lib/auth/account-setup");
+        const delivery = await issueAndSendSetupLink({
+          userId: user.id,
+          email,
+          name: parsed.data.name,
+          phone,
+          kind: "student",
+        });
+        setupUrl = delivery.setupUrl;
+        whatsappUrl = delivery.whatsappUrl;
+        await prisma.purchaseOrder.update({
+          where: { id: order.id },
+          data: { setupUrl: delivery.setupUrl },
+        });
+      } catch (e) {
+        console.error("[orders] setup link failed:", e);
+      }
+    }
+
     await logAudit({
       userId: session.user.id,
       action: "ORDER_PROVISIONED",
@@ -164,7 +195,7 @@ export async function provisionOrderAction(
     });
 
     revalidatePath("/admin/orders");
-    return { ok: true, data: { studentId: user.id } };
+    return { ok: true, data: { studentId: user.id, setupUrl, whatsappUrl } };
   } catch (e: any) {
     return { ok: false, error: e?.code === "P2002" ? "EMAIL_EXISTS" : e?.message ?? "DB_ERROR" };
   }
