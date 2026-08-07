@@ -151,6 +151,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
     items: [
       { key: "Nav.financeOverview", href: "/admin/finance", icon: Wallet },
       { key: "Nav.orders", href: "/admin/orders", icon: Receipt },
+      { key: "Nav.catalogProducts", href: "/admin/finance/products", icon: Package },
       { key: "Nav.invoices", href: "/admin/finance/invoices", icon: Receipt },
       { key: "Nav.subscriptions", href: "/admin/finance/subscriptions", icon: Package },
       { key: "Nav.promoCodes", href: "/admin/finance/promo-codes", icon: Sparkles },

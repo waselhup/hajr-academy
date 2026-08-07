@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { gatewayMode } from "@/lib/finance/moyasar";
+import { getProduct } from "@/lib/finance/catalog";
 import { OrderPayClient } from "./order-pay-client";
 
 export const dynamic = "force-dynamic";
@@ -37,6 +38,10 @@ export default async function CheckoutPayPage({
       id: true,
       studentName: true,
       packageType: true,
+      productSlug: true,
+      listPriceSar: true,
+      discountSar: true,
+      promoCode: true,
       amountSar: true,
       paymentStatus: true,
     },
@@ -47,10 +52,29 @@ export default async function CheckoutPayPage({
     redirect(`/${locale}/checkout/success?order=${order.id}`);
   }
 
-  const label = PACKAGE_LABEL[order.packageType] ?? {
+  // Prefer the catalogue product's own name; fall back to the legacy
+  // package label for orders placed before the catalogue existed.
+  const product = order.productSlug ? await getProduct(order.productSlug) : null;
+  const fallback = PACKAGE_LABEL[order.packageType] ?? {
     en: order.packageType,
     ar: order.packageType,
   };
+  const productName = product
+    ? isAr
+      ? product.nameAr
+      : product.nameEn
+    : isAr
+      ? fallback.ar
+      : fallback.en;
+
+  const discount = Number(order.discountSar ?? 0);
+  const listPrice =
+    order.listPriceSar != null ? Number(order.listPriceSar) : null;
+  const money = (n: number) =>
+    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(n);
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12">
@@ -68,14 +92,33 @@ export default async function CheckoutPayPage({
           <span className="text-hajr-body">{isAr ? "الطالب" : "Student"}</span>
           <span className="font-medium">{order.studentName}</span>
         </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-hajr-body">{isAr ? "الباقة" : "Package"}</span>
-          <span className="font-medium">{isAr ? label.ar : label.en}</span>
+        <div className="flex justify-between gap-3 text-sm">
+          <span className="shrink-0 text-hajr-body">
+            {isAr ? "الباقة" : "Package"}
+          </span>
+          <span className="text-end font-medium">{productName}</span>
         </div>
+        {discount > 0 && listPrice != null && (
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-hajr-body">
+                {isAr ? "السعر قبل الخصم" : "Price"}
+              </span>
+              <span className="num">{money(listPrice)}</span>
+            </div>
+            <div className="flex justify-between text-sm text-green-700">
+              <span>
+                {isAr ? "الخصم" : "Discount"}
+                {order.promoCode ? ` (${order.promoCode})` : ""}
+              </span>
+              <span className="num">−{money(discount)}</span>
+            </div>
+          </>
+        )}
         <div className="flex justify-between border-t border-hajr-border pt-3 text-lg font-bold">
           <span>{isAr ? "الإجمالي" : "Total"}</span>
           <span className="num">
-            {Number(order.amountSar).toFixed(2)} {isAr ? "ر.س" : "SAR"}
+            {money(Number(order.amountSar))} {isAr ? "ر.س" : "SAR"}
           </span>
         </div>
       </div>

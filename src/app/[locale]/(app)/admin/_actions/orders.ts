@@ -43,6 +43,8 @@ const provisionSchema = z.object({
   schoolId: z.string().optional().nullable(),
   classId: z.string().optional().nullable(),
   password: z.string().min(8).optional(),
+  /** Explicit override for an order settled outside the gateway. */
+  allowUnpaid: z.boolean().optional(),
 });
 
 /**
@@ -62,6 +64,12 @@ export async function provisionOrderAction(
   if (!order) return { ok: false, error: "ORDER_NOT_FOUND" };
   if (order.status === "COMPLETED" || order.provisionedStudentId)
     return { ok: false, error: "ALREADY_PROVISIONED" };
+
+  // Orders are PENDING until Moyasar confirms the charge. Provisioning one
+  // that never settled hands out the service for free, so it takes an
+  // explicit override (used for bank transfers settled outside the gateway).
+  if (order.paymentStatus !== "PAID" && !parsed.data.allowUnpaid)
+    return { ok: false, error: "ORDER_NOT_PAID" };
 
   const phone = normalizeSaudiPhone(parsed.data.phone);
   if (!phone) return { ok: false, error: "INVALID_PHONE" };

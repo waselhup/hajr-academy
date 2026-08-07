@@ -10,6 +10,7 @@ import { AnnouncementBar } from "@/components/public/AnnouncementBar";
 import { WhatsAppFab } from "@/components/public/WhatsAppFab";
 import { MobileStickyCta } from "@/components/public/MobileStickyCta";
 import { BRAND } from "@/lib/brand";
+import { listActiveProducts } from "@/lib/finance/catalog";
 import {
   GraduationCap, BookOpen, Globe, Briefcase, FileText, FileCheck,
   Calendar, ClipboardCheck, Users, User, Award, Check, ArrowRight, Star, Quote,
@@ -31,6 +32,21 @@ export default async function LandingPage() {
   const waTrial = wa(isAr ? "السلام عليكم، أرغب في حجز درس تجريبي مجاني في أكاديمية هجر" : "Hello, I'd like to book a free trial lesson at Hajr Academy");
   const waPlan = (name: string) =>
     wa(isAr ? `السلام عليكم، أرغب في الاشتراك في: ${name}` : `Hello, I'd like to enroll in: ${name}`);
+
+  // Prices come from the owner-editable catalogue so what is displayed and
+  // what is charged can never drift apart. `bySlug` falls back to the
+  // hard-coded copy below if a row is missing, so the page never breaks.
+  const catalogue = await listActiveProducts();
+  const bySlug = new Map(catalogue.map((p) => [p.slug, p]));
+  const priceOf = (slug: string, fallback: string) => {
+    const p = bySlug.get(slug);
+    return p
+      ? new Intl.NumberFormat("en-US").format(p.priceSar)
+      : fallback;
+  };
+  /** Direct pay link for a catalogue product (null when it is not on sale). */
+  const buyHref = (slug: string) =>
+    bySlug.has(slug) ? `/checkout?product=${slug}` : null;
 
   const stats = [
     { value: "1,200+", label: t("Landing.statStudents") },
@@ -87,44 +103,44 @@ export default async function LandingPage() {
   ];
 
   // ── Pricing (profile p.7) ──
-  const corePlans: { label: string; sub: string; price: string; was?: string; unit: string; star?: boolean }[] = [
-    { label: t("Landing.planMonthly"), sub: t("Landing.planMonthlySub"), price: "300", unit: t("Landing.unitPerMonth") },
-    { label: t("Landing.planTerm"), sub: t("Landing.planTermSub"), price: "1,215", was: "1,350", unit: t("Landing.unitPerTerm") },
-    { label: t("Landing.planYearly"), sub: t("Landing.planYearlySub"), price: "2,106", was: "2,700", unit: t("Landing.unitPerYear"), star: true },
+  const corePlans: { slug: string; label: string; sub: string; price: string; was?: string; unit: string; star?: boolean }[] = [
+    { slug: "core-monthly", label: t("Landing.planMonthly"), sub: t("Landing.planMonthlySub"), price: priceOf("core-monthly", "300"), unit: t("Landing.unitPerMonth") },
+    { slug: "core-term", label: t("Landing.planTerm"), sub: t("Landing.planTermSub"), price: priceOf("core-term", "1,215"), was: "1,350", unit: t("Landing.unitPerTerm") },
+    { slug: "core-yearly", label: t("Landing.planYearly"), sub: t("Landing.planYearlySub"), price: priceOf("core-yearly", "2,106"), was: "2,700", unit: t("Landing.unitPerYear"), star: true },
   ];
-  const courses: { title: string; desc: string; price: string }[] = [
-    { title: t("Landing.stepCourseTitle"), desc: t("Landing.stepCourseDesc"), price: "600" },
-    { title: t("Landing.intlCourseTitle"), desc: t("Landing.intlCourseDesc"), price: "1,200" },
+  const courses: { slug: string; title: string; desc: string; price: string }[] = [
+    { slug: "step-course", title: t("Landing.stepCourseTitle"), desc: t("Landing.stepCourseDesc"), price: priceOf("step-course", "600") },
+    { slug: "ielts-toefl-course", title: t("Landing.intlCourseTitle"), desc: t("Landing.intlCourseDesc"), price: priceOf("ielts-toefl-course", "1,200") },
   ];
   const priceChips = [t("Landing.priceChip1"), t("Landing.priceChip2"), t("Landing.priceChip3")];
 
   // ── Summer intensive (profile p.8) ──
   const summerTracks: {
-    title: string; dur: string; badge?: string; featured?: boolean;
-    tiers: { tier: string; per: string; freq: string; month: string; star?: boolean }[];
+    title: string; dur: string; badge?: string; featured?: boolean; slugBase: string;
+    tiers: { tier: string; per: string; freq: string; month: string; star?: boolean; slug?: string }[];
   }[] = [
     {
-      title: t("Landing.trackGroupTitle"), dur: t("Landing.trackGroupDur"), badge: t("Landing.trackGroupBadge"), featured: true,
+      title: t("Landing.trackGroupTitle"), dur: t("Landing.trackGroupDur"), badge: t("Landing.trackGroupBadge"), featured: true, slugBase: "summer-group",
       tiers: [
-        { tier: t("Landing.tierStarter"), per: "33", freq: t("Landing.freq1"), month: "132" },
-        { tier: t("Landing.tierGrowth"), per: "30", freq: t("Landing.freq2"), month: "240", star: true },
-        { tier: t("Landing.tierIntensive"), per: "28", freq: t("Landing.freq3"), month: "336" },
+        { tier: t("Landing.tierStarter"), per: "33", freq: t("Landing.freq1"), month: priceOf("summer-group-starter", "132") },
+        { tier: t("Landing.tierGrowth"), per: "30", freq: t("Landing.freq2"), month: priceOf("summer-group-growth", "240"), star: true },
+        { tier: t("Landing.tierIntensive"), per: "28", freq: t("Landing.freq3"), month: priceOf("summer-group-intensive", "336") },
       ],
     },
     {
-      title: t("Landing.trackIntlTitle"), dur: t("Landing.trackIntlDur"),
+      title: t("Landing.trackIntlTitle"), dur: t("Landing.trackIntlDur"), slugBase: "summer-intl",
       tiers: [
-        { tier: t("Landing.tierStarter"), per: "42", freq: t("Landing.freq1"), month: "168" },
-        { tier: t("Landing.tierGrowth"), per: "38", freq: t("Landing.freq2"), month: "304", star: true },
-        { tier: t("Landing.tierIntensive"), per: "35", freq: t("Landing.freq3"), month: "420" },
+        { tier: t("Landing.tierStarter"), per: "42", freq: t("Landing.freq1"), month: priceOf("summer-intl-starter", "168") },
+        { tier: t("Landing.tierGrowth"), per: "38", freq: t("Landing.freq2"), month: priceOf("summer-intl-growth", "304"), star: true },
+        { tier: t("Landing.tierIntensive"), per: "35", freq: t("Landing.freq3"), month: priceOf("summer-intl-intensive", "420") },
       ],
     },
     {
-      title: t("Landing.trackNativeTitle"), dur: t("Landing.trackNativeDur"),
+      title: t("Landing.trackNativeTitle"), dur: t("Landing.trackNativeDur"), slugBase: "summer-native",
       tiers: [
-        { tier: t("Landing.tierStarter"), per: "62", freq: t("Landing.freq1"), month: "248" },
-        { tier: t("Landing.tierGrowth"), per: "58", freq: t("Landing.freq2"), month: "464", star: true },
-        { tier: t("Landing.tierIntensive"), per: "54", freq: t("Landing.freq3"), month: "648" },
+        { tier: t("Landing.tierStarter"), per: "62", freq: t("Landing.freq1"), month: priceOf("summer-native-starter", "248") },
+        { tier: t("Landing.tierGrowth"), per: "58", freq: t("Landing.freq2"), month: priceOf("summer-native-growth", "464"), star: true },
+        { tier: t("Landing.tierIntensive"), per: "54", freq: t("Landing.freq3"), month: priceOf("summer-native-intensive", "648") },
       ],
     },
   ];
@@ -483,9 +499,24 @@ export default async function LandingPage() {
                 </div>
               ))}
             </div>
-            <Button asChild className="mt-6 w-full bg-white text-hajr-deep-navy hover:bg-white/90">
-              <a href={waPlan(t("Landing.coreTitle"))} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
-            </Button>
+            <div className="mt-6 space-y-2">
+              {corePlans.map((p) => {
+                const href = buyHref(p.slug);
+                return href ? (
+                  <Button key={p.slug} asChild className="w-full bg-white text-hajr-deep-navy hover:bg-white/90">
+                    <Link href={href}>{t("Landing.ctaSubscribeNow")} — {p.label}</Link>
+                  </Button>
+                ) : null;
+              })}
+              <a
+                href={waPlan(t("Landing.coreTitle"))}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block pt-1 text-center text-xs text-white/60 underline underline-offset-4 transition-colors hover:text-white"
+              >
+                {t("Landing.ctaOrWhatsApp")}
+              </a>
+            </div>
           </div>
 
           {/* Two course cards */}
@@ -497,9 +528,25 @@ export default async function LandingPage() {
                 <span className="num text-5xl font-semibold text-hajr-deep-navy">{c.price}</span>
               </div>
               <div className="text-sm text-hajr-muted">{t("Landing.unitPerCourse")}</div>
-              <Button asChild variant="default" className="mt-7 w-full">
-                <a href={waPlan(c.title)} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
-              </Button>
+              <div className="mt-7 space-y-2">
+                {buyHref(c.slug) ? (
+                  <Button asChild variant="cta" className="w-full">
+                    <Link href={buyHref(c.slug)!}>{t("Landing.ctaSubscribeNow")}</Link>
+                  </Button>
+                ) : (
+                  <Button asChild variant="default" className="w-full">
+                    <a href={waPlan(c.title)} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
+                  </Button>
+                )}
+                <a
+                  href={waPlan(c.title)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block text-center text-xs text-hajr-muted underline underline-offset-4 transition-colors hover:text-hajr-deep-navy"
+                >
+                  {t("Landing.ctaOrWhatsApp")}
+                </a>
+              </div>
             </Card>
           ))}
         </div>
@@ -553,9 +600,25 @@ export default async function LandingPage() {
                     </div>
                   ))}
                 </div>
-                <Button asChild variant={tr.featured ? "cta" : "default"} className="mt-6 w-full">
-                  <a href={waPlan(tr.title)} target="_blank" rel="noopener noreferrer">{t("Landing.ctaChoosePlan")}</a>
-                </Button>
+                <div className="mt-6 space-y-2">
+                  {tr.tiers.map((ti, ix) => {
+                    const slug = `${tr.slugBase}-${["starter", "growth", "intensive"][ix] ?? ix}`;
+                    const href = buyHref(slug);
+                    return href ? (
+                      <Button key={slug} asChild variant={tr.featured ? "cta" : "default"} className="w-full">
+                        <Link href={href}>{t("Landing.ctaSubscribeNow")} — {ti.tier}</Link>
+                      </Button>
+                    ) : null;
+                  })}
+                  <a
+                    href={waPlan(tr.title)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block pt-1 text-center text-xs text-hajr-muted underline underline-offset-4 transition-colors hover:text-hajr-deep-navy"
+                  >
+                    {t("Landing.ctaOrWhatsApp")}
+                  </a>
+                </div>
               </div>
             ))}
           </div>

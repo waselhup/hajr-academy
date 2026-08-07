@@ -2629,6 +2629,12 @@ model PurchaseOrder {
   notes                String?
   // Payment (mock now, Moyasar-ready)
   amountSar            Decimal            @db.Decimal(10, 2)
+  /// Catalogue product bought (slug). Null for legacy orders.
+  productSlug          String?
+  /// Price before any promo discount, and what the promo took off.
+  listPriceSar         Decimal?           @db.Decimal(10, 2)
+  discountSar          Decimal            @default(0) @db.Decimal(10, 2)
+  promoCode            String?
   paymentStatus        OrderPaymentStatus @default(PENDING)
   moyasarPaymentId     String?
   paidAt               DateTime?
@@ -2799,4 +2805,51 @@ enum SurveyStatus {
   REVIEWED
   FEATURED
   ARCHIVED
+}
+
+/// Purchasable product shown on the public site (Owner-editable catalogue).
+/// The price here is the ONLY authority for what a buyer is charged — the
+/// landing page and the checkout both read it, so they can never disagree.
+model CatalogProduct {
+  id     String @id @default(uuid())
+  /// Stable url-safe key used in /checkout?product=<slug>.
+  slug   String @unique
+
+  nameAr String
+  nameEn String
+  descAr String?
+  descEn String?
+
+  /// What the buyer pays, in SAR.
+  priceSar Decimal @db.Decimal(10, 2)
+  /// Optional struck-through "was" price for a discounted plan.
+  compareAtSar Decimal? @db.Decimal(10, 2)
+
+  /// Unit label shown next to the price ("/ شهر", "/ دورة", …).
+  unitAr String
+  unitEn String
+
+  /// Which block of the landing page this belongs to.
+  group CatalogGroup @default(COURSE)
+
+  /// Maps onto the legacy PackageType so admins can provision as before.
+  packageType PackageType?
+
+  isActive  Boolean @default(true)
+  sortOrder Int     @default(0)
+
+  /// Free-text detail lines (e.g. "٤ حصص أسبوعياً") — bilingual pairs.
+  bulletsAr String[] @default([])
+  bulletsEn String[] @default([])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, group, sortOrder])
+}
+
+enum CatalogGroup {
+  CORE
+  COURSE
+  SUMMER
 }

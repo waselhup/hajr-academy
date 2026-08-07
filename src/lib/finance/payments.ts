@@ -25,6 +25,7 @@ import { markInvoicePaid, setInvoiceStatus } from "./invoices";
 import { advanceSubscriptionPeriod } from "./subscriptions";
 import { logAudit } from "@/lib/audit";
 import { notifyAdmins } from "@/lib/notify";
+import { consumePromoCode } from "./promo-codes";
 import {
   triggerPaymentReceived,
   triggerPaymentFailed,
@@ -641,6 +642,9 @@ export async function adoptPurchaseOrderPayment(
       studentName: true,
       phone: true,
       packageType: true,
+      promoCode: true,
+      status: true,
+      moyasarPaymentId: true,
     },
   });
   if (!order) {
@@ -687,6 +691,58 @@ export async function adoptPurchaseOrderPayment(
     };
   }
 
+  // An order the admin cancelled must never be settled by a late payment.
+  if (order.status === "CANCELLED") {
+    await orphanPaymentAlert(
+      mp,
+      `order ${order.id} was cancelled before this payment arrived`
+    );
+    return {
+      ok: false,
+      error: "This order was cancelled.",
+      invoiceId: order.id,
+      kind: "order",
+      locale,
+    };
+  }
+
+  // A DIFFERENT payment for an order that is already settled is a genuine
+  // double charge (double-tap, retried link, 3-D Secure timeout). It must
+  // never be silently absorbed — a refund is owed.
+  if (
+    order.paymentStatus === "PAID" &&
+    order.moyasarPaymentId &&
+    order.moyasarPaymentId !== moyasarPaymentId
+  ) {
+    await logAudit({
+      action: "PAYMENT_DUPLICATE",
+      entity: "PurchaseOrder",
+      entityId: order.id,
+      metadata: {
+        moyasarPaymentId,
+        alreadySettledWith: order.moyasarPaymentId,
+        amountSar: Number(order.amountSar),
+      },
+    });
+    try {
+      await notifyAdmins({
+        type: "PAYMENT_RECEIVED",
+        title: "Duplicate payment on a paid order",
+        titleAr: "دفعة مكررة على طلب مدفوع",
+        body: `${order.studentName} (${order.phone}) was charged ${Number(order.amountSar).toFixed(2)} SAR twice — Moyasar ${moyasarPaymentId} in addition to ${order.moyasarPaymentId}. A refund is due.`,
+        bodyAr: `تم تحصيل ${Number(order.amountSar).toFixed(2)} ر.س مرتين من ${order.studentName} (${order.phone}) — العملية ${moyasarPaymentId} إضافة إلى ${order.moyasarPaymentId}. يلزم استرجاع المبلغ.`,
+        channels: ["inApp", "email"],
+        priority: "URGENT",
+        refType: "PurchaseOrder",
+        refId: order.id,
+        actionUrl: "/admin/orders",
+      });
+    } catch (e) {
+      console.error("[payments] duplicate-order alert failed:", e);
+    }
+    return { ok: true, invoiceId: order.id, status: "PAID", kind: "order", locale };
+  }
+
   // Atomic settle — only the first delivery flips PENDING → PAID.
   const claimed = await prisma.purchaseOrder.updateMany({
     where: { id: order.id, paymentStatus: { not: "PAID" } },
@@ -698,6 +754,20 @@ export async function adoptPurchaseOrderPayment(
   });
 
   if (claimed.count > 0) {
+    // Consume the promo code only now that money has actually moved —
+    // counting it at checkout would let abandoned carts burn a limited code.
+    if (order.promoCode) {
+      try {
+        const promo = await prisma.promoCode.findUnique({
+          where: { code: order.promoCode },
+          select: { id: true },
+        });
+        if (promo) await consumePromoCode(promo.id);
+      } catch (e) {
+        console.error("[payments] promo consume failed:", e);
+      }
+    }
+
     await logAudit({
       action: "PURCHASE_ORDER_PAID",
       entity: "PurchaseOrder",

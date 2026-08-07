@@ -95,6 +95,7 @@ export function AdminFinanceClient({
       href: "/admin/finance/subscriptions",
       icon: RefreshCw,
     },
+    { label: t("catalogProducts"), href: "/admin/finance/products", icon: Tag },
     { label: t("promoCodes"), href: "/admin/finance/promo-codes", icon: Tag },
     { label: t("refunds"), href: "/admin/finance/refunds", icon: Undo2 },
   ];

@@ -15,6 +15,9 @@ type Order = {
   phone: string;
   email: string | null;
   packageType: string;
+  productSlug?: string | null;
+  promoCode?: string | null;
+  discountSar?: string | null;
   notes: string | null;
   amountSar: string;
   paymentStatus: string;
@@ -107,7 +110,16 @@ export function OrdersClient({
                   <tr key={o.id} className="border-b border-hajr-border/50 last:border-0">
                     <td className="px-3 py-3 font-medium text-hajr-navy">{o.studentName}</td>
                     <td className="px-3 py-3" dir="ltr">{o.phone}</td>
-                    <td className="px-3 py-3">{PACKAGE_NAMES[o.packageType]?.[isAr ? "ar" : "en"] ?? o.packageType}</td>
+                    <td className="px-3 py-3">
+                      {/* The catalogue slug is what was actually bought; the
+                          package type is only the provisioning bucket. */}
+                      <div>{o.productSlug ?? (PACKAGE_NAMES[o.packageType]?.[isAr ? "ar" : "en"] ?? o.packageType)}</div>
+                      {o.promoCode && (
+                        <div className="num text-xs text-hajr-rose" dir="ltr">
+                          {o.promoCode} −{o.discountSar ?? "0"}
+                        </div>
+                      )}
+                    </td>
                     <td className="px-3 py-3 num">{o.amountSar} {isAr ? "ر.س" : "SAR"}</td>
                     <td className="px-3 py-3">
                       <Badge variant={o.paymentStatus === "PAID" ? "default" : "outline"}>
@@ -186,7 +198,7 @@ function ProvisionDialog({
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
   const canSubmit = name.trim().length >= 2 && emailOk && !busy;
 
-  async function submit() {
+  async function submit(allowUnpaid = false) {
     if (!canSubmit) return;
     setBusy(true);
     setErr("");
@@ -199,11 +211,29 @@ function ProvisionDialog({
       englishLevel,
       schoolId: schoolId || undefined,
       classId: classId || undefined,
+      allowUnpaid,
     });
     if (res.ok) {
       onDone();
     } else {
       setBusy(false);
+      // The order never settled at the gateway. Provisioning it hands out
+      // the service for free, so it takes a deliberate confirmation.
+      if (res.error === "ORDER_NOT_PAID") {
+        const proceed = window.confirm(
+          isAr
+            ? "لم يتم تأكيد الدفع لهذا الطلب. هل تريد إنشاء الحساب على أي حال؟ (استخدمها فقط إذا استلمت المبلغ بطريقة أخرى)"
+            : "This order has no confirmed payment. Create the account anyway? (Only if you received the money another way.)"
+        );
+        if (proceed) {
+          await submit(true);
+          return;
+        }
+        setErr(
+          isAr ? "لم يتم تأكيد الدفع لهذا الطلب." : "This order is not paid."
+        );
+        return;
+      }
       const map: Record<string, string> = {
         EMAIL_EXISTS: isAr ? "هذا البريد مستخدم مسبقاً" : "Email already exists",
         INVALID_PHONE: isAr ? "رقم جوال غير صالح" : "Invalid phone",
@@ -303,7 +333,7 @@ function ProvisionDialog({
           {err && <p className="text-sm text-destructive">{err}</p>}
 
           <div className="flex gap-2 pt-2">
-            <Button variant="cta" className="flex-1" onClick={submit} disabled={!canSubmit}>
+            <Button variant="cta" className="flex-1" onClick={() => submit()} disabled={!canSubmit}>
               {busy && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
               {isAr ? "إنشاء الحساب" : "Create account"}
             </Button>

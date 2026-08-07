@@ -285,7 +285,8 @@
     "applicants": "المتقدّمون",
     "applicantOverview": "نظرة عامة",
     "feedback": "التقييمات",
-    "teacherRequests": "طلبات المعلّمين"
+    "teacherRequests": "طلبات المعلّمين",
+    "catalogProducts": "المنتجات والأسعار"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",
@@ -693,7 +694,9 @@
     "summerChip1": "مواعيد ثابتة مع نفس المعلم",
     "summerChip2": "تعويض الحصة بإشعار 24 ساعة",
     "summerChip3": "تجديد شهري يمكن إيقافه",
-    "summerChip4": "اختبار أرامكو CPC والشركات: أسعار خاصة عبر واتساب"
+    "summerChip4": "اختبار أرامكو CPC والشركات: أسعار خاصة عبر واتساب",
+    "ctaSubscribeNow": "اشترك وادفع الآن",
+    "ctaOrWhatsApp": "أو تواصل معنا عبر واتساب"
   },
   "Calendar": {
     "pageTitle": "تقويمي",
@@ -1634,7 +1637,8 @@
     "promoTypeHintFixed": "شركاء النجاح من الجمعيات والمدارس يمنحون خصماً بنسبة مئوية. الفرد فقط يمكنه منح مبلغ ثابت.",
     "organizationType_CHARITY": "جمعية خيرية",
     "organizationType_SCHOOL": "مدرسة",
-    "organizationType_INDIVIDUAL": "فرد"
+    "organizationType_INDIVIDUAL": "فرد",
+    "catalogProducts": "المنتجات والأسعار"
   },
   "ParentPortal": {
     "welcome": "مرحباً",

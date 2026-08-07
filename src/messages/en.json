@@ -285,7 +285,8 @@
     "applicants": "Applicants",
     "applicantOverview": "Overview",
     "feedback": "Feedback",
-    "teacherRequests": "Teacher requests"
+    "teacherRequests": "Teacher requests",
+    "catalogProducts": "Products & pricing"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
@@ -693,7 +694,9 @@
     "summerChip1": "Fixed times with the same teacher",
     "summerChip2": "Reschedule with 24 hours notice",
     "summerChip3": "Monthly renewal you can stop anytime",
-    "summerChip4": "Aramco CPC and corporate training: special pricing via WhatsApp"
+    "summerChip4": "Aramco CPC and corporate training: special pricing via WhatsApp",
+    "ctaSubscribeNow": "Subscribe & pay now",
+    "ctaOrWhatsApp": "Or contact us on WhatsApp"
   },
   "Calendar": {
     "pageTitle": "My Calendar",
@@ -1634,7 +1637,8 @@
     "promoTypeHintFixed": "Charity & school partners give a percentage discount. Only an individual partner can give a fixed amount.",
     "organizationType_CHARITY": "Charity",
     "organizationType_SCHOOL": "School",
-    "organizationType_INDIVIDUAL": "Individual"
+    "organizationType_INDIVIDUAL": "Individual",
+    "catalogProducts": "Products & pricing"
   },
   "ParentPortal": {
     "welcome": "Welcome",

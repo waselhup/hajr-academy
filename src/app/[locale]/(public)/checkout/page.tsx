@@ -1,40 +1,54 @@
+import { redirect } from "next/navigation";
+import { listActiveProducts, getProduct } from "@/lib/finance/catalog";
 import { CheckoutForm } from "./checkout-form";
 
-const VALID_PACKAGES = [
-  "ESSENTIAL",
-  "INTEGRATED",
-  "PRIVATE",
-  "STEP_PREP_PKG",
-  "IELTS_PREP_PKG",
-] as const;
+export const dynamic = "force-dynamic";
 
-const PACKAGE_PRICE_SAR: Record<string, number> = {
-  ESSENTIAL: 250,
-  INTEGRATED: 300,
-  PRIVATE: 800,
-  STEP_PREP_PKG: 600,
-  IELTS_PREP_PKG: 800,
-};
-
+/**
+ * /checkout — public purchase form.
+ *
+ * `?product=<slug>` preselects a catalogue item; the buyer can switch to
+ * any other item here. Prices come from the catalogue, never the URL.
+ */
 export default async function CheckoutPage({
   params,
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ package?: string }>;
+  searchParams: Promise<{ product?: string; package?: string; promo?: string }>;
 }) {
   const { locale } = await params;
   const sp = await searchParams;
-  const pkg = VALID_PACKAGES.includes(sp.package as any)
-    ? (sp.package as string)
-    : "INTEGRATED";
+
+  const products = await listActiveProducts();
+  if (products.length === 0) {
+    // Catalogue unavailable — never show a purchase form with no price.
+    redirect(`/${locale}#packages`);
+  }
+
+  // A slug that names nothing on sale must not silently sell something
+  // else — send the buyer back to the price list rather than swapping the
+  // product under them.
+  const requested = sp.product ? await getProduct(sp.product) : null;
+  if (sp.product && !requested) {
+    redirect(`/${locale}#packages`);
+  }
+  const selected = requested ?? products[0];
 
   return (
     <div className="mx-auto max-w-lg px-4 py-12">
       <CheckoutForm
         locale={locale}
-        packageType={pkg}
-        amountSar={PACKAGE_PRICE_SAR[pkg]}
+        products={products.map((p) => ({
+          slug: p.slug,
+          name: locale === "ar" ? p.nameAr : p.nameEn,
+          desc: locale === "ar" ? p.descAr : p.descEn,
+          price: p.priceSar,
+          unit: locale === "ar" ? p.unitAr : p.unitEn,
+          group: p.group,
+        }))}
+        initialSlug={selected.slug}
+        initialPromo={(sp.promo ?? "").slice(0, 40)}
       />
     </div>
   );
