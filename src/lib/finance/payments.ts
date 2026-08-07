@@ -415,6 +415,13 @@ export interface AdoptResult {
   /** Local PayStatus after reconciliation. */
   status?: string;
   /**
+   * What was paid. The callback routes on this rather than on query
+   * parameters, which do not reliably survive the gateway round-trip.
+   */
+  kind?: "invoice" | "order";
+  /** Locale round-tripped through the payment metadata. */
+  locale?: "ar" | "en";
+  /**
    * True when the outcome is unknown rather than negative — the gateway or
    * the database could not be reached. The payer may well have been charged,
    * so callers must show "verifying", not "failed", and the webhook must ask
@@ -440,7 +447,10 @@ export interface AdoptResult {
 export async function adoptMoyasarPayment(
   moyasarPaymentId: string
 ): Promise<AdoptResult> {
-  const finish = async (paymentId: string): Promise<AdoptResult> => {
+  const finish = async (
+    paymentId: string,
+    locale?: "ar" | "en"
+  ): Promise<AdoptResult> => {
     const fresh = await prisma.payment.findUnique({
       where: { id: paymentId },
       select: { status: true, invoiceId: true },
@@ -450,6 +460,8 @@ export async function adoptMoyasarPayment(
       paymentId,
       invoiceId: fresh?.invoiceId,
       status: fresh?.status,
+      kind: "invoice",
+      locale,
     };
   };
 
@@ -492,6 +504,7 @@ export async function adoptMoyasarPayment(
     };
   }
   const mp = res.data;
+  const metaLocale = mp.metadata?.locale === "en" ? "en" : "ar";
 
   // A landing-page purchase carries an order id instead of an invoice id.
   if (mp.metadata?.purchase_order_id) {
@@ -549,7 +562,7 @@ export async function adoptMoyasarPayment(
   }
 
   await reconcileFromMoyasarPayment(paymentId, mp);
-  return finish(paymentId);
+  return finish(paymentId, metaLocale);
 }
 
 /**
@@ -613,10 +626,11 @@ export async function adoptPurchaseOrderPayment(
     mp = res.data;
   }
 
+  const locale = mp.metadata?.locale === "en" ? "en" : "ar";
   const orderId = mp.metadata?.purchase_order_id ?? "";
   if (!orderId) {
     await orphanPaymentAlert(mp, "no order reference in metadata");
-    return { ok: false, error: "Payment carries no order reference." };
+    return { ok: false, error: "Payment carries no order reference.", kind: "order", locale };
   }
   const order = await prisma.purchaseOrder.findUnique({
     where: { id: orderId },
@@ -631,7 +645,7 @@ export async function adoptPurchaseOrderPayment(
   });
   if (!order) {
     await orphanPaymentAlert(mp, `order ${orderId} not found`);
-    return { ok: false, error: "Unknown order." };
+    return { ok: false, error: "Unknown order.", kind: "order", locale };
   }
 
   const status = mapMoyasarStatus(mp.status, mp.refunded, mp.amount);
@@ -643,6 +657,8 @@ export async function adoptPurchaseOrderPayment(
       ok: true,
       invoiceId: order.id,
       status: status === "FAILED" ? "FAILED" : "INITIATED",
+      kind: "order",
+      locale,
     };
   }
 
@@ -662,7 +678,13 @@ export async function adoptPurchaseOrderPayment(
       mp,
       `amount does not match order ${order.id} (expected ${expectedHalalas} halalas SAR)`
     );
-    return { ok: false, error: "Payment amount mismatch.", invoiceId: order.id };
+    return {
+      ok: false,
+      error: "Payment amount mismatch.",
+      invoiceId: order.id,
+      kind: "order",
+      locale,
+    };
   }
 
   // Atomic settle — only the first delivery flips PENDING → PAID.
@@ -700,7 +722,7 @@ export async function adoptPurchaseOrderPayment(
     }
   }
 
-  return { ok: true, invoiceId: order.id, status: "PAID" };
+  return { ok: true, invoiceId: order.id, status: "PAID", kind: "order", locale };
 }
 
 export interface RefundResult {

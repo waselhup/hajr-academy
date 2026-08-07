@@ -138,7 +138,10 @@ export function MoyasarPaymentForm({
           methods: applePayEnabled
             ? ["creditcard", "applepay", "stcpay"]
             : ["creditcard", "stcpay"],
-          metadata: { invoice_id: invoiceId },
+          // Metadata is the only channel that reliably survives the gateway
+          // round-trip (query parameters can be lost across 3-D Secure), so
+          // the return locale travels here.
+          metadata: { invoice_id: invoiceId, locale },
           ...(applePayEnabled
             ? {
                 apple_pay: {
