@@ -318,16 +318,16 @@ function SetupGuide({ isAr }: { isAr: boolean }) {
         </CardTitle>
         <CardDescription>
           {isAr
-            ? "الطريقة الأولى هي المناسبة لك في ٩٩٪ من الحالات."
-            : "The first route is the right one 99% of the time."}
+            ? "كل مستخدم Zoom مرخّص تضيفه = حصة إضافية يمكن بثّها في نفس الوقت."
+            : "Each licensed Zoom user you add = one more class that can run at the same time."}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-5 text-sm">
         <section className="space-y-2">
           <h3 className="font-semibold text-hajr-navy">
             {isAr
-              ? "الطريقة ١ — مستخدم جديد داخل حساب Zoom الحالي (مُوصى بها)"
-              : "Route 1 — a new user inside your existing Zoom account (recommended)"}
+              ? "مستخدم جديد داخل حساب Zoom الحالي"
+              : "A new user inside your existing Zoom account"}
           </h3>
           <ol className="list-decimal space-y-1.5 pe-5 ps-5 text-muted-foreground">
             <li>
@@ -365,36 +365,12 @@ function SetupGuide({ isAr }: { isAr: boolean }) {
 
         <section className="space-y-2">
           <h3 className="font-semibold text-hajr-navy">
-            {isAr
-              ? "الطريقة ٢ — حساب Zoom منفصل تماماً (تسجيل دخول آخر)"
-              : "Route 2 — a completely separate Zoom account (different login)"}
+            {isAr ? "حساب Zoom منفصل تماماً؟" : "A completely separate Zoom account?"}
           </h3>
-          <ol className="list-decimal space-y-1.5 pe-5 ps-5 text-muted-foreground">
-            <li>
-              {isAr
-                ? "سجّل دخولك على حساب Zoom الآخر وافتح marketplace.zoom.us ← Develop ← Build App ← Server-to-Server OAuth."
-                : "Sign in to the other Zoom account and open marketplace.zoom.us → Develop → Build App → Server-to-Server OAuth."}
-            </li>
-            <li>
-              {isAr
-                ? "أضف الصلاحيات (Scopes): meeting:write:admin و user:read:admin وcloud_recording:read:admin ثم فعّل التطبيق (Activate)."
-                : "Add the scopes meeting:write:admin, user:read:admin and cloud_recording:read:admin, then Activate the app."}
-            </li>
-            <li>
-              {isAr
-                ? "انسخ الثلاثة: Account ID و Client ID و Client Secret."
-                : "Copy all three: Account ID, Client ID and Client Secret."}
-            </li>
-            <li>
-              {isAr
-                ? "هنا ← إضافة حساب ← افتح «هذا الحساب له تسجيل دخول Zoom خاص به» والصق الثلاثة."
-                : "Here → Add account → open “This account has its own Zoom login” and paste all three."}
-            </li>
-          </ol>
-          <p className="rounded-card bg-amber-50 p-2.5 text-xs text-amber-900">
+          <p className="rounded-card bg-amber-50 p-2.5 text-amber-900">
             {isAr
-              ? "المفتاح السري يُخزَّن مشفّراً (AES-256). استخدم هذه الطريقة فقط إذا كان الحساب الآخر مملوكاً لجهة أخرى ولا يمكن ضمّه لحسابك."
-              : "The secret is stored encrypted (AES-256). Use this route only when the other account belongs to someone else and can't be merged into yours."}
+              ? "إذا كان الحساب مملوكاً لجهة أخرى ولا يمكن ضمّه لحسابك، فهو يحتاج ربطاً تقنياً — تواصل مع المطوّر لإضافته."
+              : "If the account belongs to someone else and can't be merged into yours, it needs a technical hook-up — contact the developer to add it."}
           </p>
         </section>
 
@@ -561,15 +537,15 @@ function FormDialog({ isAr, row, onClose, onDone }: { isAr: boolean; row?: Row; 
             className="text-sm font-medium text-hajr-rose hover:underline"
           >
             {advanced ? "▾ " : "▸ "}
-            {isAr ? "هذا الحساب له تسجيل دخول Zoom خاص به (متقدّم)" : "This account has its own Zoom login (advanced)"}
+            {isAr ? "مفاتيح Zoom خاصة — للمطوّر فقط" : "Own Zoom keys — developer only"}
           </button>
 
           {advanced && (
             <div className="space-y-3 rounded-card border border-hajr-border bg-hajr-ivory p-3">
               <p className="text-xs text-muted-foreground">
                 {isAr
-                  ? "أدخل مفاتيح تطبيق Server-to-Server OAuth الخاص بهذا الحساب. اتركها فارغة لاستخدام الاتصال الرئيسي."
-                  : "Enter this account's Server-to-Server OAuth app keys. Leave blank to reuse the main connection."}
+                  ? "لحساب Zoom منفصل بتسجيل دخول آخر. لا تحتاج هذه الخانات عند إضافة مستخدم داخل حسابك — اتركها فارغة."
+                  : "For a separate Zoom account with a different login. Not needed when adding a user inside your own account — leave blank."}
               </p>
               <Field label="Account ID"><Input dir="ltr" {...register("accountId")} /></Field>
               <Field label="Client ID"><Input dir="ltr" {...register("clientId")} /></Field>
