@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/table";
 import { ArrowLeft, FileText } from "lucide-react";
 import { SchoolContractClient } from "./contract-client";
+import { PartnerPayoutsClient, type PayoutRow } from "./payouts-client";
 
 export const dynamic = "force-dynamic";
 
@@ -66,11 +67,26 @@ export default async function AdminSchoolDetailPage({
     take: 300,
   });
 
+  const payoutRows = await prisma.partnerPayout.findMany({
+    where: { partnerSchoolId: id },
+    orderBy: { paidAt: "desc" },
+    take: 200,
+  });
+
   const sales = orders.reduce((s, o) => s + Number(o.amountSar), 0);
   const commission = orders.reduce(
     (s, o) => s + Number(o.partnerCommissionSar ?? 0),
     0
   );
+  const paidOut = payoutRows.reduce((s, p) => s + Number(p.amountSar), 0);
+  const payouts: PayoutRow[] = payoutRows.map((p) => ({
+    id: p.id,
+    amountSar: Number(p.amountSar),
+    method: p.method,
+    reference: p.reference,
+    note: p.note,
+    paidAt: p.paidAt.toISOString(),
+  }));
 
   const money = (n: number) =>
     new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
@@ -144,6 +160,11 @@ export default async function AdminSchoolDetailPage({
             <div className="num text-xl font-bold">
               {promo ? Number(promo.value) : 0}%
             </div>
+            <Badge variant={school.discountRecurs ? "info" : "default"} className="mt-1">
+              {school.discountRecurs
+                ? isAr ? "يتكرر مع كل عملية للطالب" : "Repeats on every purchase"
+                : isAr ? "لأول عملية فقط" : "First purchase only"}
+            </Badge>
           </div>
           <div>
             <div className="text-xs text-muted-foreground">
@@ -178,7 +199,7 @@ export default async function AdminSchoolDetailPage({
       </Card>
 
       {/* Referral results */}
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">
@@ -197,17 +218,15 @@ export default async function AdminSchoolDetailPage({
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-xs text-muted-foreground">
-              {isAr ? "العمولة المستحقة" : "Commission owed"}
-            </div>
-            <div className="num text-xl font-bold text-hajr-rose">
-              {money(commission)} {sar}
-            </div>
-          </CardContent>
-        </Card>
       </div>
+
+      {/* Earned vs paid — the two numbers are kept apart on purpose */}
+      <PartnerPayoutsClient
+        partnerSchoolId={school.id}
+        payouts={payouts}
+        owedSar={commission}
+        paidSar={paidOut}
+      />
 
       {/* Every purchase made with this partner's code */}
       <Card>

@@ -1183,6 +1183,10 @@ model PartnerSchool {
   /// The partner's cut of a referred student's FIRST purchase, in percent.
   /// Only the first purchase earns it; later ones are attributed but pay 0.
   commissionPercent Decimal @default(0) @db.Decimal(5, 2)
+  /// Whether the partner's code keeps discounting the SAME student on every
+  /// later purchase. A charity sponsors a beneficiary for a whole year, not
+  /// one month — the commission still pays once, the discount does not.
+  discountRecurs    Boolean @default(true)
   studentCap    Int
   active        Boolean  @default(true)
   notes         String?
@@ -1194,6 +1198,35 @@ model PartnerSchool {
   contracts      SchoolContract[]
   promoCodes     PromoCode[]
   referredOrders PurchaseOrder[]
+  payouts        PartnerPayout[]
+}
+
+/// A commission payment actually made to a success partner.
+///
+/// Commission EARNED lives on PurchaseOrder.partnerCommissionSar; this is
+/// what left the account. Keeping them apart is the whole point: what is
+/// owed is derived from sales and can never be edited, while what was paid
+/// is entered by a human and must be auditable on its own.
+model PartnerPayout {
+  id              String        @id @default(uuid())
+  partnerSchoolId String
+  partnerSchool   PartnerSchool @relation(fields: [partnerSchoolId], references: [id], onDelete: Cascade)
+  amountSar       Decimal       @db.Decimal(10, 2)
+  method          PayoutMethod  @default(BANK_TRANSFER)
+  /// Bank transfer number, cheque number, or however it was traced.
+  reference       String?
+  note            String?
+  paidAt          DateTime
+  createdBy       String?
+  createdAt       DateTime      @default(now())
+
+  @@index([partnerSchoolId, paidAt])
+}
+
+enum PayoutMethod {
+  BANK_TRANSFER
+  CASH
+  OTHER
 }
 
 // ─────────────────────── PHASE 9 — PARENT + SCHOOL ───────────────────────

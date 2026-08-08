@@ -95,6 +95,78 @@ export async function attributeReferral(params: {
   }
 }
 
+// ─────────────────────── Commission ledger ───────────────────────
+
+export interface PartnerLedger {
+  /** Commission earned, summed from the snapshots frozen on paid orders. */
+  owedSar: number;
+  /** Commission actually paid out, entered by an admin. */
+  paidSar: number;
+  /** owed − paid. Negative means the partner was overpaid. */
+  remainingSar: number;
+  referredOrders: number;
+  referredSalesSar: number;
+}
+
+const EMPTY_LEDGER: PartnerLedger = {
+  owedSar: 0,
+  paidSar: 0,
+  remainingSar: 0,
+  referredOrders: 0,
+  referredSalesSar: 0,
+};
+
+/**
+ * Earned-vs-paid for every partner, keyed by partner id.
+ *
+ * Earned is derived from sales and is not editable; paid is human-entered.
+ * They are summed separately on purpose — a mismatch between them is a real
+ * finding, not something to paper over by storing one number.
+ */
+export async function partnerLedgers(): Promise<Map<string, PartnerLedger>> {
+  const out = new Map<string, PartnerLedger>();
+  try {
+    const [earned, paid] = await Promise.all([
+      prisma.purchaseOrder.groupBy({
+        by: ["partnerSchoolId"],
+        where: { paymentStatus: "PAID", partnerSchoolId: { not: null } },
+        _sum: { partnerCommissionSar: true, amountSar: true },
+        _count: { _all: true },
+      }),
+      prisma.partnerPayout.groupBy({
+        by: ["partnerSchoolId"],
+        _sum: { amountSar: true },
+      }),
+    ]);
+
+    for (const e of earned) {
+      out.set(e.partnerSchoolId as string, {
+        ...EMPTY_LEDGER,
+        owedSar: Number(e._sum.partnerCommissionSar ?? 0),
+        referredSalesSar: Number(e._sum.amountSar ?? 0),
+        referredOrders: e._count._all,
+      });
+    }
+    for (const p of paid) {
+      const prev = out.get(p.partnerSchoolId) ?? { ...EMPTY_LEDGER };
+      out.set(p.partnerSchoolId, {
+        ...prev,
+        paidSar: Number(p._sum.amountSar ?? 0),
+      });
+    }
+    for (const [id, l] of out) {
+      out.set(id, { ...l, remainingSar: +(l.owedSar - l.paidSar).toFixed(2) });
+    }
+  } catch (e) {
+    console.error("[partner-referrals] partnerLedgers failed:", e);
+  }
+  return out;
+}
+
+export function emptyLedger(): PartnerLedger {
+  return { ...EMPTY_LEDGER };
+}
+
 /** A readable, collision-resistant code derived from the partner's name. */
 function candidateCode(nameEn: string, nameAr: string, attempt: number): string {
   if (attempt >= 4) return `PARTNER${Math.floor(100000 + Math.random() * 900000)}`;
@@ -105,6 +177,17 @@ function candidateCode(nameEn: string, nameAr: string, attempt: number): string 
   const stem = base.length >= 3 ? base : "PARTNER";
   return `${stem}${Math.floor(1000 + Math.random() * 9000)}`;
 }
+
+/**
+ * Per-student cap on a recurring partner code.
+ *
+ * The promo layer expresses "how many times may ONE person use this", and a
+ * charity sponsors a beneficiary for a year, not a month — so the cap has to
+ * be effectively lifted. A large finite number rather than unlimited: it
+ * still trips if something starts looping, which unlimited never would.
+ * Kept in sync with scripts/apply-partner-payouts-migration.ts.
+ */
+export const RECURRING_USES_PER_USER = 999;
 
 export interface PartnerPromoResult {
   code: string | null;
@@ -125,9 +208,13 @@ export async function ensurePartnerPromoCode(params: {
   nameAr: string;
   discountPercent: number;
   expiresAt: Date | null;
+  /** Keep discounting the same student on later purchases. Default true. */
+  discountRecurs?: boolean;
   createdBy?: string;
 }): Promise<PartnerPromoResult> {
   const pct = Math.min(Math.max(Number(params.discountPercent) || 0, 0), 100);
+  const perUser =
+    params.discountRecurs === false ? 1 : RECURRING_USES_PER_USER;
 
   try {
     const existing = await prisma.promoCode.findFirst({
@@ -144,6 +231,7 @@ export async function ensurePartnerPromoCode(params: {
           value: pct,
           expiresAt: params.expiresAt,
           isActive: pct > 0,
+          maxUsesPerUser: perUser,
         },
       });
       return { code: existing.code, discountPercent: pct };
@@ -166,7 +254,7 @@ export async function ensurePartnerPromoCode(params: {
           startsAt: new Date(),
           expiresAt: params.expiresAt,
           isActive: true,
-          maxUsesPerUser: 1,
+          maxUsesPerUser: perUser,
           partnerSchoolId: params.partnerSchoolId,
           description: `Success partner: ${params.nameEn || params.nameAr}`,
           descriptionAr: `شريك نجاح: ${params.nameAr || params.nameEn}`,

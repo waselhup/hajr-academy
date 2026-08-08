@@ -69,6 +69,9 @@ export async function POST(req: NextRequest) {
     // Commercial terms are the owner's decision, taken at approval time.
     const discountPercent = pct(body.discountPercent, 10);
     const commissionPercent = pct(body.commissionPercent, 0);
+    // A sponsor usually backs a student for a whole term, so the discount
+    // repeats by default; the commission still pays once either way.
+    const discountRecurs = body.discountRecurs !== false;
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
     const app = await prisma.partnerApplication.findUnique({ where: { id } });
@@ -129,6 +132,7 @@ export async function POST(req: NextRequest) {
         // Retainers are retired: a partner earns a share of what they bring in.
         monthlyFeeSar: 0,
         commissionPercent,
+        discountRecurs,
         studentCap: app.expectedStudents ?? 0,
         active: true,
         notes: `Created from public application ${app.id}`,
@@ -143,6 +147,7 @@ export async function POST(req: NextRequest) {
       nameEn: app.orgNameEn ?? app.orgNameAr,
       nameAr: app.orgNameAr,
       discountPercent,
+      discountRecurs,
       expiresAt: contractEnd,
       createdBy: g.session.user.id,
     });

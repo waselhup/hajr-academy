@@ -25,6 +25,8 @@ const schema = z.object({
   commissionPercent: z.coerce.number().min(0).max(100),
   /// What their code takes off for the student. Drives the PromoCode value.
   discountPercent: z.coerce.number().min(0).max(100),
+  /// Keep discounting the same student on later purchases (charity case).
+  discountRecurs: z.boolean().optional(),
   studentCap: z.coerce.number().int().min(1),
   notes: z.string().optional().nullable(),
 });
@@ -54,6 +56,7 @@ export async function createSchoolAction(input: z.infer<typeof schema>): Promise
       // Retainers are retired — partners earn a share of what they bring in.
       monthlyFeeSar: 0 as any,
       commissionPercent: parsed.data.commissionPercent as any,
+      discountRecurs: parsed.data.discountRecurs ?? true,
       studentCap: parsed.data.studentCap,
       notes: parsed.data.notes ?? null,
     },
@@ -65,6 +68,7 @@ export async function createSchoolAction(input: z.infer<typeof schema>): Promise
     nameEn: parsed.data.nameEn,
     nameAr: parsed.data.nameAr,
     discountPercent: parsed.data.discountPercent,
+    discountRecurs: parsed.data.discountRecurs ?? true,
     expiresAt: contractEnd,
     createdBy: session.user.id,
   });
@@ -87,17 +91,19 @@ export async function updateSchoolAction(input: z.infer<typeof updateSchema>): P
   const updated = await prisma.partnerSchool.update({
     where: { id },
     data,
-    select: { nameEn: true, nameAr: true, contractEnd: true },
+    select: { nameEn: true, nameAr: true, contractEnd: true, discountRecurs: true },
   });
 
   // Re-price the partner's code. The code STRING is never regenerated —
-  // students may already be carrying it — only its percentage and expiry.
+  // students may already be carrying it — only its percentage, expiry and
+  // per-student repeat allowance.
   if (discountPercent != null) {
     await ensurePartnerPromoCode({
       partnerSchoolId: id,
       nameEn: updated.nameEn,
       nameAr: updated.nameAr,
       discountPercent,
+      discountRecurs: updated.discountRecurs,
       expiresAt: updated.contractEnd,
       createdBy: session.user.id,
     });

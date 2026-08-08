@@ -1,5 +1,6 @@
 import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
+import { partnerLedgers, emptyLedger } from "@/lib/finance/partner-referrals";
 import { SchoolsClient } from "./_components/schools-client";
 
 export const dynamic = "force-dynamic";
@@ -22,27 +23,12 @@ export default async function AdminSchoolsPage() {
       orderBy: { createdAt: "desc" },
     });
 
-    // Commission earned per partner, straight from the frozen snapshots on
-    // paid orders — never recomputed from the current rate.
-    const earned = await prisma.purchaseOrder.groupBy({
-      by: ["partnerSchoolId"],
-      where: { paymentStatus: "PAID", partnerSchoolId: { not: null } },
-      _sum: { partnerCommissionSar: true, amountSar: true },
-      _count: { _all: true },
-    });
-    const byPartner = new Map(
-      earned.map((e) => [
-        e.partnerSchoolId as string,
-        {
-          commission: Number(e._sum.partnerCommissionSar ?? 0),
-          revenue: Number(e._sum.amountSar ?? 0),
-          orders: e._count._all,
-        },
-      ])
-    );
+    // Earned (frozen on paid orders) and paid (entered by an admin) are
+    // summed separately — see partnerLedgers().
+    const ledgers = await partnerLedgers();
 
     rows = schools.map((s) => {
-      const agg = byPartner.get(s.id);
+      const led = ledgers.get(s.id) ?? emptyLedger();
       const promo = s.promoCodes[0] ?? null;
       return {
         id: s.id,
@@ -56,15 +42,18 @@ export default async function AdminSchoolsPage() {
         contractStart: s.contractStart.toISOString().slice(0, 10),
         contractEnd: s.contractEnd.toISOString().slice(0, 10),
         commissionPercent: Number(s.commissionPercent),
+        discountRecurs: s.discountRecurs,
         promoCode: promo?.code ?? null,
         discountPercent: promo ? Number(promo.value) : 0,
         promoActive: promo?.isActive ?? false,
         studentCap: s.studentCap,
         active: s.active,
         students: s._count.students,
-        orders: agg?.orders ?? 0,
-        revenueSar: agg?.revenue ?? 0,
-        commissionSar: agg?.commission ?? 0,
+        orders: led.referredOrders,
+        revenueSar: led.referredSalesSar,
+        commissionSar: led.owedSar,
+        paidSar: led.paidSar,
+        remainingSar: led.remainingSar,
       };
     });
   } catch (e) {

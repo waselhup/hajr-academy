@@ -13,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import { DateField } from "@/components/ui/western-fields";
 import { Label } from "@/components/ui/label";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
@@ -37,6 +38,7 @@ type Row = {
   partnerType: PartnerType;
   contractStart: string; contractEnd: string;
   commissionPercent: number;
+  discountRecurs: boolean;
   promoCode: string | null;
   discountPercent: number;
   promoActive: boolean;
@@ -46,6 +48,8 @@ type Row = {
   orders: number;
   revenueSar: number;
   commissionSar: number;
+  paidSar: number;
+  remainingSar: number;
 };
 
 const schema = z.object({
@@ -59,6 +63,7 @@ const schema = z.object({
   contractStart: z.string(),
   contractEnd: z.string(),
   discountPercent: z.coerce.number().min(0).max(100),
+  discountRecurs: z.boolean(),
   commissionPercent: z.coerce.number().min(0).max(100),
   studentCap: z.coerce.number().int().min(1),
 });
@@ -72,8 +77,10 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
 
-  const totalCommission = rows.reduce((s, r) => s + r.commissionSar, 0);
+  const owed = rows.reduce((s, r) => s + r.commissionSar, 0);
+  const remaining = rows.reduce((s, r) => s + r.remainingSar, 0);
   const totalReferred = rows.reduce((s, r) => s + r.students, 0);
+  const money = (n: number) => fmtSAR(n, locale as "ar" | "en");
 
   return (
     <div className="space-y-4">
@@ -82,8 +89,8 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
           <h1 className="text-2xl font-bold">{t("Schools.title")}</h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             {isAr
-              ? "كل شريك له رمز خصم واحد يوزّعه. من يشتري به يُسجَّل باسم الشريك، والشريك يستحق نسبة من أول عملية شراء لذلك الطالب فقط."
-              : "Each partner has one discount code to hand out. Anyone who buys with it is recorded under that partner, who earns a percentage of that student's first purchase only."}
+              ? "كل شريك له رمز خصم واحد يوزّعه. من يشتري به يُسجَّل باسم الشريك — العمولة تُحتسب مرة واحدة على أول شراء، والخصم يمكن أن يستمر مع الطالب."
+              : "Each partner has one discount code to hand out. Buyers are recorded under that partner — commission is earned once on the first purchase, while the discount can keep running for the student."}
           </p>
         </div>
         <Button variant="cta" size="sm" onClick={() => setShowAdd(true)}>
@@ -91,12 +98,13 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
         </Button>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat label={isAr ? "الشركاء" : "Partners"} value={String(rows.length)} />
         <Stat label={isAr ? "طلاب عن طريق الشركاء" : "Students referred"} value={String(totalReferred)} />
+        <Stat label={isAr ? "إجمالي العمولات المستحقة" : "Commission earned"} value={money(owed)} />
         <Stat
-          label={isAr ? "إجمالي العمولات المستحقة" : "Total commission earned"}
-          value={fmtSAR(totalCommission, locale as "ar" | "en")}
+          label={isAr ? "المتبقي للصرف" : "Still to pay out"}
+          value={money(remaining)}
           accent
         />
       </div>
@@ -109,11 +117,11 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
                 <TableHead>{t("Common.name")}</TableHead>
                 <TableHead>{t("Schools.partnerType")}</TableHead>
                 <TableHead>{isAr ? "رمز الخصم" : "Discount code"}</TableHead>
-                <TableHead>{isAr ? "خصم الطالب" : "Student discount"}</TableHead>
-                <TableHead>{isAr ? "عمولة الشريك" : "Partner commission"}</TableHead>
+                <TableHead>{isAr ? "الشروط" : "Terms"}</TableHead>
                 <TableHead>{isAr ? "طلاب" : "Students"}</TableHead>
                 <TableHead>{isAr ? "مبيعات" : "Sales"}</TableHead>
-                <TableHead>{isAr ? "عمولة مستحقة" : "Commission owed"}</TableHead>
+                <TableHead>{isAr ? "عمولة مستحقة" : "Earned"}</TableHead>
+                <TableHead>{isAr ? "متبقٍ للصرف" : "Unpaid"}</TableHead>
                 <TableHead>{t("Common.status")}</TableHead>
                 <TableHead className="w-8" />
               </TableRow>
@@ -154,12 +162,31 @@ export function SchoolsClient({ rows }: { rows: Row[] }) {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="num">{r.discountPercent}%</TableCell>
-                    <TableCell className="num font-semibold">{r.commissionPercent}%</TableCell>
+                    <TableCell className="whitespace-nowrap text-xs">
+                      <div className="num">
+                        {isAr ? "خصم " : "Discount "}{r.discountPercent}%
+                        {" · "}
+                        {isAr ? "عمولة " : "Commission "}{r.commissionPercent}%
+                      </div>
+                      <Badge variant={r.discountRecurs ? "info" : "default"} className="mt-1">
+                        {r.discountRecurs
+                          ? isAr ? "خصم متكرر" : "Discount repeats"
+                          : isAr ? "خصم مرة واحدة" : "One-time discount"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="num">{r.students}</TableCell>
-                    <TableCell className="num">{fmtSAR(r.revenueSar, locale as "ar" | "en")}</TableCell>
-                    <TableCell className="num font-semibold text-hajr-rose">
-                      {fmtSAR(r.commissionSar, locale as "ar" | "en")}
+                    <TableCell className="num">{money(r.revenueSar)}</TableCell>
+                    <TableCell className="num">{money(r.commissionSar)}</TableCell>
+                    <TableCell className="num font-semibold">
+                      {r.remainingSar > 0 ? (
+                        <span className="text-hajr-rose">{money(r.remainingSar)}</span>
+                      ) : r.remainingSar < 0 ? (
+                        <span className="text-hajr-warning">
+                          {money(Math.abs(r.remainingSar))} {isAr ? "زائد" : "over"}
+                        </span>
+                      ) : (
+                        <span className="text-hajr-success">{isAr ? "مسدّد" : "settled"}</span>
+                      )}
                     </TableCell>
                     <TableCell><Badge variant={r.active ? "success" : "danger"}>{r.active ? t("Common.active") : t("Common.inactive")}</Badge></TableCell>
                     <TableCell>
@@ -220,11 +247,17 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
           partnerType: existing.partnerType ?? "SCHOOL",
           contractStart: existing.contractStart, contractEnd: existing.contractEnd,
           discountPercent: existing.discountPercent,
+          discountRecurs: existing.discountRecurs,
           commissionPercent: existing.commissionPercent,
           studentCap: existing.studentCap,
         }
-      : { city: "Hofuf", partnerType: "SCHOOL", studentCap: 50, discountPercent: 10, commissionPercent: 10 } as any,
+      : {
+          city: "Hofuf", partnerType: "SCHOOL", studentCap: 50,
+          discountPercent: 10, discountRecurs: true, commissionPercent: 10,
+        } as any,
   });
+
+  const recurs = watch("discountRecurs");
 
   const onSubmit = (data: FormData) => {
     startTransition(async () => {
@@ -250,8 +283,8 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
           <DialogTitle>{mode === "create" ? t("Schools.addNew") : t("Schools.edit")}</DialogTitle>
           <DialogDescription>
             {isAr
-              ? "رمز الخصم يُنشأ تلقائياً عند الحفظ ولا يتغيّر بعدها — يتغيّر فقط مقدار الخصم."
-              : "The discount code is minted automatically on save and never changes afterwards — only its percentage does."}
+              ? "رمز الخصم يُنشأ تلقائياً عند الحفظ ولا يتغيّر بعدها — يتغيّر فقط مقدار الخصم وشروطه."
+              : "The discount code is minted automatically on save and never changes afterwards — only its percentage and terms do."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -290,6 +323,27 @@ function FormDialog({ mode, existing, onClose, onDone }: { mode: "create" | "edi
           >
             <Input type="number" min={0} max={100} step="1" {...register("commissionPercent")} />
           </Field>
+
+          {/* The charity case: one commission, many discounted months. */}
+          <div className="rounded-card border border-hajr-border bg-hajr-ivory p-3 sm:col-span-2">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <Label className="text-sm font-semibold">
+                  {isAr ? "الخصم يستمر مع الطالب" : "Discount keeps running for the student"}
+                </Label>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {isAr
+                    ? "مفعّل: الطالب يستفيد من الخصم في كل عملياته طوال مدة العقد — المناسب للجمعيات الراعية. معطّل: الخصم لأول عملية فقط. العمولة تُدفع مرة واحدة في الحالتين."
+                    : "On: the student keeps the discount on every purchase for the length of the contract — the sponsoring-charity case. Off: the discount applies to the first purchase only. Commission pays once either way."}
+                </p>
+              </div>
+              <Switch
+                checked={!!recurs}
+                onCheckedChange={(v) => setValue("discountRecurs", v, { shouldDirty: true })}
+                aria-label={isAr ? "الخصم يستمر مع الطالب" : "Discount keeps running"}
+              />
+            </div>
+          </div>
 
           <DialogFooter className="sm:col-span-2">
             <Button type="button" variant="outline" onClick={onClose}>{t("Common.cancel")}</Button>
