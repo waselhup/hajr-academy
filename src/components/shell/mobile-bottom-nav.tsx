@@ -79,6 +79,9 @@ const TABS_BY_ROLE: Record<Role, Tab[]> = {
     { key: "Nav.bottomNavHome",     href: "/applicant",          icon: Home },
     { key: "Nav.bottomNavMessages", href: "/applicant/messages", icon: MessageSquare, badge: "messages" },
   ],
+  // Conversation partners run on their own single-page shell, which renders
+  // neither this bar nor the sidebar. Present only to satisfy Record<Role,…>.
+  CONVERSATION_PARTNER: [],
 };
 
 export function MobileBottomNav({ role }: { role: Role }) {

@@ -274,7 +274,7 @@ export async function issueAndSendSetupLink(params: {
   name: string;
   phone?: string | null;
   locale?: string;
-  kind: "student" | "teacher" | "partner" | "marketer";
+  kind: "student" | "teacher" | "partner" | "marketer" | "conversation-partner";
   /** Rendered into the email as a receipt block when the account came from
    *  a paid order. */
   invoice?: InvoiceSummary;
@@ -307,6 +307,12 @@ export async function issueAndSendSetupLink(params: {
       hEn: "Your partnership is approved 🤝",
       bAr: "أصبحت شريك نجاح في أكاديمية هجر. اختر كلمة مرورك لمتابعة طلابك.",
       bEn: "you are now a HAJR success partner. Choose a password to follow your students.",
+    },
+    "conversation-partner": {
+      hAr: "تمت الموافقة عليك كشريك محادثة 🎙️",
+      hEn: "You're approved as a conversation partner 🎙️",
+      bAr: "أهلاً بك في أكاديمية هجر. اسم الدخول هو بريدك الإلكتروني — اختر كلمة مرورك من الزر أدناه، وستجد في صفحتك جلساتك القادمة وروابط الدخول إليها.",
+      bEn: "welcome to HAJR Academy. Your username is this email address — choose your password with the button below, and your page will show the sessions you're invited to with their joining links.",
     },
     marketer: {
       hAr: "تمت الموافقة على طلبك 📣",

@@ -287,7 +287,8 @@
     "feedback": "Feedback",
     "teacherRequests": "Teacher requests",
     "catalogProducts": "Products & pricing",
-    "partnerApplications": "Partner applications"
+    "partnerApplications": "Partner applications",
+    "conversationPartners": "Conversation partners"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
@@ -296,7 +297,8 @@
     "STUDENT": "Student",
     "PARENT": "Parent",
     "MARKETER": "Marketer",
-    "APPLICANT": "Applicant"
+    "APPLICANT": "Applicant",
+    "CONVERSATION_PARTNER": "Conversation partner"
   },
   "Programs": {
     "STEP_PREP": "STEP Preparation",
@@ -1456,7 +1458,8 @@
     "role_STUDENT": "Student",
     "role_PARENT": "Parent",
     "role_MARKETER": "Marketer",
-    "role_APPLICANT": "Applicant"
+    "role_APPLICANT": "Applicant",
+    "role_CONVERSATION_PARTNER": "Conversation partner"
   },
   "NotifSettings": {
     "title": "Notification Settings",

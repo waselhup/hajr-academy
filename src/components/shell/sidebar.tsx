@@ -136,6 +136,7 @@ export const ADMIN_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.trials", href: "/admin/trials", icon: UserPlus },
       { key: "Nav.placementTests", href: "/admin/placement-tests", icon: TestTube },
       { key: "Nav.speakingClub", href: "/admin/speaking-club", icon: Mic },
+      { key: "Nav.conversationPartners", href: "/admin/conversation-partners", icon: Mic },
       { key: "Nav.testBank", href: "/admin/test-bank", icon: BookOpen },
       { key: "Nav.mockExams", href: "/admin/exams", icon: ClipboardCheck },
       { key: "Nav.labHub", href: "/admin/lab", icon: FlaskConical },
@@ -414,6 +415,8 @@ export const NAV_BY_ROLE: Record<Role, NavItem[]> = {
   APPLICANT: [
     { key: "Nav.applicantOverview", href: "/applicant", icon: LayoutDashboard },
   ],
+  // See mobile-bottom-nav: the conversation-partner portal has no sidebar.
+  CONVERSATION_PARTNER: [],
 };
 
 /** Role → grouped nav (or null if the role uses a flat list). */

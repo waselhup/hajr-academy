@@ -19,7 +19,7 @@ export default async function AdminSpeakingClubPage({
   const t = await getTranslations("SpeakingClub");
   const isAr = locale === "ar";
 
-  const [events, teachers] = await Promise.all([
+  const [events, teachers, partners] = await Promise.all([
     prisma.speakingClubEvent.findMany({
       orderBy: { scheduledAt: "desc" },
       include: {
@@ -32,6 +32,11 @@ export default async function AdminSpeakingClubPage({
       where: { active: true },
       include: { user: { select: { name: true } } },
       orderBy: { user: { name: "asc" } },
+    }),
+    prisma.conversationPartnerProfile.findMany({
+      where: { isActive: true },
+      include: { user: { select: { name: true } } },
+      orderBy: { createdAt: "asc" },
     }),
   ]);
 
@@ -51,6 +56,12 @@ export default async function AdminSpeakingClubPage({
           </h2>
           <EventCreateForm
             teachers={teachers.map((t) => ({ id: t.id, name: t.user.name }))}
+            partners={partners.map((p) => ({
+              id: p.id,
+              name: p.user.name,
+              country: p.country,
+              timezone: p.timezone,
+            }))}
             locale={locale}
           />
         </CardContent>

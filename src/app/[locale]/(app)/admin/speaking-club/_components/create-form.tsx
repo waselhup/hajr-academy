@@ -10,10 +10,12 @@ import { Textarea } from "@/components/ui/textarea";
 
 interface Props {
   teachers: { id: string; name: string }[];
+  /** Approved conversation partners, with the detail needed to pick one. */
+  partners: { id: string; name: string; country: string; timezone: string }[];
   locale: string;
 }
 
-export function EventCreateForm({ teachers, locale }: Props) {
+export function EventCreateForm({ teachers, partners, locale }: Props) {
   const router = useRouter();
   const isAr = locale === "ar";
   const [pending, startTransition] = useTransition();
@@ -27,6 +29,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
     maxAttendees: 30,
     minLevel: "",
     hostTeacherId: "",
+    conversationPartnerId: "",
     zoomJoinUrl: "",
   });
 
@@ -43,6 +46,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
         body: JSON.stringify({
           ...form,
           hostTeacherId: form.hostTeacherId || undefined,
+          conversationPartnerId: form.conversationPartnerId || undefined,
           minLevel: form.minLevel || undefined,
           zoomJoinUrl: form.zoomJoinUrl || undefined,
         }),
@@ -59,6 +63,7 @@ export function EventCreateForm({ teachers, locale }: Props) {
           maxAttendees: 30,
           minLevel: "",
           hostTeacherId: "",
+          conversationPartnerId: "",
           zoomJoinUrl: "",
         });
         router.refresh();
@@ -163,6 +168,26 @@ export function EventCreateForm({ teachers, locale }: Props) {
             </option>
           ))}
         </select>
+      </div>
+      <div>
+        <Label>{isAr ? "شريك المحادثة" : "Conversation partner"}</Label>
+        <select
+          className="w-full border border-hajr-border rounded-md p-2 min-h-[44px] bg-white"
+          value={form.conversationPartnerId}
+          onChange={(e) => setForm({ ...form, conversationPartnerId: e.target.value })}
+        >
+          <option value="">{isAr ? "بدون" : "None"}</option>
+          {partners.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name} — {p.country} ({p.timezone})
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-hajr-muted mt-1">
+          {isAr
+            ? "سيصله إشعار وتظهر الجلسة في صفحته مع رابط الدخول."
+            : "They are notified and the session appears on their page with the joining link."}
+        </p>
       </div>
       <div className="sm:col-span-2">
         <Label>{isAr ? "رابط Zoom للانضمام" : "Zoom join URL"}</Label>

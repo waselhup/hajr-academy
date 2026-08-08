@@ -40,6 +40,7 @@ model User {
   parentProfile           ParentProfile?
   marketerProfile         MarketerProfile?
   applicantProfile        ApplicantProfile?
+  conversationPartner     ConversationPartnerProfile?
   messagesSent            Message[]                 @relation("MessagesSent")
   messagesReceived        Message[]                 @relation("MessagesReceived")
   notifications           Notification[]
@@ -1468,6 +1469,10 @@ enum Role {
   PARENT
   MARKETER
   APPLICANT
+  /// A volunteer/partner who converses with students to build fluency.
+  /// Deliberately its own role: they are not staff and must never see the
+  /// teacher portal, only the sessions they were invited to.
+  CONVERSATION_PARTNER
 }
 
 enum Lang {
@@ -2357,6 +2362,11 @@ model SpeakingClubEvent {
   minLevel        String?
   hostTeacherId   String?
   hostTeacher     TeacherProfile?    @relation(fields: [hostTeacherId], references: [id])
+  /// The conversation partner invited to this session. Separate from the
+  /// host teacher: a session can have a HAJR teacher running it AND a guest
+  /// speaker, or a partner alone.
+  conversationPartnerId String?
+  conversationPartner   ConversationPartnerProfile? @relation(fields: [conversationPartnerId], references: [id], onDelete: SetNull)
   zoomMeetingId   String?
   zoomJoinUrl     String?
   recordingUrl    String?
@@ -2368,6 +2378,58 @@ model SpeakingClubEvent {
   rsvps           SpeakingClubRSVP[]
 
   @@index([scheduledAt, status])
+}
+
+/// A public application to become a conversation partner. Nothing about the
+/// person exists on the platform until an admin approves it.
+model ConversationPartnerApplication {
+  id             String                      @id @default(uuid())
+  fullName       String
+  email          String
+  phone          String
+  country        String
+  /// What they speak natively, e.g. "English".
+  nativeLanguage String
+  otherLanguages String?
+  /// IANA zone or a plain offset the applicant typed, e.g. "GMT+1".
+  timezone       String
+  /// Free text: the days/hours they can join.
+  availability   String                      @db.Text
+  /// Why they want to do this + any teaching/volunteering background.
+  about          String                      @db.Text
+  linkedin       String?
+  status         PartnerApplicationStatus    @default(PENDING)
+  reviewedBy     String?
+  reviewedAt     DateTime?
+  reviewNote     String?
+  /// Set on approval — the login that was created for them.
+  userId         String?
+  /// Single-use "choose your password" link, kept so an admin can re-send it
+  /// by hand when the email does not land. Cleared once spent.
+  setupUrl       String?
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+
+  @@index([status, createdAt])
+}
+
+/// An approved conversation partner. Holds only what the sessions need.
+model ConversationPartnerProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country        String
+  nativeLanguage String
+  otherLanguages String?
+  timezone       String
+  availability   String?  @db.Text
+  bio            String?  @db.Text
+  isActive       Boolean  @default(true)
+  applicationId  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  sessions SpeakingClubEvent[]
 }
 
 model SpeakingClubRSVP {

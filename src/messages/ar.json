@@ -287,7 +287,8 @@
     "feedback": "التقييمات",
     "teacherRequests": "طلبات المعلّمين",
     "catalogProducts": "المنتجات والأسعار",
-    "partnerApplications": "طلبات الشراكة"
+    "partnerApplications": "طلبات الشراكة",
+    "conversationPartners": "شركاء المحادثة"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",
@@ -296,7 +297,8 @@
     "STUDENT": "طالب",
     "PARENT": "ولي أمر",
     "MARKETER": "مسوّق",
-    "APPLICANT": "متقدّم"
+    "APPLICANT": "متقدّم",
+    "CONVERSATION_PARTNER": "شريك محادثة"
   },
   "Programs": {
     "STEP_PREP": "الإعداد لاختبار ستيب",
@@ -1456,7 +1458,8 @@
     "role_STUDENT": "طالب",
     "role_PARENT": "ولي أمر",
     "role_MARKETER": "مسوّق",
-    "role_APPLICANT": "متقدّم"
+    "role_APPLICANT": "متقدّم",
+    "role_CONVERSATION_PARTNER": "شريك محادثة"
   },
   "NotifSettings": {
     "title": "إعدادات الإشعارات",

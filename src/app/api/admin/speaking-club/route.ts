@@ -16,6 +16,7 @@ export async function GET() {
     orderBy: { scheduledAt: "desc" },
     include: {
       hostTeacher: { include: { user: { select: { name: true } } } },
+      conversationPartner: { include: { user: { select: { name: true } } } },
       _count: { select: { rsvps: true } },
     },
   });
@@ -34,6 +35,8 @@ export async function POST(req: NextRequest) {
     maxAttendees?: number;
     minLevel?: string;
     hostTeacherId?: string;
+    /** The conversation partner invited to speak with the students. */
+    conversationPartnerId?: string;
     zoomMeetingId?: string;
     zoomJoinUrl?: string;
   };
@@ -61,11 +64,40 @@ export async function POST(req: NextRequest) {
       maxAttendees: body.maxAttendees ?? 30,
       minLevel: body.minLevel ?? null,
       hostTeacherId: body.hostTeacherId ?? null,
+      conversationPartnerId: body.conversationPartnerId || null,
       zoomMeetingId: body.zoomMeetingId ?? null,
       zoomJoinUrl: body.zoomJoinUrl ?? null,
       createdById: session.user.id,
     },
   });
+
+  // Tell the partner they are on the schedule. Without this they would only
+  // find out by opening their page on the off-chance.
+  if (event.conversationPartnerId) {
+    try {
+      const partner = await prisma.conversationPartnerProfile.findUnique({
+        where: { id: event.conversationPartnerId },
+        select: { userId: true },
+      });
+      if (partner) {
+        await notify({
+          userId: partner.userId,
+          type: "SYSTEM_ANNOUNCEMENT",
+          title: `You're invited to a session: ${body.titleEn}`,
+          titleAr: `دُعيت إلى جلسة: ${body.titleAr}`,
+          body: "Open your page to see the time in your own zone and the joining link.",
+          bodyAr: "افتح صفحتك لرؤية الموعد بتوقيتك ورابط الدخول.",
+          channels: ["inApp", "email"],
+          priority: "HIGH",
+          actionUrl: "/speaking-partner",
+          refType: "SpeakingClubEvent",
+          refId: event.id,
+        });
+      }
+    } catch (e) {
+      console.error("[speaking-club] partner notify failed:", e);
+    }
+  }
 
   // Create a global student calendar event
   try {
