@@ -21,8 +21,13 @@
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notifyAdmins, notify } from "@/lib/notify";
-import { issueAndSendSetupLink } from "@/lib/auth/account-setup";
-import { createInvoice, markInvoicePaid } from "./invoices";
+import {
+  issueAndSendSetupLink,
+  sendPurchaseReceiptEmail,
+  type InvoiceSummary,
+} from "@/lib/auth/account-setup";
+import { createInvoice, markInvoicePaid, renderInvoiceDocument } from "./invoices";
+import { uploadInvoiceDocument } from "./invoice-storage";
 import { VAT_RATE } from "./zatca";
 import { getProduct } from "./catalog";
 import { attributeReferral } from "./partner-referrals";
@@ -222,6 +227,8 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
   // 15% on top, so the gross must be divided out first — otherwise the tax
   // invoice would claim 15% more than the card was charged.
   let invoiceId: string | undefined;
+  let invoiceSummary: InvoiceSummary | undefined;
+  let invoiceDoc: Buffer | null = null;
   try {
     const grossPaid = Number(order.amountSar);
     const grossList = Number(order.listPriceSar ?? order.amountSar);
@@ -272,6 +279,32 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
     }
 
     await markInvoicePaid(invoice.id, "MOYASAR_CARD");
+
+    // Re-render AFTER the status flips. The copy produced at creation still
+    // says PENDING, and a receipt that says "unpaid" is worse than none —
+    // so the stored document is replaced and the fresh one is emailed.
+    invoiceSummary = {
+      invoiceNumber: invoice.invoiceNumber,
+      itemAr: product?.nameAr ?? "باقة أكاديمية هجر",
+      itemEn: product?.nameEn ?? "HAJR Academy package",
+      subtotalSar: Number(invoice.subtotalSar),
+      discountSar: Number(invoice.discountSar),
+      vatSar: Number(invoice.vatSar),
+      totalSar: Number(invoice.totalSar),
+      issuedAt: invoice.issuedAt,
+    };
+    try {
+      invoiceDoc = await renderInvoiceDocument(invoice.id);
+      if (invoiceDoc) {
+        await uploadInvoiceDocument({
+          invoiceNumber: invoice.invoiceNumber,
+          year: invoice.year,
+          body: invoiceDoc,
+        });
+      }
+    } catch (e) {
+      console.error("[fulfil] paid invoice document failed:", e);
+    }
   } catch (e) {
     // The customer has paid and has an account; a missing invoice is an
     // accounting gap for an admin, not a reason to fail fulfilment.
@@ -289,12 +322,38 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
       name: order.studentName,
       phone: order.phone,
       kind: "student",
+      // One email carries everything the buyer needs: the receipt, the tax
+      // invoice, and the link that turns the purchase into a login.
+      invoice: invoiceSummary,
+      invoiceAttachment:
+        invoiceDoc && invoiceSummary
+          ? {
+              filename: `HAJR-Invoice-${invoiceSummary.invoiceNumber}.html`,
+              content: invoiceDoc,
+            }
+          : undefined,
     });
     setupUrl = delivery.setupUrl;
     emailed = delivery.emailed;
     whatsappUrl = delivery.whatsappUrl;
   } else {
-    // They already have a password — just tell them the purchase landed.
+    // They already have a password — no setup link, but they still bought
+    // something, so the receipt goes out on its own.
+    if (invoiceSummary) {
+      const receipt = await sendPurchaseReceiptEmail({
+        email,
+        name: order.studentName,
+        invoice: invoiceSummary,
+        attachment:
+          invoiceDoc
+            ? {
+                filename: `HAJR-Invoice-${invoiceSummary.invoiceNumber}.html`,
+                content: invoiceDoc,
+              }
+            : undefined,
+      });
+      emailed = receipt.emailed;
+    }
     try {
       await notify({
         userId,

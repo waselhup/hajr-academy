@@ -2685,6 +2685,11 @@ model PurchaseOrder {
   listPriceSar         Decimal?           @db.Decimal(10, 2)
   discountSar          Decimal            @default(0) @db.Decimal(10, 2)
   promoCode            String?
+  /// School year the student is in. Collected only for products that need it
+  /// (CatalogProduct.requiresGradeLevel) — a STEP course does not.
+  gradeLevel           String?
+  /// Which teaching window the buyer picked, e.g. "15:00-17:00".
+  preferredTime        String?
   /// Success partner credited for this sale, resolved from the promo code at
   /// settlement. Null when no code was used, or the code isn't a partner's.
   partnerSchoolId      String?
@@ -2899,6 +2904,11 @@ model CatalogProduct {
 
   /// Maps onto the legacy PackageType so admins can provision as before.
   packageType PackageType?
+
+  /// Ask the buyer which school year the student is in. True for curriculum
+  /// and skills products, where placement depends on it; false for exam
+  /// courses like STEP or IELTS, where asking is just friction.
+  requiresGradeLevel Boolean @default(false)
 
   isActive  Boolean @default(true)
   sortOrder Int     @default(0)

@@ -25,6 +25,8 @@ export interface CatalogItem {
   unitEn: string;
   group: "CORE" | "COURSE" | "SUMMER";
   packageType: string | null;
+  /** Ask the buyer which school year the student is in. */
+  requiresGradeLevel: boolean;
   bulletsAr: string[];
   bulletsEn: string[];
 }
@@ -41,6 +43,7 @@ function toItem(p: {
   unitEn: string;
   group: string;
   packageType: string | null;
+  requiresGradeLevel?: boolean;
   bulletsAr: string[];
   bulletsEn: string[];
 }): CatalogItem {
@@ -56,6 +59,7 @@ function toItem(p: {
     unitEn: p.unitEn,
     group: p.group as CatalogItem["group"],
     packageType: p.packageType,
+    requiresGradeLevel: p.requiresGradeLevel ?? false,
     bulletsAr: p.bulletsAr ?? [],
     bulletsEn: p.bulletsEn ?? [],
   };

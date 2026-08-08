@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus, X } from "lucide-react";
+import { gradeLabel, timeLabel } from "@/lib/finance/checkout-options";
 import { provisionOrderAction, cancelOrderAction } from "../../_actions/orders";
 
 type Order = {
@@ -19,6 +20,8 @@ type Order = {
   setupUrl?: string | null;
   promoCode?: string | null;
   discountSar?: string | null;
+  gradeLevel?: string | null;
+  preferredTime?: string | null;
   notes: string | null;
   amountSar: string;
   paymentStatus: string;
@@ -118,6 +121,17 @@ export function OrdersClient({
                       {o.promoCode && (
                         <div className="num text-xs text-hajr-rose" dir="ltr">
                           {o.promoCode} −{o.discountSar ?? "0"}
+                        </div>
+                      )}
+                      {/* What the buyer told us at checkout — this is what
+                          the class assignment is actually made from. */}
+                      {(o.gradeLevel || o.preferredTime) && (
+                        <div className="mt-0.5 text-xs text-muted-foreground">
+                          {o.gradeLevel && <span>{gradeLabel(o.gradeLevel, isAr)}</span>}
+                          {o.gradeLevel && o.preferredTime && " · "}
+                          {o.preferredTime && (
+                            <span className="num">{timeLabel(o.preferredTime, isAr)}</span>
+                          )}
                         </div>
                       )}
                     </td>

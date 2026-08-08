@@ -33,6 +33,7 @@ export default async function AdminProductsPage() {
         unitEn: p.unitEn,
         group: p.group,
         packageType: p.packageType,
+        requiresGradeLevel: p.requiresGradeLevel,
         isActive: p.isActive,
         sortOrder: p.sortOrder,
       }))}

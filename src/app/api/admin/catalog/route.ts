@@ -35,6 +35,8 @@ const productSchema = z.object({
     .enum(["ESSENTIAL", "INTEGRATED", "PRIVATE", "SCHOOL", "STEP_PREP_PKG", "IELTS_PREP_PKG"])
     .nullable()
     .optional(),
+  /** Ask the buyer for the student's school year on this product. */
+  requiresGradeLevel: z.boolean().optional(),
   isActive: z.boolean().optional(),
   sortOrder: z.number().int().min(0).max(10000).optional(),
 });
@@ -113,6 +115,7 @@ export async function POST(req: NextRequest) {
         unitEn: d.unitEn,
         group: d.group,
         packageType: d.packageType ?? null,
+        requiresGradeLevel: d.requiresGradeLevel ?? false,
         isActive: d.isActive ?? true,
         sortOrder: d.sortOrder ?? 999,
       },
@@ -190,6 +193,9 @@ export async function PATCH(req: NextRequest) {
         ...(d.group !== undefined ? { group: d.group } : {}),
         ...(d.packageType !== undefined
           ? { packageType: d.packageType ?? null }
+          : {}),
+        ...(d.requiresGradeLevel !== undefined
+          ? { requiresGradeLevel: d.requiresGradeLevel }
           : {}),
         ...(d.isActive !== undefined ? { isActive: d.isActive } : {}),
         ...(d.sortOrder !== undefined ? { sortOrder: d.sortOrder } : {}),

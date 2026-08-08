@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Tag } from "lucide-react";
+import { Loader2, Tag, Clock } from "lucide-react";
+import { GRADE_LEVELS, TIME_WINDOWS } from "@/lib/finance/checkout-options";
 
 export interface CheckoutProduct {
   slug: string;
@@ -15,6 +16,8 @@ export interface CheckoutProduct {
   price: number;
   unit: string;
   group: "CORE" | "COURSE" | "SUMMER";
+  /** Ask which school year the student is in before letting them pay. */
+  requiresGradeLevel: boolean;
 }
 
 const GROUP_LABEL: Record<string, { ar: string; en: string }> = {
@@ -49,6 +52,8 @@ export function CheckoutForm({
   const [studentName, setStudentName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("");
+  const [preferredTime, setPreferredTime] = useState(TIME_WINDOWS[0].value);
   const [notes, setNotes] = useState("");
   const [promo, setPromo] = useState(initialPromo ?? "");
   const [promoNote, setPromoNote] = useState("");
@@ -69,10 +74,15 @@ export function CheckoutForm({
 
   const phoneOk = /^(\+966|05)\d{8,}$/.test(phone.trim());
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim());
+  // Only the products that actually need the school year ask for it.
+  const needsGrade = !!selected?.requiresGradeLevel;
+  const gradeOk = !needsGrade || gradeLevel.length > 0;
   const canSubmit =
     studentName.trim().length >= 2 &&
     phoneOk &&
     emailOk &&
+    gradeOk &&
+    !!preferredTime &&
     !!selected &&
     status !== "sending";
 
@@ -96,6 +106,8 @@ export function CheckoutForm({
           phone: phone.trim(),
           email: email.trim() || undefined,
           product: selected.slug,
+          gradeLevel: needsGrade ? gradeLevel : undefined,
+          preferredTime,
           promoCode: promo.trim() || undefined,
           notes: notes.trim() || undefined,
         }),
@@ -240,6 +252,69 @@ export function CheckoutForm({
               {isAr ? "بريد إلكتروني غير صالح" : "Invalid email address"}
             </p>
           )}
+        </div>
+
+        {/* School year — only where placement actually depends on it. */}
+        {needsGrade && (
+          <div className="space-y-1.5">
+            <Label htmlFor="gradeLevel">
+              {isAr ? "الصف الدراسي *" : "School year *"}
+            </Label>
+            <select
+              id="gradeLevel"
+              value={gradeLevel}
+              onChange={(e) => setGradeLevel(e.target.value)}
+              required
+              className="h-10 w-full rounded-lg border border-hajr-border bg-white px-3 text-sm text-hajr-navy focus:outline-none focus:ring-2 focus:ring-hajr-navy/20"
+            >
+              <option value="" disabled>
+                {isAr ? "اختر الصف" : "Select the year"}
+              </option>
+              {GRADE_LEVELS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {isAr ? g.ar : g.en}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-hajr-muted">
+              {isAr
+                ? "يساعدنا على وضع الطالب في المستوى المناسب."
+                : "This is how we place the student at the right level."}
+            </p>
+          </div>
+        )}
+
+        {/* Teaching window */}
+        <div className="space-y-1.5">
+          <Label className="flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5" />
+            {isAr ? "الوقت المناسب للحصص *" : "Preferred class time *"}
+          </Label>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {TIME_WINDOWS.map((w) => {
+              const active = preferredTime === w.value;
+              return (
+                <button
+                  key={w.value}
+                  type="button"
+                  onClick={() => setPreferredTime(w.value)}
+                  aria-pressed={active}
+                  className={`rounded-lg border px-4 py-3 text-sm font-semibold transition ${
+                    active
+                      ? "border-hajr-navy bg-hajr-navy text-white"
+                      : "border-hajr-border bg-white text-hajr-navy hover:border-hajr-navy/40"
+                  }`}
+                >
+                  <span className="num">{isAr ? w.ar : w.en}</span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-hajr-muted">
+            {isAr
+              ? "بتوقيت السعودية. نراعي اختيارك عند جدولة حصصك."
+              : "KSA time. We schedule your lessons around this choice."}
+          </p>
         </div>
 
         <div className="space-y-1.5">

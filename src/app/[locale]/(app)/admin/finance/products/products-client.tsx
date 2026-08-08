@@ -23,6 +23,7 @@ export interface AdminProduct {
   unitEn: string;
   group: string;
   packageType: string | null;
+  requiresGradeLevel: boolean;
   isActive: boolean;
   sortOrder: number;
 }
@@ -90,6 +91,24 @@ export function ProductsClient({ products }: { products: AdminProduct[] }) {
       router.refresh();
     } catch (err) {
       setMsg(err instanceof Error ? err.message : "Failed");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  /** Whether this product asks the buyer for the student's school year. */
+  async function toggleGradeLevel(p: AdminProduct) {
+    setBusy(p.id);
+    try {
+      await fetch("/api/admin/catalog", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: p.id,
+          requiresGradeLevel: !p.requiresGradeLevel,
+        }),
+      });
+      router.refresh();
     } finally {
       setBusy(null);
     }
@@ -295,6 +314,24 @@ export function ProductsClient({ products }: { products: AdminProduct[] }) {
                             {isAr ? "مخفي" : "Hidden"}
                           </Badge>
                         )}
+                        {/* Click to change: it decides whether the buyer is
+                            asked for the school year at checkout. */}
+                        <button
+                          type="button"
+                          onClick={() => toggleGradeLevel(p)}
+                          disabled={busy === p.id}
+                          title={
+                            isAr
+                              ? "اضغط لتغيير: هل يُسأل المشتري عن الصف الدراسي؟"
+                              : "Click to change: does checkout ask for the school year?"
+                          }
+                        >
+                          <Badge variant={p.requiresGradeLevel ? "info" : "outline"}>
+                            {p.requiresGradeLevel
+                              ? isAr ? "يسأل عن الصف" : "Asks for year"
+                              : isAr ? "بلا صف" : "No year"}
+                          </Badge>
+                        </button>
                       </div>
                       <div className="num text-xs text-muted-foreground" dir="ltr">
                         {p.slug}

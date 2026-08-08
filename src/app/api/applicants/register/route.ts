@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { normalizeSaudiPhone } from "@/lib/utils";
+import { normalizeInternationalPhone } from "@/lib/utils";
 import { notifyAdmins } from "@/lib/notify";
 import { audit } from "@/lib/audit";
 import {
@@ -52,9 +52,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email already registered" }, { status: 409 });
     }
 
-    const normalizedPhone = phone ? normalizeSaudiPhone(phone) : null;
+    // Applicants teach from anywhere; the number only has to be reachable,
+    // not Saudi. Stored in E.164 like every other phone in the system.
+    const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null;
     if (phone && !normalizedPhone) {
-      return NextResponse.json({ error: "Invalid Saudi phone" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Enter a valid phone number including its country code." },
+        { status: 400 }
+      );
     }
 
     // Only accept an appliedProgramId that is a real, active program.

@@ -49,6 +49,8 @@ export default async function AdminOrdersPage({
       setupUrl: o.setupUrl,
       promoCode: o.promoCode,
       discountSar: o.discountSar ? o.discountSar.toString() : "0",
+      gradeLevel: o.gradeLevel,
+      preferredTime: o.preferredTime,
       notes: o.notes,
       amountSar: o.amountSar.toString(),
       paymentStatus: o.paymentStatus,

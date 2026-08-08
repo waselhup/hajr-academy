@@ -17,7 +17,15 @@ const schema = z
     name: z.string().min(2),
     nameAr: z.string().optional(),
     email: z.string().email(),
-    phone: z.string().regex(/^(\+966|0)?5\d{8}$/, "Invalid Saudi phone"),
+    // Teachers apply from anywhere — a Saudi-only rule turned away exactly
+    // the international applicants the academy is trying to recruit.
+    phone: z
+      .string()
+      .transform((v) => v.replace(/[\s\-().]/g, ""))
+      .refine(
+        (v) => /^(0?5\d{8})$/.test(v) || /^(\+|00)?[1-9]\d{7,14}$/.test(v),
+        "Enter a valid phone number with its country code, e.g. +9665… or +374…"
+      ),
     gender: z.enum(["MALE", "FEMALE"]).optional(),
     appliedProgramId: z.string().optional(),
     password: z.string().min(8),
@@ -101,8 +109,25 @@ export function ApplyToTeachForm({
       </div>
       <div className="space-y-2">
         <Label htmlFor="phone">{t("Common.phone")}</Label>
-        <Input id="phone" type="tel" placeholder="05XXXXXXXX" dir="ltr" {...register("phone")} />
-        {errors.phone && <p className="text-xs text-destructive">{t("Validation.phoneInvalid")}</p>}
+        <Input
+          id="phone"
+          type="tel"
+          placeholder="+966 5X XXX XXXX"
+          dir="ltr"
+          {...register("phone")}
+        />
+        {/* Not the shared Validation.phoneInvalid string — that one still says
+            "05 or +9665", which is no longer true on this form. */}
+        {errors.phone ? (
+          <p className="text-xs text-destructive">
+            أدخل رقماً صحيحاً مع رمز الدولة · Enter a valid number including the country code
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground">
+            من أي دولة — أضف رمز الدولة (مثال: <span className="num">+374</span>) ·
+            Any country — include the country code
+          </p>
+        )}
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">

@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { gatewayMode } from "@/lib/finance/moyasar";
 import { getProduct, priceProduct } from "@/lib/finance/catalog";
+import { GRADE_VALUES, TIME_VALUES } from "@/lib/finance/checkout-options";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipFromHeaders, shortHash } from "@/lib/analytics/hashing";
 
@@ -35,6 +36,10 @@ const checkoutSchema = z.object({
   email: z.string().email(),
   /** Catalogue slug — the only thing that determines the price. */
   product: z.string().min(1).max(80),
+  /** School year. Required only when the chosen product asks for it. */
+  gradeLevel: z.enum(GRADE_VALUES as [string, ...string[]]).optional(),
+  /** Which teaching window the buyer picked. */
+  preferredTime: z.enum(TIME_VALUES as [string, ...string[]]),
   promoCode: z.string().max(40).optional(),
   notes: z.string().max(500).optional(),
 });
@@ -73,6 +78,17 @@ export async function POST(req: Request) {
       );
     }
 
+    // Whether the school year is mandatory is the product's call, not the
+    // browser's — a client that omits the field cannot skip the question.
+    if (product.requiresGradeLevel && !parsed.data.gradeLevel) {
+      return NextResponse.json(
+        {
+          error: "الرجاء اختيار الصف الدراسي. / Please select the school year.",
+        },
+        { status: 400 }
+      );
+    }
+
     const priced = await priceProduct({
       product,
       promoCodeStr: parsed.data.promoCode,
@@ -103,6 +119,8 @@ export async function POST(req: Request) {
         email: parsed.data.email.trim().toLowerCase(),
         packageType: (product.packageType as never) ?? "INTEGRATED",
         productSlug: product.slug,
+        gradeLevel: product.requiresGradeLevel ? parsed.data.gradeLevel ?? null : null,
+        preferredTime: parsed.data.preferredTime,
         notes: parsed.data.notes || null,
         listPriceSar: priced.listPriceSar.toFixed(2),
         discountSar: priced.discountSar.toFixed(2),
@@ -160,6 +178,8 @@ export async function POST(req: Request) {
         discountSar: priced.discountSar,
         amountSar: priced.totalSar,
         promoCode: priced.promoCode,
+        gradeLevel: parsed.data.gradeLevel ?? null,
+        preferredTime: parsed.data.preferredTime,
         mockMode,
       },
     });

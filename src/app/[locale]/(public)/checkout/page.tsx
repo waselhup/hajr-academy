@@ -46,6 +46,7 @@ export default async function CheckoutPage({
           price: p.priceSar,
           unit: locale === "ar" ? p.unitAr : p.unitEn,
           group: p.group,
+          requiresGradeLevel: p.requiresGradeLevel,
         }))}
         initialSlug={selected.slug}
         initialPromo={(sp.promo ?? "").slice(0, 40)}
