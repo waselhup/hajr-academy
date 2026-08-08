@@ -21,6 +21,9 @@ const createSchema = z.object({
   label: z.string().min(1).max(60),
   hostEmail: z.string().email(),
   capacity: z.coerce.number().int().min(1).max(50).optional(),
+  // Simultaneous meetings this Zoom user may host. 1 for a normal licensed
+  // user; only Zoom's "concurrent meetings" add-on makes it higher.
+  maxConcurrent: z.coerce.number().int().min(1).max(10).optional(),
   // Optional per-account Server-to-Server OAuth keys (separate Zoom login).
   // All three together, or none (reuse the global env connection).
   accountId: z.string().trim().optional(),
@@ -89,6 +92,7 @@ export async function createZoomAccountAction(
         label: d.label,
         hostEmail: d.hostEmail,
         capacity: d.capacity ?? 6,
+        maxConcurrent: d.maxConcurrent ?? 1,
         accountId: cs.all ? d.accountId : null,
         clientId: cs.all ? d.clientId : null,
         clientSecretEnc: cs.all ? encryptSecret(d.clientSecret!) : null,
@@ -117,6 +121,7 @@ export async function updateZoomAccountAction(input: z.infer<typeof updateSchema
     label: d.label,
     hostEmail: d.hostEmail,
     capacity: d.capacity ?? 6,
+    maxConcurrent: d.maxConcurrent ?? 1,
   };
   // Only touch credential columns when the admin supplied keys this time.
   if (cs.all) {
@@ -142,6 +147,33 @@ export async function toggleZoomAccountActiveAction(id: string): Promise<Result>
   if (!a) return { ok: false, error: "NOT_FOUND" };
   await prisma.zoomAccount.update({ where: { id }, data: { isActive: !a.isActive } });
   await logAudit({ userId: session.user.id, action: "ZOOM_ACCOUNT_TOGGLED", entity: "ZoomAccount", entityId: id, metadata: { newState: !a.isActive }, ipAddress: await ip() });
+  revalidatePath("/admin/zoom-accounts");
+  return { ok: true, data: null };
+}
+
+/**
+ * Delete a Zoom account. Refused while teachers are still assigned to it —
+ * the relation is onDelete: SetNull, so deleting would silently drop those
+ * teachers back onto the shared main connection and start colliding there.
+ */
+export async function deleteZoomAccountAction(id: string): Promise<Result> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+  const acc = await prisma.zoomAccount.findUnique({
+    where: { id },
+    select: { label: true, _count: { select: { teachers: true } } },
+  });
+  if (!acc) return { ok: false, error: "NOT_FOUND" };
+  if (acc._count.teachers > 0) {
+    return {
+      ok: false,
+      error: `Move the ${acc._count.teachers} teacher(s) on this account to another one first.`,
+    };
+  }
+  await prisma.zoomAccount.delete({ where: { id } });
+  await logAudit({
+    userId: session.user.id, action: "ZOOM_ACCOUNT_DELETED", entity: "ZoomAccount",
+    entityId: id, metadata: { label: acc.label }, ipAddress: await ip(),
+  });
   revalidatePath("/admin/zoom-accounts");
   return { ok: true, data: null };
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { resolveZoomTarget } from "@/lib/video";
+import { checkHostAvailability } from "@/lib/video/host-availability";
 import { broadcastClassStarted } from "@/lib/class/realtime";
 import { fanOutSessionStarted } from "@/lib/class/live-realtime";
 import { triggerClassStarted } from "@/lib/comms/triggers";
@@ -78,6 +79,29 @@ export async function POST(
       return NextResponse.json(
         { error: "This session has already ended" },
         { status: 400 }
+      );
+    }
+
+    // One Zoom user can host only ONE meeting at a time. Starting a second
+    // one on the same host makes Zoom END the first — students get dropped
+    // mid-lesson. Refuse with a name-the-clash message instead.
+    const availability = await checkHostAvailability({
+      account: cs.class.teacher.zoomAccount,
+      excludeSessionId: cs.id,
+    });
+    if (!availability.available) {
+      const other = availability.occupants[0];
+      return NextResponse.json(
+        {
+          ok: false,
+          code: "ZOOM_HOST_BUSY",
+          error:
+            `حساب Zoom مشغول الآن بحصة «${other.title}» مع ${other.teacherName}. ` +
+            `انتظر انتهاءها، أو اطلب من الإدارة تعيينك على حساب Zoom آخر. ` +
+            `— This Zoom host is already running “${other.title}”.`,
+          occupants: availability.occupants,
+        },
+        { status: 409 }
       );
     }
 

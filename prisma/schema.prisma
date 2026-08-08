@@ -143,6 +143,10 @@ model ZoomAccount {
   clientId        String?
   clientSecretEnc String?
   capacity        Int              @default(6)
+  // How many meetings this Zoom user may host AT THE SAME TIME. A standard
+  // licensed Zoom user is 1; only Zoom's "concurrent meetings" add-on raises
+  // it. This — not `capacity` — is the real limit on simultaneous classes.
+  maxConcurrent   Int              @default(1)
   isActive        Boolean          @default(true)
   lastCheckedAt   DateTime?
   lastCheckOk     Boolean?
