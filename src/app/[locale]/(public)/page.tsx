@@ -29,7 +29,10 @@ export default async function LandingPage() {
 
   // WhatsApp deep links with a pre-filled message (booking is WhatsApp-first).
   const wa = (msg: string) => `https://wa.me/${WA}?text=${encodeURIComponent(msg)}`;
-  const waTrial = wa(isAr ? "السلام عليكم، أرغب في حجز درس تجريبي مجاني في أكاديمية هجر" : "Hello, I'd like to book a free trial lesson at Hajr Academy");
+  // Trial booking goes through /trial, not straight to WhatsApp: the visitor
+  // sees the times that actually exist, and the academy ends up with a record
+  // of who asked. The WhatsApp message is offered AFTER the booking is saved.
+  const trialHref = `/${locale}/trial`;
   const waPlan = (name: string) =>
     wa(isAr ? `السلام عليكم، أرغب في الاشتراك في: ${name}` : `Hello, I'd like to enroll in: ${name}`);
 
@@ -203,7 +206,7 @@ export default async function LandingPage() {
               <Link href="/login">{t("Landing.ctaLogin")}</Link>
             </Button>
             <Button variant="cta" size="lg" className="px-5 sm:px-6" asChild>
-              <a href={waTrial} target="_blank" rel="noopener noreferrer">{t("Landing.ctaBookTrial")}</a>
+              <a href={trialHref}>{t("Landing.ctaBookTrial")}</a>
             </Button>
           </div>
         </div>
@@ -231,7 +234,7 @@ export default async function LandingPage() {
           </p>
           <div className="animate-fade-in-up mt-9 flex flex-wrap items-center justify-center gap-3 [animation-delay:320ms]">
             <Button variant="cta" size="lg" asChild>
-              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+              <a href={trialHref} className="gap-2">
                 {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
               </a>
@@ -381,7 +384,7 @@ export default async function LandingPage() {
             <p className="mt-5 text-lg leading-relaxed text-white/70">{t("Landing.labBody")}</p>
             <div className="mt-8">
               <Button variant="cta" size="lg" asChild>
-                <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+                <a href={trialHref} className="gap-2">
                   {t("Landing.ctaTrialFree")}
                   <ArrowRight className="h-4 w-4 rtl-flip" />
                 </a>
@@ -452,7 +455,7 @@ export default async function LandingPage() {
           </div>
           <div className="mt-10 text-center">
             <Button variant="cta" size="lg" asChild>
-              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+              <a href={trialHref} className="gap-2">
                 {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
               </a>
@@ -721,7 +724,7 @@ export default async function LandingPage() {
               <h2 className="text-3xl font-semibold text-hajr-deep-navy sm:text-4xl">{t("Landing.contactTitle")}</h2>
               <p className="mt-3 leading-relaxed text-hajr-muted">{t("Landing.contactSubtitle")}</p>
               <div className="mt-8 space-y-4">
-                <a href={waTrial} target="_blank" rel="noopener noreferrer" className="block">
+                <a href={trialHref} className="block">
                   <ContactRow icon={Phone} label={t("Landing.contactPhoneLabel")} value="+966 50 245 6651" />
                 </a>
                 <ContactRow icon={Mail} label={t("Landing.contactEmailLabel")} value="hello@hajracademy.com" />
@@ -743,7 +746,7 @@ export default async function LandingPage() {
             <h2 className="mx-auto max-w-2xl text-3xl font-semibold text-white sm:text-4xl">{t("Landing.ctaSectionTitle")}</h2>
             <p className="mx-auto mt-3 max-w-lg text-white/70">{t("Landing.ctaSectionSubtitle")}</p>
             <Button variant="cta" size="lg" asChild className="mt-8">
-              <a href={waTrial} target="_blank" rel="noopener noreferrer" className="gap-2">
+              <a href={trialHref} className="gap-2">
                 {t("Landing.ctaTrialFree")}
                 <ArrowRight className="h-4 w-4 rtl-flip" />
               </a>

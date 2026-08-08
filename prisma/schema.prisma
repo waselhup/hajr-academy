@@ -1395,7 +1395,13 @@ model TrialRequest {
   email                String?
   childGrade           String?
   preferredProgram     String?
+  /// Free-text time preference (legacy path: the assistant, the old form).
   preferredTime        String?
+  /// The published slot the visitor actually picked, when they booked from
+  /// /trial. Null for requests that arrived before slots existed, or through
+  /// the assistant — those still carry `preferredTime` instead.
+  slotId               String?
+  slot                 TrialSlot?  @relation(fields: [slotId], references: [id], onDelete: SetNull)
   notes                String?
   source               String      @default("public_assistant")
   status               TrialStatus @default(NEW)
@@ -1404,6 +1410,32 @@ model TrialRequest {
   convertedToStudentId String?
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
+
+  @@index([slotId])
+}
+
+/// A trial-lesson time the admin has published for visitors to pick from.
+///
+/// Concrete date + time rather than a recurring rule: the visitor sees the
+/// real day they are booking, and the admin never has to reason about which
+/// week a "Sunday 4pm" belongs to. The admin form can create a run of weekly
+/// copies in one go, which is what makes that affordable.
+model TrialSlot {
+  id              String   @id @default(uuid())
+  /// Start of the slot, stored in UTC; displayed in Asia/Riyadh everywhere.
+  startsAt        DateTime
+  durationMinutes Int      @default(30)
+  /// How many visitors may book this slot.
+  capacity        Int      @default(1)
+  isActive        Boolean  @default(true)
+  note            String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  requests TrialRequest[]
+
+  @@index([startsAt, isActive])
 }
 
 /// Owner batch 5 — #9. A student requests a specific teacher for a one-to-one
