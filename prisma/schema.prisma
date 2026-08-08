@@ -1177,7 +1177,12 @@ model PartnerSchool {
   crNumber      String?
   contractStart DateTime
   contractEnd   DateTime
+  /// LEGACY retainer. Superseded by commissionPercent — partners are now paid
+  /// a share of what they bring in, not a monthly fee. Kept for old rows.
   monthlyFeeSar Decimal  @db.Decimal(10, 2)
+  /// The partner's cut of a referred student's FIRST purchase, in percent.
+  /// Only the first purchase earns it; later ones are attributed but pay 0.
+  commissionPercent Decimal @default(0) @db.Decimal(5, 2)
   studentCap    Int
   active        Boolean  @default(true)
   notes         String?
@@ -1185,9 +1190,10 @@ model PartnerSchool {
   partnerType   PartnerType? @default(SCHOOL)
   createdAt     DateTime @default(now())
 
-  students   StudentProfile[]
-  contracts  SchoolContract[]
-  promoCodes PromoCode[]
+  students       StudentProfile[]
+  contracts      SchoolContract[]
+  promoCodes     PromoCode[]
+  referredOrders PurchaseOrder[]
 }
 
 // ─────────────────────── PHASE 9 — PARENT + SCHOOL ───────────────────────
@@ -2646,6 +2652,14 @@ model PurchaseOrder {
   listPriceSar         Decimal?           @db.Decimal(10, 2)
   discountSar          Decimal            @default(0) @db.Decimal(10, 2)
   promoCode            String?
+  /// Success partner credited for this sale, resolved from the promo code at
+  /// settlement. Null when no code was used, or the code isn't a partner's.
+  partnerSchoolId      String?
+  partnerSchool        PartnerSchool?     @relation(fields: [partnerSchoolId], references: [id])
+  /// Commission owed in SAR, frozen at settlement. A later change to the
+  /// partner's rate must never rewrite what was already earned. 0 when this
+  /// wasn't the student's first purchase through the partner.
+  partnerCommissionSar Decimal?           @db.Decimal(10, 2)
   paymentStatus        OrderPaymentStatus @default(PENDING)
   moyasarPaymentId     String?
   paidAt               DateTime?
@@ -2661,6 +2675,7 @@ model PurchaseOrder {
 
   @@index([status, createdAt])
   @@index([paymentStatus])
+  @@index([partnerSchoolId, paymentStatus])
 }
 
 // ─────────────────────── OWNER BATCH 3 ───────────────────────

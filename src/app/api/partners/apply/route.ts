@@ -99,13 +99,15 @@ export async function POST(req: Request) {
         type: "SYSTEM_ANNOUNCEMENT",
         title: `Success partner application — ${d.orgNameAr}`,
         titleAr: `طلب شراكة نجاح — ${d.orgNameAr}`,
-        body: `${d.contactName} (${d.contactPhone}) from ${d.city} applied as a ${d.partnerType.toLowerCase()} partner. Review it in /admin/schools.`,
-        bodyAr: `${d.contactName} (${d.contactPhone}) من ${d.city} قدّم طلب شراكة. راجعه من صفحة شركاء النجاح.`,
+        body: `${d.contactName} (${d.contactPhone}) from ${d.city} applied as a ${d.partnerType.toLowerCase()} partner. Review it in /admin/schools/applications.`,
+        bodyAr: `${d.contactName} (${d.contactPhone}) من ${d.city} قدّم طلب شراكة. راجعه من صفحة طلبات الشراكة.`,
         channels: ["inApp", "email"],
         priority: "HIGH",
         refType: "PartnerApplication",
         refId: app.id,
-        actionUrl: "/admin/schools",
+        // The review queue, not the partner list — the notification is only
+        // useful if it lands where the decision is actually taken.
+        actionUrl: "/admin/schools/applications",
       });
     } catch (e) {
       console.error("[partners/apply] notify failed:", e);

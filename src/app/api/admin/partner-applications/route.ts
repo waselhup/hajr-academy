@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { notify } from "@/lib/notify";
 import { issueAndSendSetupLink } from "@/lib/auth/account-setup";
+import { ensurePartnerPromoCode } from "@/lib/finance/partner-referrals";
 
 export const dynamic = "force-dynamic";
 
@@ -18,15 +19,11 @@ export const dynamic = "force-dynamic";
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN"];
 
-/** A readable, collision-resistant code derived from the org name. */
-function partnerCode(orgNameAr: string, orgNameEn: string | null): string {
-  const base = (orgNameEn ?? "")
-    .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 8);
-  const stem = base.length >= 3 ? base : "PARTNER";
-  const suffix = Math.floor(1000 + Math.random() * 9000);
-  return `${stem}${suffix}`;
+/** Clamp a percentage the admin typed into a sane range. */
+function pct(v: unknown, fallback: number): number {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(Math.max(n, 0), 100);
 }
 
 async function gate() {
@@ -69,6 +66,9 @@ export async function POST(req: NextRequest) {
     const id = typeof body.id === "string" ? body.id : "";
     const action = body.action === "reject" ? "reject" : "approve";
     const note = typeof body.note === "string" ? body.note.slice(0, 500) : null;
+    // Commercial terms are the owner's decision, taken at approval time.
+    const discountPercent = pct(body.discountPercent, 10);
+    const commissionPercent = pct(body.commissionPercent, 0);
     if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
     const app = await prisma.partnerApplication.findUnique({ where: { id } });
@@ -126,9 +126,9 @@ export async function POST(req: NextRequest) {
         partnerType: app.partnerType,
         contractStart: now,
         contractEnd,
-        // Commercial terms are the owner's call — start at zero and let them
-        // set the real figures on the partner record.
+        // Retainers are retired: a partner earns a share of what they bring in.
         monthlyFeeSar: 0,
+        commissionPercent,
         studentCap: app.expectedStudents ?? 0,
         active: true,
         notes: `Created from public application ${app.id}`,
@@ -136,40 +136,17 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
-    // A discount code the partner can hand to the people they refer.
-    // Percentage vs fixed is gated by partner type elsewhere; a charity gets
-    // a percentage, which scales across the whole price list.
-    let code: string | null = null;
-    for (let attempt = 0; attempt < 8 && !code; attempt++) {
-      // Later attempts widen the namespace so a busy stem can never leave a
-      // partner without the discount code the approval promised them.
-      const candidate =
-        attempt < 4
-          ? partnerCode(app.orgNameAr, app.orgNameEn)
-          : `PARTNER${Math.floor(100000 + Math.random() * 900000)}`;
-      const clash = await prisma.promoCode.findUnique({
-        where: { code: candidate },
-        select: { id: true },
-      });
-      if (!clash) {
-        await prisma.promoCode.create({
-          data: {
-            code: candidate,
-            type: "PERCENTAGE",
-            value: 10,
-            startsAt: now,
-            expiresAt: contractEnd,
-            isActive: true,
-            maxUsesPerUser: 1,
-            partnerSchoolId: partner.id,
-            description: `Success partner: ${app.orgNameEn ?? app.orgNameAr}`,
-            descriptionAr: `شريك نجاح: ${app.orgNameAr}`,
-            createdBy: g.session.user.id,
-          },
-        });
-        code = candidate;
-      }
-    }
+    // The discount code the partner hands to the people they refer — the
+    // whole referral mechanism hangs off it, so it is minted at approval.
+    const promo = await ensurePartnerPromoCode({
+      partnerSchoolId: partner.id,
+      nameEn: app.orgNameEn ?? app.orgNameAr,
+      nameAr: app.orgNameAr,
+      discountPercent,
+      expiresAt: contractEnd,
+      createdBy: g.session.user.id,
+    });
+    const code = promo.code;
 
     // ── A login for the partner contact, with no password to hand over ──
     let setupUrl: string | undefined;
@@ -238,7 +215,13 @@ export async function POST(req: NextRequest) {
       action: "PARTNER_APPLICATION_APPROVED",
       entity: "PartnerApplication",
       entityId: id,
-      metadata: { partnerSchoolId: partner.id, promoCode: code, emailed },
+      metadata: {
+        partnerSchoolId: partner.id,
+        promoCode: code,
+        discountPercent,
+        commissionPercent,
+        emailed,
+      },
     });
 
     return NextResponse.json({
@@ -246,6 +229,8 @@ export async function POST(req: NextRequest) {
       status: "APPROVED",
       partnerSchoolId: partner.id,
       promoCode: code,
+      discountPercent,
+      commissionPercent,
       setupUrl,
       emailed,
       whatsappUrl,

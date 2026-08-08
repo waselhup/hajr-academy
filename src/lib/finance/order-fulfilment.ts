@@ -25,6 +25,7 @@ import { issueAndSendSetupLink } from "@/lib/auth/account-setup";
 import { createInvoice, markInvoicePaid } from "./invoices";
 import { VAT_RATE } from "./zatca";
 import { getProduct } from "./catalog";
+import { attributeReferral } from "./partner-referrals";
 
 /** Map a catalogue package tag onto the student's `activePackage`. */
 function packageToActive(
@@ -206,6 +207,15 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
     studentId = created.studentProfile!.id;
   }
 
+  // ── 1b. Credit the success partner whose code brought this sale ────
+  // Done here, after the student exists and while we still hold the
+  // fulfilment claim, so it runs exactly once per order.
+  const referral = await attributeReferral({
+    promoCode: order.promoCode,
+    amountSar: Number(order.amountSar),
+    studentProfileId: studentId,
+  });
+
   // ── 2. Book the money as a real invoice ────────────────────────────
   // The catalogue's advertised prices are what the customer actually pays,
   // i.e. VAT-INCLUSIVE. createInvoice expects pre-VAT line items and adds
@@ -312,6 +322,8 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
       provisionedStudentId: userId,
       setupUrl: setupUrl ?? null,
       handledAt: new Date(),
+      partnerSchoolId: referral.partnerSchoolId,
+      partnerCommissionSar: referral.partnerSchoolId ? referral.commissionSar : null,
     },
   });
 
@@ -325,6 +337,8 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
       invoiceId: invoiceId ?? null,
       linkedExisting,
       emailed,
+      partnerSchoolId: referral.partnerSchoolId,
+      partnerCommissionSar: referral.commissionSar,
     },
   });
 

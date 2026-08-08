@@ -6,6 +6,11 @@ import { useLocale } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
 import { Loader2, Check, X } from "lucide-react";
 
 export interface PartnerApp {
@@ -54,8 +59,14 @@ export function PartnerApplicationsClient({
   const isAr = useLocale() === "ar";
   const router = useRouter();
   const [busy, setBusy] = useState<string | null>(null);
+  // Commercial terms are decided here, per application — not hardcoded.
+  const [approving, setApproving] = useState<PartnerApp | null>(null);
+  const [discountPercent, setDiscountPercent] = useState(10);
+  const [commissionPercent, setCommissionPercent] = useState(10);
   const [result, setResult] = useState<{
     promoCode?: string | null;
+    discountPercent?: number;
+    commissionPercent?: number;
     setupUrl?: string;
     whatsappUrl?: string;
     emailed?: boolean;
@@ -63,15 +74,10 @@ export function PartnerApplicationsClient({
   const [err, setErr] = useState("");
 
   async function review(id: string, action: "approve" | "reject") {
-    const question =
-      action === "reject"
-        ? isAr
-          ? "رفض هذا الطلب؟"
-          : "Reject this application?"
-        : isAr
-          ? "الموافقة تُنشئ الشريك ورمز الخصم وحساب المسؤول ولا يمكن التراجع عنها. متابعة؟"
-          : "Approving creates the partner, the discount code and a login, and cannot be undone. Continue?";
-    if (!window.confirm(question)) return;
+    if (action === "reject") {
+      const question = isAr ? "رفض هذا الطلب؟" : "Reject this application?";
+      if (!window.confirm(question)) return;
+    }
     setBusy(id);
     setErr("");
     setResult(null);
@@ -79,17 +85,20 @@ export function PartnerApplicationsClient({
       const res = await fetch("/api/admin/partner-applications", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ id, action }),
+        body: JSON.stringify({ id, action, discountPercent, commissionPercent }),
       });
       const j = await res.json();
       if (!res.ok) throw new Error(j.error ?? "failed");
       if (action === "approve") {
         setResult({
           promoCode: j.promoCode,
+          discountPercent: j.discountPercent,
+          commissionPercent: j.commissionPercent,
           setupUrl: j.setupUrl,
           whatsappUrl: j.whatsappUrl,
           emailed: j.emailed,
         });
+        setApproving(null);
       }
       router.refresh();
     } catch (e) {
@@ -128,12 +137,30 @@ export function PartnerApplicationsClient({
               {isAr ? "تمت الموافقة ✅" : "Approved ✅"}
             </p>
             {result.promoCode && (
-              <p className="text-sm">
-                {isAr ? "رمز الخصم: " : "Discount code: "}
-                <span className="num font-bold" dir="ltr">
-                  {result.promoCode}
-                </span>
-              </p>
+              <div className="space-y-1 text-sm">
+                <p>
+                  {isAr ? "رمز الخصم: " : "Discount code: "}
+                  <span className="num font-bold" dir="ltr">
+                    {result.promoCode}
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="ms-1 h-6 px-2 text-xs"
+                    onClick={() => navigator.clipboard?.writeText(result.promoCode!)}
+                  >
+                    {isAr ? "نسخ" : "Copy"}
+                  </Button>
+                </p>
+                <p className="text-muted-foreground">
+                  {isAr ? "خصم الطالب: " : "Student discount: "}
+                  <span className="num">{result.discountPercent}%</span>
+                  {" · "}
+                  {isAr ? "عمولة الشريك: " : "Partner commission: "}
+                  <span className="num">{result.commissionPercent}%</span>
+                  {isAr ? " من أول عملية شراء" : " on the first purchase"}
+                </p>
+              </div>
             )}
             <p className="text-sm text-muted-foreground">
               {result.emailed
@@ -189,7 +216,15 @@ export function PartnerApplicationsClient({
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => review(a.id, "approve")} disabled={busy === a.id}>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      setDiscountPercent(10);
+                      setCommissionPercent(10);
+                      setApproving(a);
+                    }}
+                    disabled={busy === a.id}
+                  >
                     {busy === a.id ? (
                       <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
@@ -270,6 +305,74 @@ export function PartnerApplicationsClient({
             </CardContent>
           </Card>
         </section>
+      )}
+
+      {/* Approval is where the commercial terms are set — the code and the
+          commission rate are what the partnership actually is. */}
+      {approving && (
+        <Dialog open onOpenChange={(o) => !o && setApproving(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {isAr ? `الموافقة على ${approving.orgNameAr}` : `Approve ${approving.orgNameEn ?? approving.orgNameAr}`}
+              </DialogTitle>
+              <DialogDescription>
+                {isAr
+                  ? "حدّد الشروط. الموافقة تُنشئ الشريك ورمز الخصم وحساب المسؤول، ولا يمكن التراجع عنها."
+                  : "Set the terms. Approving creates the partner, their discount code and a login, and cannot be undone."}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>{isAr ? "خصم الطالب (%)" : "Student discount (%)"}</Label>
+                <Input
+                  type="number" min={0} max={100} step="1"
+                  value={discountPercent}
+                  onChange={(e) => setDiscountPercent(Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {isAr
+                    ? "ما يخصمه الرمز عن كل من يشتري به."
+                    : "What the code takes off for everyone who buys with it."}
+                </p>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{isAr ? "عمولة الشريك (%)" : "Partner commission (%)"}</Label>
+                <Input
+                  type="number" min={0} max={100} step="1"
+                  value={commissionPercent}
+                  onChange={(e) => setCommissionPercent(Number(e.target.value))}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {isAr
+                    ? "نسبتك للشريك من أول عملية شراء لكل طالب يأتي عن طريقه — مرة واحدة لكل طالب."
+                    : "The partner's share of each referred student's first purchase — once per student."}
+                </p>
+              </div>
+
+              <p className="rounded-card bg-muted/50 p-3 text-xs text-muted-foreground">
+                {isAr
+                  ? "مثال: طالب اشترى بـ ١٬٢٠٠ ر.س وخصم ١٠٪ يدفع ١٬٠٨٠ ر.س، وعمولة ١٠٪ تعني ١٠٨ ر.س للشريك."
+                  : "Example: a 1,200 SAR purchase with a 10% discount is charged 1,080 SAR, and a 10% commission owes the partner 108 SAR."}
+              </p>
+            </div>
+
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setApproving(null)}>
+                {isAr ? "إلغاء" : "Cancel"}
+              </Button>
+              <Button
+                onClick={() => review(approving.id, "approve")}
+                disabled={busy === approving.id}
+              >
+                {busy === approving.id && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {isAr ? "اعتماد الشراكة" : "Approve partnership"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
