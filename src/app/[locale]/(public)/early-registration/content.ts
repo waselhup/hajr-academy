@@ -555,6 +555,9 @@ export function getContent(locale: string) {
 
       crLabel: isAr ? "السجل التجاري" : "CR",
       vatLabel: isAr ? "الرقم الضريبي" : "VAT",
+      priceFinal: isAr
+        ? "جميع الأسعار بالريال السعودي وهي المبالغ النهائية المستحقة."
+        : "All prices are in Saudi Riyals and are the final amounts payable.",
       vatIncluded: isAr
         ? "جميع الأسعار بالريال السعودي وشاملة ضريبة القيمة المضافة 15%."
         : "All prices are in Saudi Riyals and include 15% VAT.",

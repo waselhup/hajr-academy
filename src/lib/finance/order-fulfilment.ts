@@ -28,7 +28,7 @@ import {
 } from "@/lib/auth/account-setup";
 import { createInvoice, markInvoicePaid, renderInvoiceDocument } from "./invoices";
 import { uploadInvoiceDocument } from "./invoice-storage";
-import { VAT_RATE } from "./zatca";
+import { effectiveVatRate } from "./zatca";
 import { getProduct } from "./catalog";
 import { attributeReferral } from "./partner-referrals";
 
@@ -233,8 +233,11 @@ export async function fulfilPaidOrder(orderId: string): Promise<FulfilResult> {
     const grossPaid = Number(order.amountSar);
     const grossList = Number(order.listPriceSar ?? order.amountSar);
     const grossDiscount = +(grossList - grossPaid).toFixed(2);
-    const netList = +(grossList / (1 + VAT_RATE)).toFixed(2);
-    const netDiscount = +(grossDiscount / (1 + VAT_RATE)).toFixed(2);
+    // Same rate the invoice will apply — 0 while the academy is not VAT
+    // registered, so gross and net are simply equal.
+    const rate = effectiveVatRate();
+    const netList = +(grossList / (1 + rate)).toFixed(2);
+    const netDiscount = +(grossDiscount / (1 + rate)).toFixed(2);
 
     const invoice = await createInvoice({
       studentId,

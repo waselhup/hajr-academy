@@ -16,7 +16,7 @@
 import { prisma } from "@/lib/prisma";
 import type { InvoiceType, PaymentStatus, Prisma } from "@prisma/client";
 import { generateInvoiceNumber } from "./invoice-number";
-import { buildInvoiceZatcaQr, calcVatTotals, VAT_RATE } from "./zatca";
+import { buildInvoiceZatcaQr, calcVatTotals, effectiveVatRate, isVatRegistered } from "./zatca";
 import { generateInvoicePdf, type InvoiceLineItem } from "./invoice-pdf";
 import { uploadInvoiceDocument, getInvoiceSignedUrl } from "./invoice-storage";
 import { logAudit } from "@/lib/audit";
@@ -49,7 +49,7 @@ export async function createInvoice(input: CreateInvoiceInput) {
 
   // Recompute every line total server-side; sum to the pre-tax subtotal.
   const lineItems: InvoiceLineItem[] = input.lineItems.map((li) => {
-    const vatRate = li.vatRate ?? VAT_RATE;
+    const vatRate = li.vatRate ?? effectiveVatRate();
     const total = +(li.quantity * li.unitPrice).toFixed(2);
     return {
       description: li.description,

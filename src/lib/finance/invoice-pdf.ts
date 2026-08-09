@@ -11,7 +11,7 @@
  * VAT number, timestamp, VAT-inclusive total, VAT amount, and the QR code.
  */
 
-import { buildInvoiceZatcaQr, getSellerInfo } from "./zatca";
+import { buildInvoiceZatcaQr, getSellerInfo, isVatRegistered } from "./zatca";
 import { BRAND } from "@/lib/brand";
 
 const C = BRAND.palette;
@@ -88,11 +88,18 @@ export async function generateInvoicePdf(
   invoice: InvoiceDocumentData
 ): Promise<Buffer> {
   const seller = getSellerInfo();
-  const { qrImage } = await buildInvoiceZatcaQr({
-    timestamp: invoice.issuedAt,
-    totalWithVat: invoice.totalAmount,
-    vatAmount: invoice.vatAmount,
-  });
+  // The ZATCA QR encodes a VAT registration. Without one there is nothing
+  // truthful to encode, so the document is a plain invoice instead.
+  const vatRegistered = isVatRegistered();
+  const qrImage = vatRegistered
+    ? (
+        await buildInvoiceZatcaQr({
+          timestamp: invoice.issuedAt,
+          totalWithVat: invoice.totalAmount,
+          vatAmount: invoice.vatAmount,
+        })
+      ).qrImage
+    : null;
   const st = statusLabel(invoice.status);
 
   const rows = invoice.lineItems
@@ -283,20 +290,20 @@ export async function generateInvoicePdf(
         <div class="seller-ar">${esc(seller.sellerNameAr)}</div>
         <div class="seller-en">${esc(seller.sellerNameEn)}</div>
         <div class="seller-meta">
-          الرقم الضريبي / VAT: ${esc(seller.vatNumber)}<br/>
+          ${vatRegistered ? `الرقم الضريبي / VAT: ${esc(seller.vatNumber)}<br/>` : ""}
           ${seller.crNumber ? `السجل التجاري / CR: ${esc(seller.crNumber)}` : ""}
         </div>
       </div>
-      <div class="qr-box">
+      ${qrImage ? `<div class="qr-box">
         <img src="${qrImage}" alt="ZATCA QR" />
         <span>رمز الاستجابة الضريبي · ZATCA QR</span>
-      </div>
+      </div>` : ""}
     </div>
 
     <div class="titlebar">
       <h1>
-        فاتورة ضريبية مبسطة
-        <small>SIMPLIFIED TAX INVOICE</small>
+        ${vatRegistered ? "فاتورة ضريبية مبسطة" : "فاتورة"}
+        <small>${vatRegistered ? "SIMPLIFIED TAX INVOICE" : "INVOICE"}</small>
       </h1>
       <span class="status-pill" style="background:${st.color}">
         ${esc(st.ar)} · ${esc(st.en)}
@@ -358,7 +365,7 @@ export async function generateInvoicePdf(
           : ""
       }
       <div><strong>طرق الدفع · Payment:</strong> مدى · Visa · Mastercard · Apple Pay · STC Pay — عبر بوابة ميسر الآمنة / via Moyasar secure gateway.</div>
-      <div><strong>HAJR A° English Academy</strong> · شكراً لاختياركم أكاديمية حجر · Thank you for choosing HAJR Academy.</div>
+      <div><strong>HAJR A° English Academy</strong> · شكراً لاختياركم أكاديمية هجر · Thank you for choosing HAJR Academy.</div>
     </div>
   </div>
 </body>

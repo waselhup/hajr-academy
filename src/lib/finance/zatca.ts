@@ -102,7 +102,7 @@ export function getSellerInfo(): {
 } {
   return {
     sellerNameAr:
-      process.env.ZATCA_SELLER_NAME_AR ?? "أكاديمية حجر للغة الإنجليزية",
+      process.env.ZATCA_SELLER_NAME_AR ?? "معهد حسين حسن العيسى للتعليم",
     sellerNameEn:
       process.env.ZATCA_SELLER_NAME_EN ?? "HAJR A° English Academy",
     vatNumber: process.env.ZATCA_VAT_NUMBER ?? "300000000000003",
@@ -135,13 +135,37 @@ export async function buildInvoiceZatcaQr(params: {
 export const VAT_RATE = 0.15;
 
 /**
+ * True only when a REAL VAT registration number is configured.
+ *
+ * The ZATCA sandbox ships 300000000000003 as a sample; treating it as a
+ * registration would make the platform issue tax invoices in the name of a
+ * number the seller does not hold.
+ */
+export function isVatRegistered(): boolean {
+  const v = (process.env.ZATCA_VAT_NUMBER ?? "").trim();
+  return !!v && v !== "300000000000003";
+}
+
+/**
+ * The rate to actually apply.
+ *
+ * A seller below the mandatory registration threshold must NOT collect VAT.
+ * Charging 15% without a registration — and printing a "tax invoice" that
+ * implies one — is the offence, not the missing number. Until the academy
+ * registers, this returns 0 and invoices are issued as plain invoices.
+ */
+export function effectiveVatRate(): number {
+  return isVatRegistered() ? VAT_RATE : 0;
+}
+
+/**
  * Compute VAT-inclusive totals from a pre-tax subtotal and optional
  * discount. Discount is applied before VAT. All values rounded to 2 dp.
  */
 export function calcVatTotals(
   subtotal: number,
   discount = 0,
-  vatRate = VAT_RATE
+  vatRate = effectiveVatRate()
 ): { subtotal: number; discount: number; netSubtotal: number; vat: number; total: number } {
   const sub = +Number(subtotal).toFixed(2);
   const disc = +Math.min(Number(discount), sub).toFixed(2);

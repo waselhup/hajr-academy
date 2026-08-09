@@ -24,6 +24,7 @@ export function PolicyShell({
   body,
   intro,
   sections,
+  showBank,
   lastUpdatedLabel,
   whatsappLabel,
   loginLabel,
@@ -36,6 +37,8 @@ export function PolicyShell({
   intro?: string;
   /** Structured policy with real headings, for long documents like the terms. */
   sections?: PolicySection[];
+  /** Show the bank-transfer details (payment policy only). */
+  showBank?: boolean;
   lastUpdatedLabel: string;
   whatsappLabel: string;
   loginLabel: string;
@@ -88,6 +91,24 @@ export function PolicyShell({
             </div>
           </section>
         ))}
+
+        {showBank && legal.bank && (
+          <section className="mt-10 rounded-xl border border-hajr-border bg-white p-5 text-sm">
+            <h2 className="mb-1 font-bold text-hajr-text">
+              {isAr ? "الدفع بالتحويل البنكي" : "Payment by bank transfer"}
+            </h2>
+            <p className="mb-3 text-hajr-muted">
+              {isAr
+                ? "الدفع عبر الموقع هو الطريقة المعتمدة. للتحويل البنكي استخدم الحساب أدناه فقط، وأرسل لنا إيصال التحويل. لا نطلب التحويل إلى أي حساب آخر مهما كان."
+                : "Paying on the website is the standard method. For a bank transfer use only the account below and send us the receipt. We never ask you to transfer to any other account."}
+            </p>
+            <dl className="grid gap-3 sm:grid-cols-2">
+              <Row label={isAr ? "البنك" : "Bank"} value={isAr ? legal.bank.nameAr : legal.bank.nameEn} />
+              <Row label={isAr ? "اسم الحساب" : "Account name"} value={legal.bank.accountName} />
+              <Row label="IBAN" value={legal.bank.iban} num />
+            </dl>
+          </section>
+        )}
 
         {/* Statutory identity. A Saudi e-commerce seller must publish who it
             is; the numbers print only when they are real, so the site never

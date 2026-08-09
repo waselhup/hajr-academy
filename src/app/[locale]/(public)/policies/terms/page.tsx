@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { PolicyShell } from "../_shell";
 import { getTerms } from "./content";
+import { getLegalIdentity } from "@/lib/legal";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export default async function TermsPage() {
   const t = await getTranslations();
   const locale = await getLocale();
   const isAr = locale === "ar";
-  const terms = getTerms(isAr);
+  const terms = getTerms(isAr, getLegalIdentity().isVatRegistered);
 
   return (
     <PolicyShell

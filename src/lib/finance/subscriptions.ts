@@ -16,7 +16,8 @@
 
 import { prisma } from "@/lib/prisma";
 import type { PackageType, SubStatus } from "@prisma/client";
-import { getPackage, VAT_RATE } from "./packages";
+import { getPackage } from "./packages";
+import { effectiveVatRate } from "./zatca";
 import { createInvoice } from "./invoices";
 import {
   validatePromoCode,
@@ -106,7 +107,7 @@ export async function createSubscription(
   }
 
   const net = Math.max(0, +(basePrice - discountAmount).toFixed(2));
-  const vat = +(net * VAT_RATE).toFixed(2);
+  const vat = +(net * effectiveVatRate()).toFixed(2);
   const totalWithVat = +(net + vat).toFixed(2);
 
   const now = new Date();
@@ -121,7 +122,7 @@ export async function createSubscription(
       programId: input.programId ?? null,
       status: "ACTIVE",
       pricePerMonth: basePrice,
-      vatRate: VAT_RATE,
+      vatRate: effectiveVatRate(),
       totalWithVat,
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
@@ -157,7 +158,7 @@ export async function createSubscription(
         unitPrice: basePrice,
       },
     ],
-    notesAr: "اشتراك شهري في أكاديمية حجر للغة الإنجليزية.",
+    notesAr: "اشتراك شهري في أكاديمية هجر للغة الإنجليزية.",
     notes: "Monthly subscription to HAJR A° English Academy.",
   });
 
@@ -314,7 +315,7 @@ export async function changeSubscriptionPackage(
 
   const discountAmount = Number(sub.discountAmount);
   const net = Math.max(0, +(pkg.pricePerMonth - discountAmount).toFixed(2));
-  const totalWithVat = +(net * (1 + VAT_RATE)).toFixed(2);
+  const totalWithVat = +(net * (1 + effectiveVatRate())).toFixed(2);
 
   await prisma.subscription.update({
     where: { id: subscriptionId },
@@ -349,7 +350,7 @@ export async function applySubscriptionDiscount(
 
   const disc = Math.max(0, Math.min(discountAmount, Number(sub.pricePerMonth)));
   const net = +(Number(sub.pricePerMonth) - disc).toFixed(2);
-  const totalWithVat = +(net * (1 + VAT_RATE)).toFixed(2);
+  const totalWithVat = +(net * (1 + effectiveVatRate())).toFixed(2);
 
   await prisma.subscription.update({
     where: { id: subscriptionId },

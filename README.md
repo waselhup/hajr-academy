@@ -1,6 +1,6 @@
 # HAJR A° English Academy — Platform
 
-> أكاديمية حجر للغة الإنجليزية — منصة التعلم الكاملة
+> أكاديمية هجر للغة الإنجليزية — منصة التعلم الكاملة
 > HAJR A° English Academy — Full learning platform
 
 A complete, production-ready learning platform for HAJR A° English Academy: bilingual (Arabic-first, RTL), role-based (Super Admin / Admin / Teacher / Student / Parent), with live classrooms (Zoom Web SDK), an English Lab, STEP test prep, ZATCA-compliant invoicing (Moyasar), and Saudi-specific compliance (PDPL, gender-segregated classes, Saudi phone validation, Hijri/Gregorian dual calendar).

@@ -11,6 +11,7 @@ export default async function PaymentPolicyPage() {
       isAr={locale === "ar"}
       title={t("Policies.paymentPolicyTitle")}
       body={t("Policies.paymentPolicyBody")}
+      showBank
       lastUpdatedLabel={t("Policies.lastUpdated")}
       whatsappLabel={t("Landing.whatsappFabLabel")}
       loginLabel={t("Landing.ctaLogin")}

@@ -16,7 +16,7 @@ export interface PolicySection {
   paragraphs: string[];
 }
 
-export function getTerms(isAr: boolean): {
+export function getTerms(isAr: boolean, vatRegistered = false): {
   title: string;
   intro: string;
   sections: PolicySection[];
@@ -57,9 +57,13 @@ export function getTerms(isAr: boolean): {
         {
           heading: "٤) الأسعار والدفع والضريبة",
           paragraphs: [
-            "الأسعار المعروضة على المنصة بالريال السعودي وشاملة لضريبة القيمة المضافة بنسبة 15% ما لم يُذكر خلاف ذلك صراحة.",
+            vatRegistered
+              ? "الأسعار المعروضة على المنصة بالريال السعودي وشاملة لضريبة القيمة المضافة بنسبة 15% ما لم يُذكر خلاف ذلك صراحة."
+              : "الأسعار المعروضة على المنصة بالريال السعودي وهي المبالغ النهائية المستحقة. الأكاديمية غير مسجّلة حالياً في ضريبة القيمة المضافة، ولا تُحصَّل أي ضريبة على المبيعات. وعند بلوغ حد التسجيل الإلزامي سيتم التسجيل وتعديل الأسعار أو إضافة الضريبة مع إشعار مسبق.",
             "يتم الدفع إلكترونياً عبر بوابة دفع معتمدة. لا تحتفظ الأكاديمية ببيانات بطاقتك؛ تُعالَج البيانات لدى مزوّد خدمة الدفع وفق معاييره الأمنية.",
-            "تُصدر فاتورة ضريبية إلكترونية لكل عملية شراء وتُرسل إلى بريدك الإلكتروني المسجّل.",
+            vatRegistered
+              ? "تُصدر فاتورة ضريبية إلكترونية لكل عملية شراء وتُرسل إلى بريدك الإلكتروني المسجّل."
+              : "تُصدر فاتورة إلكترونية لكل عملية شراء وتُرسل إلى بريدك الإلكتروني المسجّل.",
             "أسعار العروض والحملات سارية خلال المدة المعلنة فقط، ولا تُطبَّق بأثر رجعي على عمليات شراء سابقة.",
             "لا يبدأ تقديم الخدمة إلا بعد تأكيد الدفع من بوابة الدفع.",
           ],
@@ -179,9 +183,13 @@ export function getTerms(isAr: boolean): {
       {
         heading: "4) Prices, payment and VAT",
         paragraphs: [
-          "Prices are shown in Saudi Riyals and include 15% Value Added Tax unless expressly stated otherwise.",
+          vatRegistered
+            ? "Prices are shown in Saudi Riyals and include 15% Value Added Tax unless expressly stated otherwise."
+            : "Prices are shown in Saudi Riyals and are the final amounts payable. The Academy is not currently registered for Value Added Tax and collects no VAT on sales. Should the mandatory registration threshold be reached, we will register and adjust prices or add VAT with prior notice.",
           "Payment is taken online through a licensed payment gateway. The Academy does not store your card details; they are processed by the payment provider under its own security standards.",
-          "An electronic tax invoice is issued for every purchase and sent to your registered email address.",
+          vatRegistered
+            ? "An electronic tax invoice is issued for every purchase and sent to your registered email address."
+            : "An electronic invoice is issued for every purchase and sent to your registered email address.",
           "Promotional prices apply only for the published period and are not applied retrospectively to earlier purchases.",
           "Service delivery begins only after payment is confirmed by the gateway.",
         ],
