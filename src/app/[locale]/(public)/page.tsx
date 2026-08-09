@@ -185,8 +185,14 @@ export default async function LandingPage() {
   return (
     <div className="min-h-screen bg-hajr-ivory">
       <AnnouncementBar
-        message={t("Landing.announcementBar")}
+        message={
+          isAr
+            ? "التسجيل المبكر 2026 مفتوح — خصم يصل إلى 24% حتى 23 أغسطس"
+            : "Early registration 2026 is open — save up to 24% until 23 August"
+        }
         dismissLabel={t("Landing.announcementDismiss")}
+        href={`/${locale}/early-registration`}
+        ctaLabel={isAr ? "اعرف التفاصيل" : "See the offer"}
       />
 
       {/* ── Top nav ───────────────────────────────────────── */}

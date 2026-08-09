@@ -5,7 +5,18 @@ import { X } from "lucide-react";
 
 const LS_KEY = "hajr.announce.v2.dismissed";
 
-export function AnnouncementBar({ message, dismissLabel }: { message: string; dismissLabel: string }) {
+export function AnnouncementBar({
+  message,
+  dismissLabel,
+  href,
+  ctaLabel,
+}: {
+  message: string;
+  dismissLabel: string;
+  /** Optional destination — makes the whole bar a route into a campaign. */
+  href?: string;
+  ctaLabel?: string;
+}) {
   const [show, setShow] = useState(false);
   useEffect(() => {
     try {
@@ -18,7 +29,17 @@ export function AnnouncementBar({ message, dismissLabel }: { message: string; di
   return (
     <div className="bg-hajr-deep-navy text-white">
       <div className="container flex items-center justify-between gap-2 py-2 text-sm">
-        <span className="flex-1 text-center">{message}</span>
+        <span className="flex-1 text-center">
+          {message}
+          {href && (
+            <a
+              href={href}
+              className="ms-2 whitespace-nowrap font-semibold text-hajr-mint underline underline-offset-4 hover:text-white"
+            >
+              {ctaLabel}
+            </a>
+          )}
+        </span>
         <button
           onClick={() => {
             try { localStorage.setItem(LS_KEY, "1"); } catch {}
