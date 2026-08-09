@@ -104,7 +104,6 @@ export function PolicyShell({
             </p>
             <dl className="grid gap-3 sm:grid-cols-2">
               <Row label={isAr ? "البنك" : "Bank"} value={isAr ? legal.bank.nameAr : legal.bank.nameEn} />
-              <Row label={isAr ? "اسم الحساب" : "Account name"} value={legal.bank.accountName} />
               <Row label="IBAN" value={legal.bank.iban} num />
             </dl>
           </section>
@@ -119,7 +118,7 @@ export function PolicyShell({
           </h2>
           <dl className="grid gap-3 sm:grid-cols-2">
             <Row
-              label={isAr ? "الاسم النظامي" : "Registered name"}
+              label={isAr ? "الاسم" : "Name"}
               value={isAr ? legal.nameAr : legal.nameEn}
             />
             <Row

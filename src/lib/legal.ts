@@ -6,9 +6,10 @@
  * compliance problem, so it has one home and the code can say honestly
  * whether a value is real or absent.
  *
- * Two names, deliberately: the REGISTERED entity ("معهد حسين حسن العيسى
- * للتعليم") is what the commercial registration says and what an invoice must
- * carry; "أكاديمية هجر" is the trading name customers know.
+ * ONE name is published everywhere — "أكاديمية هجر". The owner's instruction:
+ * the registering partner's personal name must not appear on the site, on an
+ * invoice, or anywhere else. The commercial registration NUMBER is published
+ * instead, which is what identifies the seller anyway.
  *
  * VAT: the academy is below the mandatory registration threshold and is NOT
  * registered. `isVatRegistered` is therefore false, and the platform charges
@@ -20,12 +21,9 @@
 const PLACEHOLDER_VAT = "300000000000003";
 
 export interface LegalIdentity {
-  /** Registered entity name, as on the commercial registration. */
+  /** The only name published anywhere — see the note above. */
   nameAr: string;
   nameEn: string;
-  /** Trading name shown to customers. */
-  tradeNameAr: string;
-  tradeNameEn: string;
   /** Unified national number / commercial registration, or null. */
   crNumber: string | null;
   /** 15-digit VAT registration number, or null when not registered. */
@@ -38,7 +36,7 @@ export interface LegalIdentity {
   whatsapp: string;
   phoneDisplay: string;
   /** Bank details for transfer payments — shown only where relevant. */
-  bank: { nameAr: string; nameEn: string; iban: string; accountName: string } | null;
+  bank: { nameAr: string; nameEn: string; iban: string } | null;
 }
 
 export function getLegalIdentity(): LegalIdentity {
@@ -48,15 +46,12 @@ export function getLegalIdentity(): LegalIdentity {
 
   const vatNumber = !vatRaw || vatRaw === PLACEHOLDER_VAT ? null : vatRaw;
 
-  const nameAr = process.env.ZATCA_SELLER_NAME_AR ?? "معهد حسين حسن العيسى للتعليم";
-  const nameEn =
-    process.env.ZATCA_SELLER_NAME_EN ?? "Hussein Hassan Al-Essa Institute for Education";
+  const nameAr = process.env.ZATCA_SELLER_NAME_AR ?? "أكاديمية هجر";
+  const nameEn = process.env.ZATCA_SELLER_NAME_EN ?? "HAJR A° Academy";
 
   return {
     nameAr,
     nameEn,
-    tradeNameAr: "أكاديمية هجر",
-    tradeNameEn: "HAJR A° Academy",
     crNumber: crRaw || null,
     vatNumber,
     isVatRegistered: !!vatNumber,
@@ -70,7 +65,6 @@ export function getLegalIdentity(): LegalIdentity {
           nameAr: process.env.HAJR_BANK_NAME_AR ?? "مصرف الراجحي",
           nameEn: process.env.HAJR_BANK_NAME_EN ?? "Al Rajhi Bank",
           iban,
-          accountName: nameAr,
         }
       : null,
   };

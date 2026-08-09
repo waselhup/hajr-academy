@@ -102,7 +102,7 @@ export function getSellerInfo(): {
 } {
   return {
     sellerNameAr:
-      process.env.ZATCA_SELLER_NAME_AR ?? "معهد حسين حسن العيسى للتعليم",
+      process.env.ZATCA_SELLER_NAME_AR ?? "أكاديمية هجر",
     sellerNameEn:
       process.env.ZATCA_SELLER_NAME_EN ?? "HAJR A° English Academy",
     vatNumber: process.env.ZATCA_VAT_NUMBER ?? "300000000000003",

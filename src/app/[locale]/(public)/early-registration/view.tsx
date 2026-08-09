@@ -475,10 +475,7 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
               ZATCA sandbox placeholder is treated as unset, so the site never
               publishes a VAT number the academy does not hold. */}
           <div className={s.copyright}>
-            <div>{isAr ? legal.tradeNameAr : legal.tradeNameEn}</div>
-            <div style={{ marginTop: 2, opacity: 0.85 }}>
-              {isAr ? legal.nameAr : legal.nameEn}
-            </div>
+            <div>{isAr ? legal.nameAr : legal.nameEn}</div>
             {(legal.crNumber || legal.vatNumber) && (
               <div className="num" dir="ltr" style={{ marginTop: 4 }}>
                 {legal.crNumber && `${c.footer.crLabel}: ${legal.crNumber}`}
