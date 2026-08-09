@@ -58,6 +58,20 @@ const nextConfig = {
         destination: "/admin/test-bank?type=STEP",
         permanent: true,
       },
+      // The Early Registration campaign became the homepage. Done here rather
+      // than in a page that throws redirect(): such a page cannot be
+      // prerendered, and the build served a 404 in its place. A config
+      // redirect runs before routing, always 308s, and keeps the UTM query.
+      {
+        source: "/:locale(ar|en)/early-registration",
+        destination: "/:locale",
+        permanent: true,
+      },
+      {
+        source: "/early-registration",
+        destination: "/",
+        permanent: true,
+      },
     ];
   },
   async headers() {
