@@ -71,7 +71,11 @@
   color: var(--ink);
   font-family: HajrArabic, Arial, sans-serif;
   line-height: 1.75;
-  overflow-x: hidden;
+  /* `clip`, not `hidden`: hidden turns this into a scroll container, which
+     breaks the sticky header inside it. clip contains stray overflow without
+     that side effect. */
+  overflow-x: clip;
+  max-width: 100%;
 }
 .root * {
   box-sizing: border-box;
@@ -80,7 +84,14 @@
   max-width: 100%;
   display: block;
 }
-.root a {
+/*
+ * The source had a bare `a{color:inherit}`. Scoping it to `.root a` raised its
+ * specificity above every `.btn*{color:…}` rule, so each button anchor
+ * inherited its card's text colour instead — white-on-mint and navy-on-navy,
+ * i.e. buttons with no readable label. Only the offer bar actually needs to
+ * inherit; every other anchor already states its own colour.
+ */
+.offerBar a {
   color: inherit;
 }
 .root :is(button, input) {
@@ -91,6 +102,17 @@
 }
 .root :is(h1, h2, h3) {
   line-height: 1.25;
+}
+/*
+ * globals.css sets `h1,h2,h3,h4 { color:#1E2A36; font-weight:600 }` for the
+ * whole app. A directly-declared colour always beats an inherited one, so
+ * every heading the design meant to inherit ivory from a dark section came
+ * out navy-on-navy — invisible. The design relied on the UA default weight
+ * too, so that is restored here rather than left at the app's 600.
+ */
+.root :is(h1, h2, h3, h4) {
+  font-weight: 700;
+  color: inherit;
 }
 .latin {
   font-family: HajrLatin, Arial, sans-serif;
@@ -141,6 +163,7 @@
   background: currentColor;
 }
 .sectionHead h2 {
+  color: var(--ink);
   font-size: clamp(34px, 4vw, 54px);
   margin-bottom: 13px;
   letter-spacing: -0.03em;
@@ -152,6 +175,9 @@
 }
 .sectionDark .sectionHead p {
   color: #c9d0d6;
+}
+.sectionDark .sectionHead h2 {
+  color: var(--ivory);
 }
 .sectionDark .eyebrow {
   color: var(--mint);
@@ -170,6 +196,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Every child is white-space:nowrap, so without wrapping a narrow phone
+     pushes the bar wider than the viewport and drags the page with it. */
+  flex-wrap: wrap;
   gap: 12px;
   padding: 7px 20px;
   text-align: center;
@@ -396,6 +425,7 @@
   box-shadow: 0 0 0 7px rgba(184, 110, 123, 0.12);
 }
 .hero h1 {
+  color: var(--ivory);
   font-size: clamp(52px, 6vw, 82px);
   margin-bottom: 20px;
   letter-spacing: -0.045em;
@@ -668,6 +698,7 @@
   margin-bottom: 12px;
 }
 .stageCard h3 {
+  color: var(--ivory);
   font-size: 25px;
   margin-bottom: 6px;
 }
@@ -992,6 +1023,7 @@
   align-items: center;
 }
 .labCopy h2 {
+  color: var(--ivory);
   font-size: clamp(38px, 5vw, 60px);
   margin-bottom: 16px;
 }
@@ -1197,6 +1229,7 @@
   color: rgba(255, 255, 255, 0.04);
 }
 .finalBox h2 {
+  color: #fff;
   font-size: clamp(36px, 4vw, 54px);
   margin-bottom: 9px;
   position: relative;
