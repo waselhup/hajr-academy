@@ -11,11 +11,19 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/shell/language-toggle";
 import { WhatsAppFab } from "@/components/public/WhatsAppFab";
 import { fmtDateLong } from "@/lib/format";
+import { getLegalIdentity } from "@/lib/legal";
+
+export interface PolicySection {
+  heading: string;
+  paragraphs: string[];
+}
 
 export function PolicyShell({
   isAr,
   title,
   body,
+  intro,
+  sections,
   lastUpdatedLabel,
   whatsappLabel,
   loginLabel,
@@ -23,12 +31,17 @@ export function PolicyShell({
 }: {
   isAr: boolean;
   title: string;
-  body: string;
+  /** Plain-text policy — split on blank lines into paragraphs. */
+  body?: string;
+  intro?: string;
+  /** Structured policy with real headings, for long documents like the terms. */
+  sections?: PolicySection[];
   lastUpdatedLabel: string;
   whatsappLabel: string;
   loginLabel: string;
   joinLabel: string;
 }) {
+  const legal = getLegalIdentity();
   // Sprint 1 ship date — bumped manually when copy is reviewed by legal.
   const lastUpdated = new Date("2026-05-27");
   return (
@@ -55,11 +68,57 @@ export function PolicyShell({
         <div className="mt-2 text-sm text-hajr-muted">
           {lastUpdatedLabel}: <span className="num">{fmtDateLong(lastUpdated, isAr ? "ar" : "en")}</span>
         </div>
-        <div className="mt-8 space-y-4 leading-relaxed text-hajr-body">
-          {body.split(/\n\n+/).map((para, i) => (
-            <p key={i}>{para}</p>
-          ))}
-        </div>
+        {intro && <p className="mt-8 leading-relaxed text-hajr-body">{intro}</p>}
+
+        {body && (
+          <div className="mt-8 space-y-4 leading-relaxed text-hajr-body">
+            {body.split(/\n\n+/).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        )}
+
+        {sections?.map((sec) => (
+          <section key={sec.heading} className="mt-8">
+            <h2 className="text-lg font-bold text-hajr-text">{sec.heading}</h2>
+            <div className="mt-2 space-y-3 leading-relaxed text-hajr-body">
+              {sec.paragraphs.map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+          </section>
+        ))}
+
+        {/* Statutory identity. A Saudi e-commerce seller must publish who it
+            is; the numbers print only when they are real, so the site never
+            states a VAT registration the academy does not hold. */}
+        <section className="mt-12 rounded-xl border border-hajr-border bg-white p-5 text-sm">
+          <h2 className="mb-3 font-bold text-hajr-text">
+            {isAr ? "الهوية النظامية" : "Legal identity"}
+          </h2>
+          <dl className="grid gap-3 sm:grid-cols-2">
+            <Row
+              label={isAr ? "الاسم النظامي" : "Registered name"}
+              value={isAr ? legal.nameAr : legal.nameEn}
+            />
+            <Row
+              label={isAr ? "العنوان" : "Address"}
+              value={isAr ? legal.addressAr : legal.addressEn}
+            />
+            {legal.crNumber && (
+              <Row
+                label={isAr ? "السجل التجاري" : "Commercial registration"}
+                value={legal.crNumber}
+                num
+              />
+            )}
+            {legal.vatNumber && (
+              <Row label={isAr ? "الرقم الضريبي" : "VAT number"} value={legal.vatNumber} num />
+            )}
+            <Row label={isAr ? "البريد الإلكتروني" : "Email"} value={legal.email} num />
+            <Row label={isAr ? "الجوال / واتساب" : "Phone / WhatsApp"} value={legal.phoneDisplay} num />
+          </dl>
+        </section>
       </main>
 
       <footer className="border-t border-hajr-border bg-white">
@@ -74,6 +133,17 @@ export function PolicyShell({
         label={whatsappLabel}
         message={isAr ? "السلام عليكم، لدي استفسار" : "Hello, I have a question"}
       />
+    </div>
+  );
+}
+
+function Row({ label, value, num }: { label: string; value: string; num?: boolean }) {
+  return (
+    <div>
+      <dt className="text-xs text-hajr-muted">{label}</dt>
+      <dd className={num ? "num font-medium text-hajr-text" : "font-medium text-hajr-text"} dir={num ? "ltr" : undefined}>
+        {value}
+      </dd>
     </div>
   );
 }

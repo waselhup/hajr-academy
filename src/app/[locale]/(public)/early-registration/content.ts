@@ -531,6 +531,33 @@ export function getContent(locale: string) {
       copyright: isAr
         ? "© 2026 HAJR A° Academy · الأحساء، المملكة العربية السعودية"
         : "© 2026 HAJR A° Academy · Al Ahsa, Saudi Arabia",
+
+      // The homepage is now the only entry point for the whole site, so every
+      // route a visitor might need has to be reachable from this footer.
+      academyTitle: isAr ? "الأكاديمية" : "The academy",
+      academyLinks: [
+        { href: "/trial", label: isAr ? "حصة تجريبية مجانية" : "Free trial lesson" },
+        { href: "/checkout", label: isAr ? "الاشتراك والدفع" : "Enroll and pay" },
+        { href: "/login", label: isAr ? "تسجيل الدخول" : "Sign in" },
+        { href: "/register", label: isAr ? "إنشاء حساب" : "Create an account" },
+        { href: "/apply-to-teach", label: isAr ? "انضم كمعلّم" : "Teach with us" },
+        { href: "/conversation-partner", label: isAr ? "كن شريك محادثة" : "Become a conversation partner" },
+        { href: "/partners/apply", label: isAr ? "شراكات النجاح" : "Success partnerships" },
+      ],
+
+      legalTitle: isAr ? "السياسات والأحكام" : "Policies and terms",
+      legalLinks: [
+        { href: "/policies/terms", label: isAr ? "الشروط والأحكام" : "Terms & Conditions" },
+        { href: "/policies/privacy", label: isAr ? "سياسة الخصوصية" : "Privacy Policy" },
+        { href: "/policies/refund", label: isAr ? "سياسة الاسترجاع" : "Refund Policy" },
+        { href: "/policies/payment", label: isAr ? "سياسة الدفع" : "Payment Policy" },
+      ],
+
+      crLabel: isAr ? "السجل التجاري" : "CR",
+      vatLabel: isAr ? "الرقم الضريبي" : "VAT",
+      vatIncluded: isAr
+        ? "جميع الأسعار بالريال السعودي وشاملة ضريبة القيمة المضافة 15%."
+        : "All prices are in Saudi Riyals and include 15% VAT.",
     },
 
     whatsappAria: isAr
