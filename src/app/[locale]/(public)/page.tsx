@@ -208,6 +208,13 @@ export default async function LandingPage() {
           </nav>
           <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2">
             <LanguageToggle />
+            {/* Server-rendered so the campaign is crawlable and reachable —
+                the announcement bar is client-only and dismissible. */}
+            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+              <a href={`/${locale}/early-registration`}>
+                {isAr ? "التسجيل المبكر 2026" : "Early registration 2026"}
+              </a>
+            </Button>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/login">{t("Landing.ctaLogin")}</Link>
             </Button>
