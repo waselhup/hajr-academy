@@ -93,6 +93,14 @@ const nextConfig = {
           },
         ],
       },
+      // Apple fetches the merchant-domain association file as raw text and
+      // the file deliberately has no extension, so nothing infers a type for
+      // it. Stating text/plain removes the guesswork from the one request
+      // that decides whether Apple Pay works on this domain.
+      {
+        source: "/.well-known/apple-developer-merchantid-domain-association",
+        headers: [{ key: "Content-Type", value: "text/plain; charset=utf-8" }],
+      },
     ];
   },
 };
