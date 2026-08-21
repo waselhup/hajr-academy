@@ -157,20 +157,22 @@ export async function POST(req: NextRequest) {
         where: { userId: user.id },
         update: {
           country: app.country,
-          nativeLanguage: app.nativeLanguage,
+          // These moved off the application form; the profile columns are
+          // still required, so fall back rather than write null.
+          nativeLanguage: app.nativeLanguage ?? "English",
           otherLanguages: app.otherLanguages,
-          timezone: app.timezone,
-          availability: app.availability,
+          timezone: app.timezone ?? "GMT",
+          availability: app.availabilityWindows.join(", ") || app.availability || "—",
           isActive: true,
           applicationId: app.id,
         },
         create: {
           userId: user.id,
           country: app.country,
-          nativeLanguage: app.nativeLanguage,
+          nativeLanguage: app.nativeLanguage ?? "English",
           otherLanguages: app.otherLanguages,
-          timezone: app.timezone,
-          availability: app.availability,
+          timezone: app.timezone ?? "GMT",
+          availability: app.availabilityWindows.join(", ") || app.availability || "—",
           applicationId: app.id,
         },
       });
