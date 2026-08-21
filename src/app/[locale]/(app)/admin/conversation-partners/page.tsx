@@ -20,15 +20,20 @@ export default async function AdminConversationPartnersPage() {
       fullName: r.fullName,
       email: r.email,
       phone: r.phone,
+      telegram: r.telegram,
       country: r.country,
-      nativeLanguage: r.nativeLanguage,
-      otherLanguages: r.otherLanguages,
-      timezone: r.timezone,
-      availability: r.availability,
+      gender: r.gender,
+      age: r.age,
+      englishLevel: r.englishLevel,
+      availabilityWindows: r.availabilityWindows,
       about: r.about,
-      linkedin: r.linkedin,
       status: r.status,
       setupUrl: r.setupUrl,
+      // An approved application with no userId never got an account created —
+      // it predates that step, or account creation failed after approval. The
+      // person is then in neither list as a usable partner, so the row has to
+      // say so rather than showing a reassuring "Approved" badge.
+      hasAccount: r.userId != null,
       createdAt: r.createdAt.toISOString(),
     }));
   } catch (e) {
