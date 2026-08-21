@@ -2383,22 +2383,41 @@ model SpeakingClubEvent {
 /// A public application to become a conversation partner. Nothing about the
 /// person exists on the platform until an admin approves it.
 model ConversationPartnerApplication {
-  id             String                      @id @default(uuid())
+  id             String                   @id @default(uuid())
   fullName       String
   email          String
+  /// WhatsApp number WITH country code — required. The programme is worldwide,
+  /// and WhatsApp is how the academy actually reaches partners.
   phone          String
+  /// Telegram handle OR number — optional, and deliberately free-form: a
+  /// Telegram identity can be a @username, not just a phone, so validating it
+  /// as a phone would reject the commonest form.
+  telegram       String?
   country        String
-  /// What they speak natively, e.g. "English".
-  nativeLanguage String
+
+  /// Owner's 2026 criteria for the Language Exchange Programme.
+  gender         Gender?
+  /// 12–45. Nullable because applications taken before this field existed
+  /// have no answer, and inventing one would be worse than leaving it blank.
+  age            Int?
+  /// Self-declared CEFR level: A2 | B1 | B2 | C1_C2. Minimum accepted is A2 —
+  /// the programme is an exchange, so learners qualify, not only fluent speakers.
+  englishLevel   String?
+  /// GMT/UTC windows they can attend: MORNING | AFTERNOON | EVENING | NIGHT.
+  /// Stored in GMT deliberately — applicants are worldwide, and a local time
+  /// is meaningless to the admin scheduling the session.
+  availabilityWindows String[]
+
+  /// Retired from the form (kept nullable so historic rows stay readable).
+  nativeLanguage String?
   otherLanguages String?
-  /// IANA zone or a plain offset the applicant typed, e.g. "GMT+1".
-  timezone       String
-  /// Free text: the days/hours they can join.
-  availability   String                      @db.Text
-  /// Why they want to do this + any teaching/volunteering background.
-  about          String                      @db.Text
+  timezone       String?
+  availability   String?                  @db.Text
+
+  /// Self-description + what they want out of the programme.
+  about          String                   @db.Text
   linkedin       String?
-  status         PartnerApplicationStatus    @default(PENDING)
+  status         PartnerApplicationStatus @default(PENDING)
   reviewedBy     String?
   reviewedAt     DateTime?
   reviewNote     String?
@@ -2407,8 +2426,8 @@ model ConversationPartnerApplication {
   /// Single-use "choose your password" link, kept so an admin can re-send it
   /// by hand when the email does not land. Cleared once spent.
   setupUrl       String?
-  createdAt      DateTime                    @default(now())
-  updatedAt      DateTime                    @updatedAt
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
 
   @@index([status, createdAt])
 }
