@@ -100,6 +100,34 @@ export function ConversationPartnersClient({
     { key: "REJECTED" as const, ar: "مرفوض", en: "Rejected" },
   ];
 
+  // The approved-partners list below answers a different question than the
+  // application queue — not "who is waiting on me?" but "who can I staff a
+  // session with right now?" — so it gets its own active/inactive filter.
+  const [partnerFilter, setPartnerFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
+
+  const partnerCounts = useMemo(
+    () => ({
+      ALL: partners.length,
+      ACTIVE: partners.filter((p) => p.isActive).length,
+      INACTIVE: partners.filter((p) => !p.isActive).length,
+    }),
+    [partners],
+  );
+
+  const visiblePartners = useMemo(
+    () =>
+      partners.filter((p) =>
+        partnerFilter === "ALL" ? true : partnerFilter === "ACTIVE" ? p.isActive : !p.isActive,
+      ),
+    [partners, partnerFilter],
+  );
+
+  const PARTNER_TABS = [
+    { key: "ALL" as const, ar: "الكل", en: "All" },
+    { key: "ACTIVE" as const, ar: "نشِط", en: "Active" },
+    { key: "INACTIVE" as const, ar: "موقوف", en: "Inactive" },
+  ];
+
   async function review(id: string, action: "approve" | "reject") {
     const q =
       action === "reject"
@@ -384,15 +412,49 @@ export function ConversationPartnersClient({
               </Link>
             </Button>
           </div>
+
+          {partners.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 pt-3">
+              {PARTNER_TABS.map((t) => {
+                const active = partnerFilter === t.key;
+                return (
+                  <button
+                    key={t.key}
+                    type="button"
+                    onClick={() => setPartnerFilter(t.key)}
+                    aria-pressed={active}
+                    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs transition-colors ${
+                      active
+                        ? "border-hajr-primary bg-hajr-primary text-white"
+                        : "border-hajr-border bg-white text-muted-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    {isAr ? t.ar : t.en}
+                    <span
+                      className={`num rounded-full px-1.5 ${active ? "bg-white/20" : "bg-muted"}`}
+                    >
+                      {partnerCounts[t.key]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           {partners.length === 0 ? (
             <p className="p-6 text-center text-sm text-muted-foreground">
               {isAr ? "لا يوجد شركاء معتمدون بعد." : "No approved partners yet."}
             </p>
+          ) : visiblePartners.length === 0 ? (
+            <p className="p-6 text-center text-sm text-muted-foreground">
+              {partnerFilter === "ACTIVE"
+                ? isAr ? "لا يوجد شركاء نشِطون." : "No active partners."
+                : isAr ? "لا يوجد شركاء موقوفون." : "No inactive partners."}
+            </p>
           ) : (
             <div className="divide-y divide-hajr-border">
-              {partners.map((p) => (
+              {visiblePartners.map((p) => (
                 <div key={p.id} className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm">
                   <div className="min-w-[180px] flex-1">
                     <div className="font-medium">{p.name}</div>
