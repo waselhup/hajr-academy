@@ -2,11 +2,13 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
+import { GRADE_VALUES } from "@/lib/grades";
 import type { PackageType } from "@prisma/client";
 
 /**
  * POST /api/checkout — public landing-page purchase.
- * Customer submits student name + phone (required) + email (optional) + package.
+ * Customer submits student name + phone + grade level (all required) plus an
+ * optional email, and the package.
  * Creates a PurchaseOrder. In mock payment mode (no MOYASAR_SECRET_KEY) the order
  * is marked PAID immediately so the flow is demoable end-to-end; when a real
  * Moyasar key is configured, swap the mock block for a real charge + callback.
@@ -26,6 +28,8 @@ const PACKAGE_PRICE_SAR: Record<PackageType, number> = {
 const checkoutSchema = z.object({
   studentName: z.string().min(2).max(100),
   phone: z.string().regex(/^(\+966|05)\d{8,}$/, "Phone must start with 05 or +966"),
+  // Mandatory: the team needs the grade to place the student in a class.
+  gradeLevel: z.enum(GRADE_VALUES, { required_error: "Grade level is required" }),
   email: z.string().email().optional().or(z.literal("")),
   packageType: z.enum([
     "ESSENTIAL",
@@ -61,6 +65,7 @@ export async function POST(req: Request) {
         phone: parsed.data.phone,
         email: parsed.data.email || null,
         packageType: pkg,
+        gradeLevel: parsed.data.gradeLevel,
         notes: parsed.data.notes || null,
         amountSar: amountSar.toFixed(2),
         paymentStatus,
@@ -82,8 +87,8 @@ export async function POST(req: Request) {
           type: "PAYMENT_RECEIVED" as const,
           title: `New purchase from ${parsed.data.studentName}`,
           titleAr: `عملية شراء جديدة من ${parsed.data.studentName}`,
-          body: `Package: ${pkg}, Amount: ${amountSar} SAR, Phone: ${parsed.data.phone}`,
-          bodyAr: `الباقة: ${pkg}، المبلغ: ${amountSar} ر.س، الجوال: ${parsed.data.phone}`,
+          body: `Package: ${pkg}, Grade: ${parsed.data.gradeLevel}, Amount: ${amountSar} SAR, Phone: ${parsed.data.phone}`,
+          bodyAr: `الباقة: ${pkg}، الصف: ${parsed.data.gradeLevel}، المبلغ: ${amountSar} ر.س، الجوال: ${parsed.data.phone}`,
           actionUrl: "/admin/orders",
           actionLabel: "View order",
           actionLabelAr: "عرض الطلب",
@@ -98,7 +103,13 @@ export async function POST(req: Request) {
       action: "purchase_order_created",
       entity: "PurchaseOrder",
       entityId: order.id,
-      metadata: { studentName: parsed.data.studentName, packageType: pkg, amountSar, mockMode },
+      metadata: {
+        studentName: parsed.data.studentName,
+        packageType: pkg,
+        gradeLevel: parsed.data.gradeLevel,
+        amountSar,
+        mockMode,
+      },
     });
 
     return NextResponse.json({

@@ -2544,6 +2544,9 @@ model PurchaseOrder {
   phone                String
   email                String?
   packageType          PackageType
+  // Mandatory at checkout (see src/lib/grades.ts). Nullable in the DB only so
+  // orders taken before the field existed keep working.
+  gradeLevel           String?
   notes                String?
   // Payment (mock now, Moyasar-ready)
   amountSar            Decimal            @db.Decimal(10, 2)
