@@ -51,6 +51,10 @@ describe("post-payment WhatsApp hand-off", () => {
     expect(WHATSAPP_NUMBER).toMatch(/^\d+$/);
   });
 
+  it("defaults to the academy line (0502456651)", () => {
+    expect(WHATSAPP_NUMBER).toBe("966502456651");
+  });
+
   it("includes the package, student, grade and reference in Arabic", () => {
     const msg = purchaseWhatsappMessage({
       isAr: true,
