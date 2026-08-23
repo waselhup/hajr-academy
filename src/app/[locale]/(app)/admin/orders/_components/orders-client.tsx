@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, UserPlus, X } from "lucide-react";
 import { provisionOrderAction, cancelOrderAction } from "../../_actions/orders";
+import { GRADE_OPTIONS, gradeLabel } from "@/lib/grades";
 
 type Order = {
   id: string;
@@ -15,6 +16,7 @@ type Order = {
   phone: string;
   email: string | null;
   packageType: string;
+  gradeLevel: string | null;
   notes: string | null;
   amountSar: string;
   paymentStatus: string;
@@ -92,6 +94,7 @@ export function OrdersClient({
               <tr>
                 <Th>{isAr ? "اسم الطالب" : "Student"}</Th>
                 <Th>{isAr ? "الجوال" : "Phone"}</Th>
+                <Th>{isAr ? "الصف" : "Grade"}</Th>
                 <Th>{isAr ? "الباقة" : "Package"}</Th>
                 <Th>{isAr ? "المبلغ" : "Amount"}</Th>
                 <Th>{isAr ? "الدفع" : "Payment"}</Th>
@@ -107,6 +110,7 @@ export function OrdersClient({
                   <tr key={o.id} className="border-b border-hajr-border/50 last:border-0">
                     <td className="px-3 py-3 font-medium text-hajr-navy">{o.studentName}</td>
                     <td className="px-3 py-3" dir="ltr">{o.phone}</td>
+                    <td className="px-3 py-3">{gradeLabel(o.gradeLevel, isAr) ?? "—"}</td>
                     <td className="px-3 py-3">{PACKAGE_NAMES[o.packageType]?.[isAr ? "ar" : "en"] ?? o.packageType}</td>
                     <td className="px-3 py-3 num">{o.amountSar} {isAr ? "ر.س" : "SAR"}</td>
                     <td className="px-3 py-3">
@@ -177,6 +181,8 @@ function ProvisionDialog({
   const [email, setEmail] = useState(order.email ?? "");
   const [phone] = useState(order.phone);
   const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
+  // Pre-filled from what the customer chose at checkout; still editable here.
+  const [grade, setGrade] = useState(order.gradeLevel ?? "");
   const [englishLevel, setEnglishLevel] = useState<"BEGINNER" | "INTERMEDIATE" | "ADVANCED">("BEGINNER");
   const [schoolId, setSchoolId] = useState("");
   const [classId, setClassId] = useState("");
@@ -197,6 +203,7 @@ function ProvisionDialog({
       phone,
       gender,
       englishLevel,
+      gradeLevel: grade || undefined,
       schoolId: schoolId || undefined,
       classId: classId || undefined,
     });
@@ -270,6 +277,21 @@ function ProvisionDialog({
                 <option value="ADVANCED">{isAr ? "متقدّم" : "Advanced"}</option>
               </select>
             </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{isAr ? "الصف الدراسي" : "Grade level"}</Label>
+            <select
+              className="w-full rounded-md border border-hajr-border bg-white p-2 min-h-[40px]"
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+            >
+              <option value="">{isAr ? "غير محدد" : "Not set"}</option>
+              {GRADE_OPTIONS.map((g) => (
+                <option key={g.value} value={g.value}>
+                  {isAr ? g.ar : g.en}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="space-y-1.5">
             <Label>{isAr ? "المدرسة (اختياري)" : "School (optional)"}</Label>

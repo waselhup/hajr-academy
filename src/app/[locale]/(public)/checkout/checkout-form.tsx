@@ -7,14 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
-
-const PACKAGE_NAMES: Record<string, { ar: string; en: string }> = {
-  ESSENTIAL: { ar: "الباقة الأساسية", en: "Essential" },
-  INTEGRATED: { ar: "الباقة المتكاملة", en: "Integrated" },
-  PRIVATE: { ar: "الباقة الخاصة", en: "Private" },
-  STEP_PREP_PKG: { ar: "باقة التحضير لاختبار ستيب", en: "STEP Prep" },
-  IELTS_PREP_PKG: { ar: "باقة التحضير لاختبار آيلتس", en: "IELTS Prep" },
-};
+import { GRADE_OPTIONS } from "@/lib/grades";
+import { PACKAGE_LABELS } from "@/lib/packages";
 
 export function CheckoutForm({
   locale,
@@ -28,15 +22,19 @@ export function CheckoutForm({
   const isAr = locale === "ar";
   const router = useRouter();
   const [studentName, setStudentName] = useState("");
+  const [grade, setGrade] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  const pkgName = PACKAGE_NAMES[packageType]?.[isAr ? "ar" : "en"] ?? packageType;
+  const pkgName = PACKAGE_LABELS[packageType]?.[isAr ? "ar" : "en"] ?? packageType;
   const phoneOk = /^(\+966|05)\d{8,}$/.test(phone.trim());
-  const canSubmit = studentName.trim().length >= 2 && phoneOk && status !== "sending";
+  // Grade is mandatory — no payment can start without it.
+  const gradeOk = grade !== "";
+  const canSubmit =
+    studentName.trim().length >= 2 && phoneOk && gradeOk && status !== "sending";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -50,6 +48,7 @@ export function CheckoutForm({
         body: JSON.stringify({
           studentName: studentName.trim(),
           phone: phone.trim(),
+          gradeLevel: grade,
           email: email.trim() || undefined,
           packageType,
           notes: notes.trim() || undefined,
@@ -118,6 +117,35 @@ export function CheckoutForm({
           {phone.length > 0 && !phoneOk && (
             <p className="text-xs text-destructive">
               {isAr ? "يجب أن يبدأ بـ 05 أو +966" : "Must start with 05 or +966"}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="grade">
+            {isAr ? "الصف الدراسي *" : "Grade level *"}
+          </Label>
+          <select
+            id="grade"
+            required
+            value={grade}
+            onChange={(e) => setGrade(e.target.value)}
+            className="min-h-[40px] w-full rounded-md border border-hajr-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-hajr-navy/20"
+          >
+            <option value="" disabled>
+              {isAr ? "اختر الصف" : "Select a grade"}
+            </option>
+            {GRADE_OPTIONS.map((g) => (
+              <option key={g.value} value={g.value}>
+                {isAr ? g.ar : g.en}
+              </option>
+            ))}
+          </select>
+          {!gradeOk && (
+            <p className="text-xs text-hajr-muted">
+              {isAr
+                ? "الصف مطلوب لتحديد الفصل المناسب قبل الدفع."
+                : "The grade is required so we can place the student before payment."}
             </p>
           )}
         </div>

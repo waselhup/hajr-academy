@@ -12,52 +12,64 @@ import { PACKAGE_LABELS } from "@/lib/packages";
 export const dynamic = "force-dynamic";
 
 /**
- * /student/billing/success — payment-confirmation page.
- * Shows a receipt summary for the just-settled invoice.
+ * /parent/pay/success — where a parent lands after paying a child's invoice.
+ * Mirrors the student billing success page (receipt summary + the WhatsApp
+ * hand-off), with the parent↔child link as the ownership check.
  */
-export default async function BillingSuccessPage({
+export default async function ParentPaySuccessPage({
   params,
   searchParams,
 }: {
-  params: { locale: string };
-  searchParams: { invoice?: string };
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ invoice?: string }>;
 }) {
-  await requireRole("STUDENT");
+  const session = await requireRole("PARENT");
+  const { locale } = await params;
+  const { invoice: invoiceId } = await searchParams;
   const t = await getTranslations("Billing");
-  const isAr = params.locale === "ar";
+  const isAr = locale === "ar";
 
   let invoice: {
     invoiceNumber: string;
     totalAmount: number;
-    paidAt: string | null;
     packageType: string | null;
     studentName: string | null;
   } | null = null;
 
-  if (searchParams.invoice) {
+  if (invoiceId) {
     const inv = await prisma.invoice.findUnique({
-      where: { id: searchParams.invoice },
+      where: { id: invoiceId },
       select: {
         invoiceNumber: true,
         totalSar: true,
-        paidAt: true,
         packageType: true,
+        studentId: true,
         student: { select: { user: { select: { name: true } } } },
       },
     });
+    // Only surface the invoice to a parent actually linked to that child.
     if (inv) {
-      invoice = {
-        invoiceNumber: inv.invoiceNumber,
-        totalAmount: Number(inv.totalSar),
-        paidAt: inv.paidAt?.toISOString() ?? null,
-        packageType: inv.packageType,
-        studentName: inv.student?.user?.name ?? null,
-      };
+      const link = await prisma.parentStudentLink.findFirst({
+        where: { studentId: inv.studentId, parent: { userId: session.user.id } },
+        select: { id: true },
+      });
+      if (link) {
+        invoice = {
+          invoiceNumber: inv.invoiceNumber,
+          totalAmount: Number(inv.totalSar),
+          packageType: inv.packageType,
+          studentName: inv.student?.user?.name ?? null,
+        };
+      }
     }
   }
 
-  // Same post-payment hand-off as the public checkout: the customer lands on
-  // WhatsApp with a ready-made message so the team can follow up immediately.
+  const money = (n: number) =>
+    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(n);
+
   const waHref = whatsappLink(
     purchaseWhatsappMessage({
       isAr,
@@ -69,12 +81,6 @@ export default async function BillingSuccessPage({
       reference: invoice?.invoiceNumber ?? null,
     })
   );
-
-  const money = (n: number) =>
-    new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(n);
 
   return (
     <div className="mx-auto max-w-md py-8">
@@ -93,12 +99,8 @@ export default async function BillingSuccessPage({
           {invoice && (
             <div className="space-y-2 rounded-lg bg-muted/40 p-4 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">
-                  {t("invoiceNumber")}
-                </span>
-                <span className="num font-medium">
-                  {invoice.invoiceNumber}
-                </span>
+                <span className="text-muted-foreground">{t("invoiceNumber")}</span>
+                <span className="num font-medium">{invoice.invoiceNumber}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">{t("amount")}</span>
@@ -112,14 +114,14 @@ export default async function BillingSuccessPage({
           <WhatsAppRedirect
             href={waHref}
             isAr={isAr}
-            storageKey={`hajr-wa-redirect:${searchParams.invoice ?? "invoice"}`}
+            storageKey={`hajr-wa-redirect:${invoiceId ?? "invoice"}`}
           />
 
           <div className="flex flex-col gap-2">
-            {invoice && searchParams.invoice && (
+            {invoice && invoiceId && (
               <Button asChild variant="outline">
                 <a
-                  href={`/api/invoices/${searchParams.invoice}/pdf`}
+                  href={`/api/invoices/${invoiceId}/pdf`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -129,9 +131,7 @@ export default async function BillingSuccessPage({
               </Button>
             )}
             <Button asChild>
-              <Link href={`/${params.locale}/student`}>
-                {t("goToDashboard")}
-              </Link>
+              <Link href={`/${locale}/parent/finance`}>{t("goToDashboard")}</Link>
             </Button>
           </div>
         </CardContent>

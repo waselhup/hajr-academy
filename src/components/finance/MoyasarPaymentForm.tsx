@@ -98,7 +98,9 @@ export function MoyasarPaymentForm({
         }
         // Real Moyasar redirects to our server callback, which reconciles
         // the payment and then forwards to the success/failure page.
-        const apiCallback = `${window.location.origin}/api/payments/callback?locale=${locale}`;
+        const apiCallback = `${window.location.origin}/api/payments/callback?locale=${locale}&next=${encodeURIComponent(
+          successUrl
+        )}`;
         window.Moyasar.init({
           element: ".moyasar-form",
           amount: amountHalalas,
@@ -119,7 +121,7 @@ export function MoyasarPaymentForm({
         setStatus("ready");
       })
       .catch(() => setStatus("error"));
-  }, [publishableKey, amountHalalas, description, invoiceId, locale, isAr]);
+  }, [publishableKey, amountHalalas, description, invoiceId, locale, isAr, successUrl]);
 
   /**
    * Mock-mode "pay" — creates + reconciles the payment server-side (the

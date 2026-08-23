@@ -45,6 +45,7 @@ export default async function AdminOrdersPage({
       phone: o.phone,
       email: o.email,
       packageType: o.packageType,
+      gradeLevel: o.gradeLevel,
       notes: o.notes,
       amountSar: o.amountSar.toString(),
       paymentStatus: o.paymentStatus,

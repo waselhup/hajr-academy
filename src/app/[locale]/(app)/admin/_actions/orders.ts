@@ -40,6 +40,7 @@ const provisionSchema = z.object({
   phone: z.string().min(8),
   gender: z.enum(["MALE", "FEMALE"]).default("MALE"),
   englishLevel: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]).default("BEGINNER"),
+  gradeLevel: z.string().max(40).optional().nullable(),
   schoolId: z.string().optional().nullable(),
   classId: z.string().optional().nullable(),
   password: z.string().min(8).optional(),
@@ -86,6 +87,8 @@ export async function provisionOrderAction(
           create: {
             gender: parsed.data.gender,
             englishLevel: parsed.data.englishLevel,
+            // Falls back to the grade the customer picked at checkout.
+            gradeLevel: parsed.data.gradeLevel ?? order.gradeLevel ?? null,
             schoolId: parsed.data.schoolId ?? null,
             activePackage: packageToActive(order.packageType),
             packageStartedAt: new Date(),

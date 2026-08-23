@@ -16,6 +16,17 @@ export async function GET(req: NextRequest) {
   const moyasarId = sp.get("id");
   const locale = sp.get("locale") ?? "ar";
 
+  /**
+   * Where to land after a successful payment. The pay page passes its own
+   * success route (students and parents have different ones). Only same-origin
+   * relative paths are honoured — never an attacker-supplied absolute URL.
+   */
+  const nextParam = sp.get("next");
+  const successBase =
+    nextParam && /^\/(?!\/)[\w\-./[\]]*$/.test(nextParam)
+      ? nextParam
+      : `/${locale}/student/billing/success`;
+
   const fail = (reason: string) =>
     NextResponse.redirect(
       new URL(
@@ -26,7 +37,7 @@ export async function GET(req: NextRequest) {
   const succeed = (invoiceId: string) =>
     NextResponse.redirect(
       new URL(
-        `/${locale}/student/billing/success?invoice=${encodeURIComponent(invoiceId)}`,
+        `${successBase}?invoice=${encodeURIComponent(invoiceId)}`,
         req.nextUrl.origin
       )
     );

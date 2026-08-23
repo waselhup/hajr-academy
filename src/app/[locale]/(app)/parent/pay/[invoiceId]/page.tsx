@@ -64,7 +64,7 @@ export default async function ParentPayInvoicePage({
           totalAmount: Number(invoice.totalSar),
           lineItems,
         }}
-        successPath={`/${locale}/parent/finance`}
+        successPath={`/${locale}/parent/pay/success`}
       />
     </div>
   );

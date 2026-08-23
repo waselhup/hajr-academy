@@ -1,12 +1,12 @@
 import { MessageCircle } from "lucide-react";
+import { whatsappLink } from "@/lib/whatsapp";
 
-// TODO: client to provide actual WhatsApp number. Placeholder uses a Saudi
-// dummy until handed off. The visible-above-bottom-nav padding lives in the
-// mobile layout — this component just renders the FAB.
-const WHATSAPP_NUMBER = "966500000000";
+// The number itself lives in src/lib/whatsapp.ts (NEXT_PUBLIC_WHATSAPP_NUMBER).
+// The visible-above-bottom-nav padding lives in the mobile layout — this
+// component just renders the FAB.
 
 export function WhatsAppFab({ label, message }: { label: string; message: string }) {
-  const href = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+  const href = whatsappLink(message);
   return (
     <a
       href={href}
