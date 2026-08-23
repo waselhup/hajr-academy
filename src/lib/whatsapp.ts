@@ -1,20 +1,21 @@
 /**
  * Single source of truth for the academy's WhatsApp number.
  *
- * Set NEXT_PUBLIC_WHATSAPP_NUMBER to the real number in international format
- * WITHOUT a leading "+" or spaces (e.g. "966512345678"). Anything the env var
- * contains is sanitised to digits so "+966 51 234 5678" also works.
+ * The academy line is 05 0245 6651, stored here in international format.
+ * NEXT_PUBLIC_WHATSAPP_NUMBER overrides it without a code change — set it
+ * WITHOUT a leading "+" or spaces (e.g. "966502456651"), though whatever the
+ * env var holds is sanitised to digits so "+966 50 245 6651" also works.
  *
  * The value is read at build time (NEXT_PUBLIC_*), so it is safe to use from
  * both server and client components.
  */
 
-// Fallback keeps the links renderable in dev/preview before the number is set.
-const FALLBACK_NUMBER = "966500000000";
+// 0502456651 in international format.
+const DEFAULT_NUMBER = "966502456651";
 
 export const WHATSAPP_NUMBER: string =
   (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "").replace(/\D/g, "") ||
-  FALLBACK_NUMBER;
+  DEFAULT_NUMBER;
 
 /** wa.me deep link — opens the WhatsApp app on mobile, WhatsApp Web on desktop. */
 export function whatsappLink(message: string, number: string = WHATSAPP_NUMBER): string {
