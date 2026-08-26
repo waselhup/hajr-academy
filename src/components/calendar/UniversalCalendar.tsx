@@ -80,6 +80,8 @@ export function UniversalCalendar({ currentUserId, isAdmin }: { currentUserId: s
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CalendarEventDto | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const range = useMemo(() => {
     if (view === "day") {
@@ -132,11 +134,28 @@ export function UniversalCalendar({ currentUserId, isAdmin }: { currentUserId: s
   );
   const goToday = () => setCursor(new Date());
 
+  // A refused delete (403 on someone else's entry, 404 on one already gone)
+  // used to do nothing at all — the dialog just sat there and the entry
+  // stayed, which reads as "the button is broken". Now it says why.
   const onDelete = async (id: string) => {
-    const r = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
-    if (r.ok) {
-      setSelected(null);
-      fetchEvents();
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const r = await fetch(`/api/calendar/events/${id}`, { method: "DELETE" });
+      if (r.ok) {
+        setSelected(null);
+        fetchEvents();
+        return;
+      }
+      setDeleteError(
+        r.status === 403 ? t("deleteForbidden")
+        : r.status === 404 ? t("deleteGone")
+        : t("deleteFailed")
+      );
+    } catch {
+      setDeleteError(t("deleteFailed"));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -217,8 +236,10 @@ export function UniversalCalendar({ currentUserId, isAdmin }: { currentUserId: s
           event={selected}
           isAr={isAr}
           canModify={isAdmin || selected.createdBy === currentUserId}
-          onClose={() => setSelected(null)}
+          onClose={() => { setSelected(null); setDeleteError(null); }}
           onDelete={() => onDelete(selected.id)}
+          deleteError={deleteError}
+          deleting={deleting}
           t={t}
           tType={tType}
         />
@@ -457,13 +478,15 @@ function EventListItem({
 }
 
 function EventDialog({
-  event, isAr, canModify, onClose, onDelete, t, tType,
+  event, isAr, canModify, onClose, onDelete, deleteError, deleting, t, tType,
 }: {
   event: CalendarEventDto;
   isAr: boolean;
   canModify: boolean;
   onClose: () => void;
   onDelete: () => void;
+  deleteError: string | null;
+  deleting: boolean;
   t: (k: string) => string;
   tType: (k: string) => string;
 }) {
@@ -471,6 +494,13 @@ function EventDialog({
   const desc = isAr ? event.descriptionAr : event.description;
   const start = new Date(event.startAt);
   const end = new Date(event.endAt);
+  // Deleting is one click away from permanent, so it takes a second click.
+  const [confirming, setConfirming] = useState(false);
+  // A CLASS entry mirrors a real scheduled session. Removing it from the
+  // calendar does not cancel the session, and the next time the schedule is
+  // regenerated the entry comes back — say so rather than let the owner
+  // think they cancelled a lesson.
+  const isClassEntry = event.type === "CLASS" && !!event.classId;
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center" onClick={onClose}>
       <div
@@ -513,11 +543,41 @@ function EventDialog({
           </div>
         </div>
         {canModify && (
-          <div className="mt-4 flex justify-end">
-            <Button variant="destructive" size="sm" onClick={onDelete} className="gap-1">
-              <Trash2 className="h-4 w-4" />
-              {/* generic delete label */}
-            </Button>
+          <div className="mt-4 space-y-2">
+            {isClassEntry && (
+              <p className="rounded-lg bg-amber-50 p-2.5 text-xs leading-relaxed text-amber-800">
+                {t("deleteClassWarning")}
+              </p>
+            )}
+            {deleteError && (
+              <p className="rounded-lg bg-red-50 p-2.5 text-xs leading-relaxed text-red-700">
+                {deleteError}
+              </p>
+            )}
+
+            {confirming ? (
+              <div className="flex items-center justify-end gap-2">
+                <span className="me-auto text-xs text-hajr-muted">
+                  {t("deleteConfirm")}
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={deleting}>
+                  {t("deleteCancel")}
+                </Button>
+                <Button variant="destructive" size="sm" onClick={onDelete} disabled={deleting} className="gap-1.5">
+                  <Trash2 className="h-4 w-4" />
+                  {deleting ? t("deleting") : t("deleteYes")}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex justify-end">
+                {/* The label used to be an empty comment, leaving a bare icon
+                    nobody could identify as "delete". */}
+                <Button variant="destructive" size="sm" onClick={() => setConfirming(true)} className="gap-1.5">
+                  <Trash2 className="h-4 w-4" />
+                  {t("deleteEvent")}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

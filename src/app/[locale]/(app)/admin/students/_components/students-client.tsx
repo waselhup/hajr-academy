@@ -61,6 +61,13 @@ type Row = {
     promoCode?: string | null;
     profileId?: string | null;
   } | null;
+  /** Computed on the server from the student's invoices. */
+  payment?: {
+    state: "paid" | "due" | "none";
+    paidSar: number;
+    openCount: number;
+    lastPaidAt: string | null;
+  } | null;
 };
 
 type PreviewData = {
@@ -218,6 +225,10 @@ export function StudentsClient({
       gender: r.profile?.gender ?? "",
       englishLevel: r.profile?.englishLevel ?? "",
       activePackage: r.profile?.activePackage ?? "",
+      // Exported alongside the rest so a filtered "paid" list is usable
+      // outside the app without re-deriving who paid from the invoices.
+      payment: r.payment?.state ?? "",
+      paidSar: r.payment?.paidSar ? r.payment.paidSar.toFixed(2) : "",
       isActive: r.isActive ? "Y" : "N",
     }));
     const csv = Papa.unparse(data);
@@ -287,6 +298,13 @@ export function StudentsClient({
               className="ps-9"
             />
           </div>
+          {/* First filter after the search box: "who has actually paid" is the
+              question this list gets asked most, so it does not sit last. */}
+          <FilterChip label={t("Students.payFilter")} param="pay" current={sp.get("pay")} options={[
+            { v: "paid", l: t("Students.payPaid") },
+            { v: "due", l: t("Students.payDue") },
+            { v: "none", l: t("Students.payNone") },
+          ]} onChange={(v) => updateFilter("pay", v)} />
           <FilterChip label={t("Common.level")} param="level" current={sp.get("level")} options={[
             { v: "BEGINNER", l: t("Levels.BEGINNER") },
             { v: "INTERMEDIATE", l: t("Levels.INTERMEDIATE") },
@@ -314,7 +332,7 @@ export function StudentsClient({
             { v: "18+", l: t("Students.age18plus") },
           ]} onChange={(v) => updateFilter("age", v)} />
 
-          {(sp.get("q") || sp.get("level") || sp.get("gender") || sp.get("package") || sp.get("grade") || sp.get("age")) && (
+          {(sp.get("q") || sp.get("level") || sp.get("gender") || sp.get("package") || sp.get("grade") || sp.get("age") || sp.get("pay")) && (
             <Button variant="ghost" size="sm" onClick={() => router.push(pathname)}>
               {t("Common.cancel")}
             </Button>
@@ -366,6 +384,7 @@ export function StudentsClient({
                 <TableHead>{t("Common.level")}</TableHead>
                 <TableHead>{t("Common.gender")}</TableHead>
                 <TableHead>{t("Students.colAge")}</TableHead>
+                <TableHead>{t("Students.payFilter")}</TableHead>
                 <TableHead>{t("Common.package")}</TableHead>
                 <TableHead>{t("Students.promoCode")}</TableHead>
                 <TableHead>{t("Common.status")}</TableHead>
@@ -401,6 +420,9 @@ export function StudentsClient({
                   </TableCell>
                   <TableCell>{r.profile?.gender ? t("Common." + r.profile.gender.toLowerCase() as any) : "—"}</TableCell>
                   <TableCell className="num">{computeAge(r.profile?.birthDate) ?? "—"}</TableCell>
+                  <TableCell>
+                    <PaymentCell payment={r.payment} t={t} />
+                  </TableCell>
                   <TableCell>
                     {r.profile?.activePackage ? <Badge variant="info">{t("Packages." + r.profile.activePackage as any)}</Badge> : "—"}
                   </TableCell>
@@ -629,6 +651,46 @@ export function StudentsClient({
 
 function fmtDate(v: string | null): string | null {
   return v ? v.slice(0, 10) : null;
+}
+
+/**
+ * The payment column: whether this student has actually paid, and how much.
+ *
+ * Green carries the collected total, because "paid" on its own does not tell
+ * you whether it was one month or a school year. Amber is the follow-up list.
+ * Grey means never invoiced — staff, trial and hand-created accounts — which
+ * is deliberately NOT called "unpaid": they were never asked for money.
+ */
+function PaymentCell({
+  payment,
+  t,
+}: {
+  payment: Row["payment"];
+  t: (k: string) => string;
+}) {
+  if (!payment || payment.state === "none") {
+    return <span className="text-xs text-muted-foreground">{t("Students.payNone")}</span>;
+  }
+  if (payment.state === "paid") {
+    return (
+      <div className="flex flex-col gap-0.5">
+        <Badge variant="success" className="w-fit">{t("Students.payPaid")}</Badge>
+        <span className="num text-[11px] text-muted-foreground">
+          {payment.paidSar.toFixed(2)} {t("Students.sar")}
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-0.5">
+      <Badge variant="warning" className="w-fit">{t("Students.payDue")}</Badge>
+      {payment.openCount > 0 && (
+        <span className="num text-[11px] text-muted-foreground">
+          {payment.openCount} {t("Students.payOpenInvoices")}
+        </span>
+      )}
+    </div>
+  );
 }
 
 // Derived age as a Western-digit string for the preview (null → "—" via PreviewRow).
