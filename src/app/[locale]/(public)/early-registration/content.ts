@@ -1,5 +1,5 @@
 /**
- * Copy and structure for the Early Registration 2026 campaign page.
+ * Copy and structure for the HAJR Academy homepage.
  *
  * The design handoff shipped the English as a runtime dictionary that swapped
  * text nodes in the browser. That is fine for a preview and wrong for
@@ -15,10 +15,7 @@
 
 import { BRAND } from "@/lib/brand";
 
-/** Early-registration pricing closes at the end of this day, KSA time. */
-export const OFFER_ENDS_ISO = "2026-08-23T23:59:59+03:00";
-
-export const UTM = "utm_source=landing_page&utm_medium=website&utm_campaign=early_registration_2026";
+export const UTM = "utm_source=website&utm_medium=homepage";
 
 /**
  * Where a plan button goes.
@@ -42,7 +39,6 @@ export function waHref(isAr: boolean): string {
 
 export interface PlanCopy {
   slug: string;
-  discount: string;
   kicker: string;
   title: string;
   bullets: string[];
@@ -79,38 +75,31 @@ export function getContent(locale: string) {
     isAr,
     meta: {
       title: isAr
-        ? "التسجيل المبكر 2026 | أكاديمية هجر"
-        : "Early Registration 2026 | HAJR Academy",
+        ? "أكاديمية هجر | تعليم الإنجليزية مباشرة عبر الإنترنت"
+        : "HAJR Academy | Live online English teaching",
       description: isAr
-        ? "سجّل مبكرًا في برنامج التقوية والتطوير الشامل بأكاديمية هجر. خصم يصل إلى 24% حتى 23 أغسطس 2026، وحصص مباشرة وEnglish Lab وواجبات عبر المنصة."
-        : "Register early for HAJR Academy's complete English programme. Save up to 24% until 23 August 2026, with live classes, English Lab and platform homework.",
+        ? "برنامج يجمع تقوية المنهج السعودي وتطوير مهارات الإنجليزية، مع حصص مباشرة و English Lab وواجبات عبر المنصة."
+        : "One programme combining Saudi curriculum support with practical English skills, live classes, English Lab and platform homework.",
       ogTitle: isAr
         ? "ابدأ العام متقدّمًا | أكاديمية هجر"
         : "Start the year ahead | HAJR Academy",
       ogDescription: isAr
-        ? "خصم التسجيل المبكر يصل إلى 24% حتى 23 أغسطس 2026."
-        : "Early-registration savings of up to 24% until 23 August 2026.",
+        ? "حصص مباشرة، متابعة مستمرة، وحساب خاص لكل طالب."
+        : "Live classes, continuous follow-up and a personal account for every student.",
     },
 
-    offer: {
-      save: isAr ? "خصم يصل إلى" : "Save up to",
-      pct: "24%",
-      ends: isAr ? "التسجيل المبكر ينتهي في 23 أغسطس" : "Early registration ends 23 August",
-      claim: isAr ? "اغتنم العرض" : "Claim the offer",
-      ended: isAr ? "انتهى العرض" : "Offer ended",
-      dayWord: isAr ? "يوم" : "days",
-      hourWord: isAr ? "ساعة" : "hrs",
-    },
 
     nav: {
       aria: isAr ? "التنقل الرئيسي" : "Primary navigation",
       brandAria: isAr ? "أكاديمية هجر" : "HAJR Academy",
       menuAria: isAr ? "فتح القائمة" : "Open menu",
       enroll: isAr ? "اشترك الآن" : "Enroll now",
+      login: isAr ? "تسجيل الدخول" : "Sign in",
+      register: isAr ? "إنشاء حساب" : "Create account",
       links: [
         { href: "#why", label: isAr ? "ماذا يشمل؟" : "What's included?" },
         { href: "#stages", label: isAr ? "المراحل" : "Learning stages" },
-        { href: "#early-pricing", label: isAr ? "التسجيل المبكر" : "Early registration" },
+        { href: "#early-pricing", label: isAr ? "الأسعار" : "Pricing" },
         { href: "#all-programs", label: isAr ? "جميع البرامج" : "All programmes" },
         { href: "#faq", label: isAr ? "الأسئلة الشائعة" : "FAQs" },
       ],
@@ -125,14 +114,13 @@ export function getContent(locale: string) {
       lead: isAr
         ? "برنامج واحد يجمع تقوية المنهج السعودي وتطوير مهارات الإنجليزية، مع حصص مباشرة وEnglish Lab وتدريب مستمر قبل الحصة وبعدها."
         : "One programme combines Saudi curriculum support with practical English skills, live classes, English Lab and guided practice before and after every class.",
-      ctaPrimary: isAr ? "اشترك بسعر التسجيل المبكر" : "Get early-registration pricing",
+      ctaPrimary: isAr ? "اشترك الآن" : "Enroll now",
       ctaSecondary: isAr ? "استعرض جميع البرامج" : "Explore all programmes",
       notes: isAr
         ? ["دفع إلكتروني آمن", "حساب خاص لكل طالب", "فاتورة إلكترونية"]
         : ["Secure online payment", "A personal student account", "Electronic invoice"],
-      offerLabel: isAr ? "الشهر الأول" : "First month",
+      offerLabel: isAr ? "الاشتراك الشهري" : "Monthly",
       currency: isAr ? "ريال" : "SAR",
-      was: isAr ? "بدل" : "was",
       badge: isAr ? "لجميع المراحل الدراسية" : "For every school stage",
       portraits: [
         { src: "/landing/primary-girl.webp", alt: isAr ? "طالبة من المرحلة الابتدائية" : "Primary school student" },
@@ -237,50 +225,51 @@ export function getContent(locale: string) {
     },
 
     pricing: {
-      eyebrow: isAr ? "أسعار التسجيل المبكر" : "Early-registration pricing",
+      eyebrow: isAr ? "الأسعار" : "Pricing",
       title: isAr ? "اختر البداية الأنسب لك" : "Choose the plan that fits you",
       sub: isAr
         ? "نفس البرنامج لجميع المراحل، وقيمة أفضل كلما التزمت بمدة أطول."
         : "The same complete programme for every stage, with better value on longer plans.",
-      summaryTitle: isAr ? "اغتنم الفرصة وابدأ العام أقوى" : "Start the school year stronger",
+      summaryTitle: isAr ? "لديك كود خصم؟" : "Have a discount code?",
       summaryBody: isAr
-        ? "يدفع سعر باقتي 4 أشهر والعام الدراسي مقدمًا للاستفادة من الخصم."
-        : "The 4-month and school-year plans are paid upfront to secure the discounted price.",
-      endsLabel: isAr ? "ينتهي 23 أغسطس 2026" : "Ends 23 August 2026",
+        ? "أدخله في صفحة الدفع وسيُطبَّق على المبلغ مباشرة قبل الدفع."
+        : "Enter it on the payment page and it is applied to the total before you pay.",
       currency: isAr ? "ريال" : "SAR",
-      was: isAr ? "بدل" : "was",
       secure: isAr ? "دفع آمن عبر" : "Secure payment via",
       invoice: isAr ? "+ فاتورة إلكترونية" : "+ electronic invoice",
-      chips: [isAr ? "مدى" : "mada", "VISA", "Mastercard", "Apple Pay", "STC Pay"],
+      // STC Pay removed while it is not working at the gateway. Advertising a
+      // method the checkout cannot complete costs a sale at the worst possible
+      // moment — the buyer had already decided to pay.
+      chips: [isAr ? "مدى" : "mada", "VISA", "Mastercard", "Apple Pay"],
       plans: [
         {
           slug: "early-first-month",
-          discount: isAr ? "خصم 14%" : "Save 14%",
+          
           kicker: isAr ? "بداية مرنة" : "Flexible start",
-          title: isAr ? "الشهر الأول" : "First month",
+          title: isAr ? "الاشتراك الشهري" : "Monthly",
           bullets: isAr
-            ? ["8 حصص مباشرة", "حساب الطالب وEnglish Lab", "ثم 350 ريالًا شهريًا"]
-            : ["8 live classes", "Student account and English Lab", "Then SAR 350 per month"],
-          cta: isAr ? "اشترك بالشهر الأول" : "Start with the first month",
+            ? ["8 حصص مباشرة شهرياً", "حساب الطالب وEnglish Lab", "اشتراك متجدد شهرياً"]
+            : ["8 live classes a month", "Student account and English Lab", "Renews monthly"],
+          cta: isAr ? "اشترك شهرياً" : "Subscribe monthly",
         },
         {
           slug: "early-4-months",
-          discount: isAr ? "خصم 19%" : "Save 19%",
+          
           kicker: isAr ? "التزام أوفر" : "Better long-term value",
           title: isAr ? "باقة 4 أشهر" : "4-month plan",
           bullets: isAr
-            ? ["32 حصة مباشرة", "285 ريالًا شهريًا", "جميع مزايا المنصة"]
-            : ["32 live classes", "SAR 285 per month", "All platform benefits"],
+            ? ["32 حصة مباشرة", "325 ريالًا شهريًا", "جميع مزايا المنصة"]
+            : ["32 live classes", "SAR 325 per month", "All platform benefits"],
           cta: isAr ? "اشترك لمدة 4 أشهر" : "Choose the 4-month plan",
         },
         {
           slug: "early-academic-year",
-          discount: isAr ? "خصم 24%" : "Save 24%",
+          
           kicker: isAr ? "أفضل قيمة" : "Best value",
           title: isAr ? "العام الدراسي" : "School-year plan",
           bullets: isAr
-            ? ["9 أشهر تعليمية", "نحو 267 ريالًا شهريًا", "استمرارية طوال العام"]
-            : ["9 learning months", "About SAR 267 per month", "Consistent learning all year"],
+            ? ["9 أشهر تعليمية", "300 ريال شهريًا", "استمرارية طوال العام"]
+            : ["9 learning months", "SAR 300 per month", "Consistent learning all year"],
           cta: isAr ? "احجز أفضل قيمة" : "Secure the best value",
           best: true,
         },
@@ -479,16 +468,16 @@ export function getContent(locale: string) {
         : "Clear answers to the most important questions before payment.",
       items: [
         {
-          q: isAr ? "هل سعر 300 ريال يستمر كل شهر؟" : "Does the SAR 300 price continue every month?",
+          q: isAr ? "كيف أستخدم كود الخصم؟" : "How do I use a discount code?",
           a: isAr
-            ? "سعر 300 ريال خاص بالشهر الأول ضمن التسجيل المبكر، ثم يعود الاشتراك الشهري إلى 350 ريالًا."
-            : "SAR 300 is the early-registration price for the first month. The monthly fee then returns to SAR 350.",
+            ? "أدخل الكود في خانة «رمز الخصم» في صفحة الدفع، وسيُطبَّق الخصم على المبلغ فوراً قبل الدفع. إن كان الكود غير صالح أو منتهياً فسيخبرك النظام بالسبب ولن يخصم منك السعر الكامل دون علمك."
+            : "Enter it in the “Promo code” field on the payment page and the discount is applied to the total immediately, before you pay. If the code is invalid or expired the system tells you why rather than quietly charging full price.",
         },
         {
           q: isAr ? "ما مدة باقة العام الدراسي؟" : "How long is the school-year plan?",
           a: isAr
-            ? "تغطي 9 أشهر تعليمية بسعر 2,400 ريال بدلًا من 3,150 ريالًا، وتدفع مقدمًا للاستفادة من الخصم."
-            : "It covers 9 learning months for SAR 2,400 instead of SAR 3,150 and is paid upfront to secure the discount.",
+            ? "تغطي 9 أشهر تعليمية وتُدفع مقدماً."
+            : "It covers 9 learning months and is paid upfront.",
         },
         {
           q: isAr ? "هل الحصص مباشرة أم مسجلة؟" : "Are the classes live or recorded?",
@@ -499,8 +488,8 @@ export function getContent(locale: string) {
         {
           q: isAr ? "كيف يتم الدفع؟" : "How can I pay?",
           a: isAr
-            ? "من خلال الموقع عبر مدى وفيزا وماستركارد وأبل باي وSTC Pay، مع فاتورة إلكترونية لكل عملية."
-            : "Pay securely on the website using mada, Visa, Mastercard, Apple Pay or STC Pay, with an electronic invoice for every transaction.",
+            ? "من خلال الموقع عبر مدى وفيزا وماستركارد وأبل باي، مع فاتورة إلكترونية لكل عملية."
+            : "Pay securely on the website using mada, Visa, Mastercard or Apple Pay, with an electronic invoice for every transaction.",
         },
       ],
     },
@@ -508,8 +497,8 @@ export function getContent(locale: string) {
     finalCta: {
       title: isAr ? "مستعد تبدأ العام متقدّمًا؟" : "Ready to start the year ahead?",
       sub: isAr
-        ? "اختر باقتك الآن قبل انتهاء أسعار التسجيل المبكر في 23 أغسطس."
-        : "Choose your plan before early-registration pricing ends on 23 August.",
+        ? "اختر باقتك وابدأ من اليوم — ولديك كود خصم؟ أدخله عند الدفع."
+        : "Choose your plan and start today — and if you have a discount code, enter it at checkout.",
       primary: isAr ? "اشترك وادفع عبر الموقع" : "Enroll and pay online",
       secondary: isAr ? "اسأل خدمة العملاء" : "Ask customer support",
     },
@@ -518,10 +507,10 @@ export function getContent(locale: string) {
       about: isAr
         ? "أكاديمية سعودية لتعليم الإنجليزية مباشرة عبر الإنترنت، من الأحساء إلى كل المملكة."
         : "A Saudi online English academy serving learners across the Kingdom from Al Ahsa.",
-      earlyTitle: isAr ? "التسجيل المبكر" : "Early registration",
+      earlyTitle: isAr ? "الباقات" : "Plans",
       earlyLinks: isAr
-        ? ["الشهر الأول", "4 أشهر", "العام الدراسي"]
-        : ["First month", "4 months", "School year"],
+        ? ["الاشتراك الشهري", "4 أشهر", "العام الدراسي"]
+        : ["Monthly", "4 months", "School year"],
       programsTitle: isAr ? "البرامج" : "Programmes",
       programsLinks: isAr
         ? ["برامج اللغة", "تحضير الاختبارات", "تعلم فردي 1:1"]

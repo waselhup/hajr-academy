@@ -3,8 +3,8 @@ import { listActiveProducts } from "@/lib/finance/catalog";
 import { getLegalIdentity } from "@/lib/legal";
 import { BRAND } from "@/lib/brand";
 import s from "./early-registration.module.css";
-import { getContent, buyHref, waHref, OFFER_ENDS_ISO, UTM } from "./content";
-import { OfferBar, SiteNav, ProgramTabs, ScrollOffset, type Tab } from "./interactive";
+import { getContent, buyHref, waHref, UTM } from "./content";
+import { SiteNav, ProgramTabs, ScrollOffset, type Tab } from "./interactive";
 
 const SITE = BRAND.site;
 
@@ -62,8 +62,7 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
   const bySlug = new Map(products.map((p) => [p.slug, p]));
 
   const firstMonth = bySlug.get("early-first-month");
-  const heroPrice = firstMonth ? money(firstMonth.priceSar) : "300";
-  const heroWas = firstMonth?.compareAtSar ? money(firstMonth.compareAtSar) : "350";
+  const heroPrice = firstMonth ? money(firstMonth.priceSar) : "350";
 
   const tabs: Tab[] = c.programs.tabs.map((t) => ({
     id: t.id,
@@ -118,16 +117,6 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
       <ScrollOffset />
 
       <div className={s.stickyShell}>
-        <OfferBar
-          endsIso={OFFER_ENDS_ISO}
-          save={c.offer.save}
-          pct={c.offer.pct}
-          ends={c.offer.ends}
-          claim={c.offer.claim}
-          ended={c.offer.ended}
-          dayWord={c.offer.dayWord}
-          hourWord={c.offer.hourWord}
-        />
         <SiteNav
           ariaLabel={c.nav.aria}
           brandAria={c.nav.brandAria}
@@ -135,6 +124,10 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
           links={c.nav.links}
           enrollLabel={c.nav.enroll}
           enrollHref={enrollHref}
+          loginLabel={c.nav.login}
+          loginHref={`/${locale}/login`}
+          registerLabel={c.nav.register}
+          registerHref={`/${locale}/register`}
           languageHref={`/${otherLocale}`}
           languageCode={isAr ? "EN" : "AR"}
           languageAria={isAr ? "Switch to English" : "التبديل إلى العربية"}
@@ -189,9 +182,6 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
                   <strong>{heroPrice}</strong>
                   <span>{c.hero.currency}</span>
                 </div>
-                <span className={s.oldPrice}>
-                  {c.hero.was} {heroWas} {c.hero.currency}
-                </span>
               </div>
               <div className={s.heroBadge}>{c.hero.badge}</div>
             </div>
@@ -270,7 +260,6 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
                 <strong>{c.pricing.summaryTitle}</strong>
                 <p>{c.pricing.summaryBody}</p>
               </div>
-              <span className={s.ends}>{c.pricing.endsLabel}</span>
             </div>
             <div className={s.pricingGrid}>
               {c.pricing.plans
@@ -282,18 +271,12 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
                       className={`${s.priceCard} ${plan.best ? s.best : ""}`}
                       key={plan.slug}
                     >
-                      <span className={s.discountPill}>{plan.discount}</span>
                       <span className={s.planKicker}>{plan.kicker}</span>
                       <h3>{plan.title}</h3>
                       <div className={s.priceLine}>
                         <strong>{money(p.priceSar)}</strong>
                         <span>{c.pricing.currency}</span>
                       </div>
-                      {p.compareAtSar && (
-                        <p className={s.priceOld}>
-                          {c.pricing.was} <del>{money(p.compareAtSar)}</del> {c.pricing.currency}
-                        </p>
-                      )}
                       <ul>
                         {plan.bullets.map((b) => (
                           <li key={b}>{b}</li>

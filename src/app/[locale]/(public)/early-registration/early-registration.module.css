@@ -259,6 +259,11 @@
   align-items: center;
   gap: 10px;
 }
+/* Account links: header buttons on desktop, drawer entries on mobile.
+   Never both at once. */
+.drawerOnly {
+  display: none;
+}
 .languageSwitch {
   height: 42px;
   min-width: 48px;
@@ -1455,6 +1460,17 @@
   }
   .navActions .btn {
     display: none;
+  }
+  .drawerOnly {
+    display: block;
+    margin-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.12);
+    padding-top: 14px;
+  }
+  .drawerOnly + .drawerOnly {
+    margin-top: 0;
+    border-top: 0;
+    padding-top: 10px;
   }
   .languageSwitch {
     height: 40px;

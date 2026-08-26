@@ -8,68 +8,6 @@ import s from "./early-registration.module.css";
  * server-rendered, so the page is complete and indexable without JS.
  */
 
-/* ── Sticky offer bar + countdown ──────────────────────────────────────
- * The countdown is client-only on purpose: rendering a live duration on the
- * server guarantees a hydration mismatch, because the two clocks differ by
- * the length of the request. The bar itself renders server-side with the
- * end date, and the ticker fills in afterwards.
- */
-export function OfferBar({
-  endsIso,
-  save,
-  pct,
-  ends,
-  claim,
-  ended,
-  dayWord,
-  hourWord,
-}: {
-  endsIso: string;
-  save: string;
-  pct: string;
-  ends: string;
-  claim: string;
-  ended: string;
-  dayWord: string;
-  hourWord: string;
-}) {
-  const [label, setLabel] = useState<string | null>(null);
-  const [isOver, setIsOver] = useState(false);
-
-  useEffect(() => {
-    const target = new Date(endsIso).getTime();
-    const tick = () => {
-      const diff = target - Date.now();
-      if (diff <= 0) {
-        setIsOver(true);
-        setLabel(ended);
-        return;
-      }
-      const days = Math.floor(diff / 86_400_000);
-      const hours = Math.floor((diff % 86_400_000) / 3_600_000);
-      setLabel(`${days} ${dayWord} ${hours} ${hourWord}`);
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
-  }, [endsIso, ended, dayWord, hourWord]);
-
-  return (
-    <div className={s.offerBar} role="status">
-      {/* Once the deadline passes the page must stop claiming a discount that
-          is no longer live — the prices themselves come from the catalogue. */}
-      {!isOver && (
-        <strong>
-          {save} <span className={s.latin}>{pct}</span>
-        </strong>
-      )}
-      <span className={s.offerEnd}>{isOver ? ended : ends}</span>
-      {label && !isOver && <span className={s.countdown}>{label}</span>}
-      <a href="#early-pricing">{claim}</a>
-    </div>
-  );
-}
-
 /* ── Navigation with the mobile drawer ─────────────────────────────── */
 export function SiteNav({
   ariaLabel,
@@ -78,6 +16,10 @@ export function SiteNav({
   links,
   enrollLabel,
   enrollHref,
+  loginLabel,
+  loginHref,
+  registerLabel,
+  registerHref,
   languageHref,
   languageCode,
   languageAria,
@@ -88,6 +30,10 @@ export function SiteNav({
   links: { href: string; label: string }[];
   enrollLabel: string;
   enrollHref: string;
+  loginLabel: string;
+  loginHref: string;
+  registerLabel: string;
+  registerHref: string;
   languageHref: string;
   languageCode: string;
   languageAria: string;
@@ -119,10 +65,23 @@ export function SiteNav({
               {l.label}
             </a>
           ))}
+          {/* The account links live in the header on desktop, where the
+              buttons are visible. Below 840px those buttons are hidden, so
+              they are repeated here — otherwise a phone user has no way to
+              sign in at all. */}
+          <a className={s.drawerOnly} href={loginHref} onClick={() => setOpen(false)}>
+            {loginLabel}
+          </a>
+          <a className={s.drawerOnly} href={registerHref} onClick={() => setOpen(false)}>
+            {registerLabel}
+          </a>
         </div>
         <div className={s.navActions}>
           <a className={s.languageSwitch} href={languageHref} aria-label={languageAria} hrefLang={languageCode.toLowerCase()}>
             {languageCode}
+          </a>
+          <a className={`${s.btn} ${s.btnOutline} ${s.btnSmall}`} href={loginHref}>
+            {loginLabel}
           </a>
           <a className={`${s.btn} ${s.btnRose} ${s.btnSmall}`} href={enrollHref}>
             {enrollLabel}
