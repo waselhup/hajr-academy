@@ -722,7 +722,16 @@
     "type_PLACEMENT_TEST": "اختبار تحديد مستوى",
     "type_SPEAKING_CLUB": "نادي المحادثة",
     "type_DEADLINE": "موعد نهائي",
-    "type_CUSTOM": "حدث"
+    "type_CUSTOM": "حدث",
+    "deleteEvent": "حذف من التقويم",
+    "deleteConfirm": "سيُحذف نهائياً. متأكد؟",
+    "deleteYes": "نعم، احذف",
+    "deleteCancel": "تراجع",
+    "deleting": "جارٍ الحذف…",
+    "deleteForbidden": "لا تملك صلاحية حذف هذا العنصر — أضافه شخص آخر.",
+    "deleteGone": "هذا العنصر محذوف مسبقاً.",
+    "deleteFailed": "تعذّر الحذف. حاول مرة أخرى.",
+    "deleteClassWarning": "هذا موعد حصة مرتبط بفصل. حذفه يزيله من التقويم فقط ولا يلغي الحصة، وقد يعود عند إعادة توليد الجدول."
   },
   "Policies": {
     "paymentPolicyTitle": "سياسة الدفع",
@@ -817,7 +826,12 @@
     "sar": "ريال",
     "promoCode": "رمز الخصم",
     "noPromo": "لم يُستخدم رمز خصم",
-    "colAge": "العمر"
+    "colAge": "العمر",
+    "payFilter": "الدفع",
+    "payPaid": "دافع",
+    "payDue": "لم يدفع",
+    "payNone": "بدون فاتورة",
+    "payOpenInvoices": "فاتورة معلّقة"
   },
   "Teachers": {
     "title": "المعلمون",

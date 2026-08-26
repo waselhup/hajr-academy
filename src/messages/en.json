@@ -722,7 +722,16 @@
     "type_PLACEMENT_TEST": "Placement test",
     "type_SPEAKING_CLUB": "Speaking Club",
     "type_DEADLINE": "Deadline",
-    "type_CUSTOM": "Event"
+    "type_CUSTOM": "Event",
+    "deleteEvent": "Delete from calendar",
+    "deleteConfirm": "This is permanent. Are you sure?",
+    "deleteYes": "Yes, delete",
+    "deleteCancel": "Cancel",
+    "deleting": "Deleting…",
+    "deleteForbidden": "You cannot delete this entry — someone else added it.",
+    "deleteGone": "This entry has already been deleted.",
+    "deleteFailed": "Could not delete. Please try again.",
+    "deleteClassWarning": "This is a class session entry. Deleting it only removes it from the calendar — it does not cancel the class, and it may reappear when the schedule is regenerated."
   },
   "Policies": {
     "paymentPolicyTitle": "Payment Policy",
@@ -817,7 +826,12 @@
     "sar": "SAR",
     "promoCode": "Promo code",
     "noPromo": "No promo code used",
-    "colAge": "Age"
+    "colAge": "Age",
+    "payFilter": "Payment",
+    "payPaid": "Paid",
+    "payDue": "Unpaid",
+    "payNone": "No invoice",
+    "payOpenInvoices": "open invoice(s)"
   },
   "Teachers": {
     "title": "Teachers",
