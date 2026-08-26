@@ -6,6 +6,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, CheckCircle2 } from "lucide-react";
+import { whatsappLink, partnerApplicationWhatsappMessage } from "@/lib/whatsapp";
+import { WhatsAppRedirect } from "@/components/public/whatsapp-redirect";
 
 export function ConversationPartnerForm({ locale }: { locale: string }) {
   const isAr = locale === "ar";
@@ -23,6 +25,8 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
   });
   const [status, setStatus] = useState<"idle" | "sending" | "error" | "done">("idle");
   const [err, setErr] = useState("");
+  /** Application id, returned on success — the reference in the WhatsApp message. */
+  const [appId, setAppId] = useState<string | null>(null);
 
   const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
 
@@ -53,6 +57,7 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
+        setAppId(typeof data.id === "string" ? data.id : null);
         setStatus("done");
         return;
       }
@@ -68,6 +73,21 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
   }
 
   if (status === "done") {
+    // The applicant is almost always abroad, so email is the slowest channel
+    // we have and the easiest for us to lose to a spam folder. Send them into
+    // WhatsApp while they are still on the page — the thread they open is a
+    // channel the academy can screen and schedule them on immediately.
+    const waHref = whatsappLink(
+      partnerApplicationWhatsappMessage({
+        isAr,
+        fullName: f.fullName.trim(),
+        country: f.country.trim(),
+        nativeLanguage: f.nativeLanguage.trim(),
+        timezone: f.timezone.trim(),
+        reference: appId ? appId.split("-")[0].toUpperCase() : null,
+      })
+    );
+
     return (
       <div className="rounded-2xl border border-hajr-border bg-white p-8 text-center shadow-card">
         <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-hajr-mint/50">
@@ -78,7 +98,19 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
         </h2>
         <p className="mt-3 text-sm leading-relaxed text-hajr-muted">
           {isAr
-            ? "سيراجعه فريق الأكاديمية. عند الموافقة سيصلك بريد إلكتروني فيه بيانات الدخول إلى صفحتك الخاصة، حيث ترى جلساتك القادمة وروابط الدخول إليها."
+            ? "تبقّت خطوة واحدة: أرسل لنا رسالة واتساب لنتابع طلبك مباشرة — الرسالة مكتوبة لك مسبقاً."
+            : "One step left — send us a WhatsApp message so we can follow up with you directly. The message is already written for you."}
+        </p>
+
+        <WhatsAppRedirect
+          href={waHref}
+          isAr={isAr}
+          storageKey={`wa-partner:${appId ?? f.email.trim().toLowerCase()}`}
+        />
+
+        <p className="mt-6 text-sm leading-relaxed text-hajr-muted">
+          {isAr
+            ? "سيراجع فريق الأكاديمية طلبك. عند الموافقة سيصلك بريد إلكتروني فيه بيانات الدخول إلى صفحتك الخاصة، حيث ترى جلساتك القادمة وروابط الدخول إليها."
             : "Our team will review it. Once approved you'll get an email with your access details for your own page, where you'll see your upcoming sessions and their joining links."}
         </p>
         <p className="mt-4 text-xs text-hajr-muted">

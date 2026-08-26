@@ -85,3 +85,48 @@ export function purchaseWhatsappMessage(input: {
   lines.push("Please continue the enrolment steps. Thank you.");
   return lines.join("\n");
 }
+
+/**
+ * The message a conversation-partner applicant sends us right after applying.
+ *
+ * Partners are recruited abroad, so the application form is often the only
+ * contact we have and email to a foreign address is the slowest, least
+ * reliable channel we own — several applications sat unanswered because the
+ * reply landed in spam. Opening a WhatsApp thread at the moment they apply
+ * gives the academy a live channel to screen them on.
+ *
+ * The reference is the application id, which is what /admin/conversation-
+ * partners lists them by.
+ */
+export function partnerApplicationWhatsappMessage(input: {
+  isAr: boolean;
+  fullName?: string | null;
+  country?: string | null;
+  nativeLanguage?: string | null;
+  timezone?: string | null;
+  reference?: string | null;
+}): string {
+  const { isAr, fullName, country, nativeLanguage, timezone, reference } = input;
+
+  if (isAr) {
+    const lines = ["السلام عليكم، قدّمت للتو طلباً لأكون شريك محادثة في أكاديمية هجر."];
+    if (fullName) lines.push(`الاسم: ${fullName}`);
+    if (country) lines.push(`الدولة: ${country}`);
+    if (nativeLanguage) lines.push(`اللغة الأم: ${nativeLanguage}`);
+    if (timezone) lines.push(`المنطقة الزمنية: ${timezone}`);
+    if (reference) lines.push(`رقم الطلب: ${reference}`);
+    lines.push("أرجو متابعة طلبي. شكراً لكم.");
+    return lines.join("\n");
+  }
+
+  const lines = [
+    "Hello, I have just applied to be a conversation partner with HAJR Academy.",
+  ];
+  if (fullName) lines.push(`Name: ${fullName}`);
+  if (country) lines.push(`Country: ${country}`);
+  if (nativeLanguage) lines.push(`Native language: ${nativeLanguage}`);
+  if (timezone) lines.push(`Time zone: ${timezone}`);
+  if (reference) lines.push(`Application reference: ${reference}`);
+  lines.push("I would be glad to hear back about my application. Thank you.");
+  return lines.join("\n");
+}
