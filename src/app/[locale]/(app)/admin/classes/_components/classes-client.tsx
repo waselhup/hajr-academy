@@ -20,7 +20,7 @@ import {
   AlertDialogFooter, AlertDialogAction, AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
 import { ClassFormDialog } from "./class-form-dialog";
-import { deleteClassAction } from "../../_actions/classes";
+import { deleteClassAction, deleteClassPermanentlyAction } from "../../_actions/classes";
 import { fmtSAR, teacherColor } from "@/lib/format";
 
 type Row = {
@@ -58,6 +58,7 @@ export function ClassesClient({
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Row | null>(null);
   const [confirmDel, setConfirmDel] = useState<Row | null>(null);
+  const [removing, setRemoving] = useState(false);
 
   let timer: any;
   function debouncedQ(v: string) {
@@ -184,22 +185,52 @@ export function ClassesClient({
       {showAdd && <ClassFormDialog mode="create" programs={programs} teachers={teachers} onClose={() => setShowAdd(false)} onDone={() => router.refresh()} />}
       {editing && <ClassFormDialog mode="edit" existing={editing} programs={programs} teachers={teachers} onClose={() => setEditing(null)} onDone={() => router.refresh()} />}
 
+      {/* Two different things used to hide behind one "Delete" button: it
+          cancelled the class and left the row on the list, so pressing Delete
+          looked like it had done nothing. Both actions are now offered by
+          name, with the consequence of each spelled out. */}
       <AlertDialog open={!!confirmDel} onOpenChange={(o) => !o && setConfirmDel(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("Common.confirmDelete")}</AlertDialogTitle>
-            <AlertDialogDescription>{t("Common.confirmDeleteMsg")}</AlertDialogDescription>
+            <AlertDialogTitle>{t("Classes.removeTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("Classes.removeExplain")}</AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t("Common.cancel")}</AlertDialogCancel>
-            <AlertDialogAction onClick={async () => {
-              if (!confirmDel) return;
-              const res = await deleteClassAction(confirmDel.id);
-              if (res.ok) toast.success(t("Common.success"));
-              else toast.error(res.error);
-              setConfirmDel(null);
-              router.refresh();
-            }}>{t("Common.delete")}</AlertDialogAction>
+          <AlertDialogFooter className="gap-2 sm:justify-between">
+            <AlertDialogCancel disabled={removing}>{t("Common.cancel")}</AlertDialogCancel>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button variant="outline" disabled={removing} onClick={async () => {
+                if (!confirmDel) return;
+                setRemoving(true);
+                const res = await deleteClassAction(confirmDel.id);
+                if (res.ok) toast.success(t("Classes.cancelledToast"));
+                else toast.error(res.error);
+                setRemoving(false);
+                setConfirmDel(null);
+                router.refresh();
+              }}>{t("Classes.cancelClass")}</Button>
+              <Button
+                className="bg-red-600 text-white hover:bg-red-700"
+                disabled={removing}
+                onClick={async () => {
+                  if (!confirmDel) return;
+                  setRemoving(true);
+                  const res = await deleteClassPermanentlyAction(confirmDel.id);
+                  if (res.ok) {
+                    toast.success(t("Classes.deletedToast"));
+                    setConfirmDel(null);
+                  } else {
+                    const [reason, n] = res.error.split(":");
+                    toast.error(
+                      reason === "HAS_ATTENDANCE" ? t("Classes.blockedAttendance", { n })
+                      : reason === "HAS_PAID_INVOICES" ? t("Classes.blockedInvoices", { n })
+                      : t("Classes.blockedInUse")
+                    );
+                  }
+                  setRemoving(false);
+                  router.refresh();
+                }}
+              >{t("Classes.deleteForever")}</Button>
+            </div>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

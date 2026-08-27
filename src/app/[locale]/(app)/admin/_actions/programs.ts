@@ -115,6 +115,51 @@ export async function updateProgramAction(input: z.infer<typeof updateSchema>): 
   return { ok: true, data: null };
 }
 
+/**
+ * Permanently remove a programme.
+ *
+ * Deactivating only hides a programme from new sign-ups — the card stays on
+ * the list forever, which is not what "delete" means to the person clicking
+ * it. This deletes the row for real, but refuses when something real hangs off
+ * it. A programme with classes is the spine of actual teaching history
+ * (sessions, attendance, invoices) and a programme with subscriptions is
+ * attached to money; erasing either on one click would destroy records the
+ * academy needs. In those cases the caller is told what is in the way.
+ *
+ * Openings are recruitment adverts pointing at the programme and cascade away
+ * with it in the schema, so they are not a reason to refuse.
+ */
+export async function deleteProgramAction(id: string): Promise<Result> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+
+  const program = await prisma.program.findUnique({
+    where: { id },
+    select: { nameEn: true, _count: { select: { classes: true, subscriptions: true } } },
+  });
+  if (!program) return { ok: false, error: "NOT_FOUND" };
+  if (program._count.classes > 0) return { ok: false, error: `HAS_CLASSES:${program._count.classes}` };
+  if (program._count.subscriptions > 0) return { ok: false, error: `HAS_SUBSCRIPTIONS:${program._count.subscriptions}` };
+
+  try {
+    await prisma.program.delete({ where: { id } });
+  } catch {
+    // Something else still references it. Better a plain refusal than a 500
+    // that leaves the admin unsure whether the programme went or not.
+    return { ok: false, error: "IN_USE" };
+  }
+
+  await logAudit({
+    userId: session.user.id,
+    action: "PROGRAM_DELETED",
+    entity: "Program",
+    entityId: id,
+    metadata: { nameEn: program.nameEn },
+    ipAddress: await ip(),
+  });
+  revalidatePath("/admin/programs");
+  return { ok: true, data: null };
+}
+
 export async function toggleProgramActiveAction(id: string): Promise<Result> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const p = await prisma.program.findUnique({ where: { id }, select: { active: true } });

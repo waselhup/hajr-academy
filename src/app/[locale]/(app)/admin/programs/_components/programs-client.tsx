@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School, Plus, Users } from "lucide-react";
+import { Pencil, Loader2, BookOpen, GraduationCap, FlaskConical, School, Plus, Users, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
-import { updateProgramAction, toggleProgramActiveAction, createProgramAction } from "../../_actions/programs";
+import { updateProgramAction, toggleProgramActiveAction, createProgramAction, deleteProgramAction } from "../../_actions/programs";
 import { fmtSAR } from "@/lib/format";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -53,6 +53,37 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<Row | null>(null);
   const [creating, setCreating] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState<Row | null>(null);
+  const [deleting, startDelete] = useTransition();
+  const isAr = locale === "ar";
+
+  function doDelete(p: Row) {
+    startDelete(async () => {
+      const res = await deleteProgramAction(p.id);
+      if (res.ok) {
+        toast.success(isAr ? "تم حذف البرنامج" : "Programme deleted");
+        setConfirmDelete(null);
+        router.refresh();
+        return;
+      }
+      // The server refuses when real work hangs off the programme. Say what is
+      // in the way — "failed" alone leaves the admin with nothing to act on.
+      const [reason, n] = res.error.split(":");
+      const msg =
+        reason === "HAS_CLASSES"
+          ? isAr
+            ? `لا يمكن الحذف: البرنامج مرتبط بـ ${n} فصل. احذف الفصول أولاً.`
+            : `Cannot delete: ${n} class(es) still use this programme. Remove them first.`
+          : reason === "HAS_SUBSCRIPTIONS"
+            ? isAr
+              ? `لا يمكن الحذف: يوجد ${n} اشتراك مرتبط بالبرنامج.`
+              : `Cannot delete: ${n} subscription(s) are attached to this programme.`
+            : isAr
+              ? "تعذّر الحذف — البرنامج مستخدم في مكان آخر."
+              : "Could not delete — the programme is still in use.";
+      toast.error(msg);
+    });
+  }
 
   return (
     <div className="space-y-4">
@@ -112,12 +143,50 @@ export function ProgramsClient({ rows }: { rows: Row[] }) {
                   <Button variant="outline" size="sm" className="flex-1" onClick={() => router.push(`/${locale}/admin/openings`)}>
                     <Users className="me-2 h-4 w-4" />{t("Openings.viewApplicants")}
                   </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setConfirmDelete(p)}
+                    aria-label={isAr ? "حذف البرنامج" : "Delete programme"}
+                    title={isAr ? "حذف البرنامج" : "Delete programme"}
+                    className="shrink-0 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {confirmDelete && (
+        <Dialog open onOpenChange={(o) => !o && setConfirmDelete(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{isAr ? "حذف البرنامج نهائياً؟" : "Delete this programme?"}</DialogTitle>
+              <DialogDescription>
+                {isAr
+                  ? `سيُحذف «${confirmDelete.nameAr || confirmDelete.nameEn}» نهائياً ولا يمكن التراجع. إن كان مرتبطاً بفصول أو اشتراكات فلن يُحذف وسنخبرك بالسبب.`
+                  : `“${confirmDelete.nameEn}” will be removed permanently and this cannot be undone. If classes or subscriptions still use it, nothing is deleted and you will be told why.`}
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setConfirmDelete(null)} disabled={deleting}>
+                {t("Common.cancel")}
+              </Button>
+              <Button
+                onClick={() => doDelete(confirmDelete)}
+                disabled={deleting}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                {deleting && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+                {isAr ? "نعم، احذف" : "Yes, delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {editing && (
         <EditDialog

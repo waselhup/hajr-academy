@@ -950,7 +950,16 @@
     "cardDetails": "Class Details",
     "emptyTitle": "No classes yet",
     "emptyBody": "Contact us to enroll.",
-    "teacherLabel": "Teacher"
+    "teacherLabel": "Teacher",
+    "removeTitle": "Remove class",
+    "removeExplain": "“Cancel class” stops it running but keeps it on the list with its history. “Delete permanently” removes it from the system entirely and cannot be undone.",
+    "cancelClass": "Cancel class",
+    "deleteForever": "Delete permanently",
+    "cancelledToast": "Class cancelled",
+    "deletedToast": "Class deleted permanently",
+    "blockedAttendance": "Cannot delete: this class has {n} attendance record(s). Cancel it instead.",
+    "blockedInvoices": "Cannot delete: {n} paid invoice(s) are attached to this class.",
+    "blockedInUse": "Could not delete — the class is still referenced elsewhere."
   },
   "Schools": {
     "title": "Success Partners",
@@ -1005,7 +1014,13 @@
     "generated": "Generated {n} sessions",
     "weekView": "Week",
     "dayView": "Day",
-    "agendaView": "Agenda"
+    "agendaView": "Agenda",
+    "deleteSession": "Delete session",
+    "deleteSessionExplain": "This session will be removed from the schedule and the calendar. This cannot be undone.",
+    "deleteSessionConfirm": "Yes, delete",
+    "sessionDeleted": "Session deleted",
+    "blockedAttendance": "Cannot delete: this session has {n} attendance record(s).",
+    "deleteFailed": "Could not delete the session."
   },
   "AuditLog": {
     "title": "Audit Log",

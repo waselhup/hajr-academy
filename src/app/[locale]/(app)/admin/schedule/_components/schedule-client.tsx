@@ -4,7 +4,7 @@ import { useState, useTransition, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { toast } from "sonner";
-import { ChevronLeft, ChevronRight, Calendar, Filter, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, Filter, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { teacherColor, fmtRiyadh } from "@/lib/format";
-import { generateSessionsAction } from "../../_actions/schedule";
+import { generateSessionsAction, deleteSessionAction } from "../../_actions/schedule";
 
 type Sess = {
   id: string; classId: string; className: string; classNameAr: string | null; cohortCode: string;
@@ -46,6 +46,24 @@ export function ScheduleClient({
   const [genClassId, setGenClassId] = useState("");
   const [weeksAhead, setWeeksAhead] = useState(12);
   const [isPending, startTransition] = useTransition();
+  const [confirmSession, setConfirmSession] = useState<Sess | null>(null);
+
+  function removeSession(s: Sess) {
+    startTransition(async () => {
+      const res = await deleteSessionAction(s.id);
+      if (res.ok) {
+        toast.success(t("Schedule.sessionDeleted"));
+        setConfirmSession(null);
+        setSelected(null);
+        router.refresh();
+        return;
+      }
+      const [reason, n] = res.error.split(":");
+      toast.error(
+        reason === "HAS_ATTENDANCE" ? t("Schedule.blockedAttendance", { n }) : t("Schedule.deleteFailed")
+      );
+    });
+  }
 
   const wStart = useMemo(() => new Date(weekStart), [weekStart]);
   const days = useMemo(() => {
@@ -219,10 +237,50 @@ export function ScheduleClient({
             </div>
             <div className="mt-6 flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => router.push(`/${locale}/admin/classes/${selected.classId}`)}>{t("Common.view")}</Button>
+              {/* "Generate sessions" can fill a week with entries that are
+                  simply wrong. Until now the only way to get one back off the
+                  calendar was the database. */}
+              <Button
+                variant="outline"
+                className="shrink-0 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                disabled={isPending}
+                aria-label={t("Schedule.deleteSession")}
+                title={t("Schedule.deleteSession")}
+                onClick={() => setConfirmSession(selected)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </SheetContent>
         </Sheet>
       )}
+
+      <Dialog open={!!confirmSession} onOpenChange={(o) => !o && setConfirmSession(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("Schedule.deleteSession")}</DialogTitle>
+            <DialogDescription>
+              {confirmSession
+                ? `${locale === "ar" && confirmSession.classNameAr ? confirmSession.classNameAr : confirmSession.className} · ${fmtRiyadh(confirmSession.scheduledDate, "EEE MMM d HH:mm")}`
+                : ""}
+            </DialogDescription>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">{t("Schedule.deleteSessionExplain")}</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmSession(null)} disabled={isPending}>
+              {t("Common.cancel")}
+            </Button>
+            <Button
+              className="bg-red-600 text-white hover:bg-red-700"
+              disabled={isPending}
+              onClick={() => confirmSession && removeSession(confirmSession)}
+            >
+              {isPending && <Loader2 className="me-2 h-4 w-4 animate-spin" />}
+              {t("Schedule.deleteSessionConfirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={showGenerate} onOpenChange={setShowGenerate}>
         <DialogContent>

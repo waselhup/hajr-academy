@@ -121,11 +121,61 @@ export async function updateClassAction(input: z.infer<typeof updateSchema>): Pr
   return { ok: true, data: null };
 }
 
+/** Cancel a class: it stops running but stays on the list, with its history. */
 export async function deleteClassAction(id: string): Promise<Result> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   await prisma.class.update({ where: { id }, data: { status: "CANCELLED" } });
   await logAudit({ userId: session.user.id, action: "CLASS_CANCELLED", entity: "Class", entityId: id, ipAddress: await ip() });
   revalidatePath("/admin/classes");
+  return { ok: true, data: null };
+}
+
+/**
+ * Really delete a class — the row goes, not just its status.
+ *
+ * Cancelling was the only option, so a class created by mistake sat on the
+ * list forever marked "Cancelled" and the admin who pressed Delete reasonably
+ * concluded the button was broken. This removes it.
+ *
+ * It refuses when the class has taught history: attendance means students
+ * actually sat in it, and a paid invoice means money is attached to it.
+ * Deleting either would rewrite the record of what the academy did and was
+ * paid for — cancel those instead. Sessions, enrolments, assignments,
+ * resources and calendar entries cascade away in the schema, and invoices
+ * survive with their class link nulled, so the finance trail is never lost.
+ */
+export async function deleteClassPermanentlyAction(id: string): Promise<Result> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+
+  const cls = await prisma.class.findUnique({
+    where: { id },
+    select: { name: true, cohortCode: true, _count: { select: { enrollments: true } } },
+  });
+  if (!cls) return { ok: false, error: "NOT_FOUND" };
+
+  const [attendance, paidInvoices] = await Promise.all([
+    prisma.attendance.count({ where: { session: { classId: id } } }),
+    prisma.invoice.count({ where: { classId: id, invoiceStatus: "PAID" } }),
+  ]);
+  if (attendance > 0) return { ok: false, error: `HAS_ATTENDANCE:${attendance}` };
+  if (paidInvoices > 0) return { ok: false, error: `HAS_PAID_INVOICES:${paidInvoices}` };
+
+  try {
+    await prisma.class.delete({ where: { id } });
+  } catch {
+    return { ok: false, error: "IN_USE" };
+  }
+
+  await logAudit({
+    userId: session.user.id,
+    action: "CLASS_DELETED",
+    entity: "Class",
+    entityId: id,
+    metadata: { name: cls.name, cohortCode: cls.cohortCode, enrolments: cls._count.enrollments },
+    ipAddress: await ip(),
+  });
+  revalidatePath("/admin/classes");
+  revalidatePath("/admin/schedule");
   return { ok: true, data: null };
 }
 

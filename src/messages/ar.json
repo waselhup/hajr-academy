@@ -950,7 +950,16 @@
     "cardDetails": "تفاصيل الفصل",
     "emptyTitle": "لم تنضم لأي فصل بعد",
     "emptyBody": "تواصل مع الأكاديمية للتسجيل.",
-    "teacherLabel": "المعلّم"
+    "teacherLabel": "المعلّم",
+    "removeTitle": "إزالة الفصل",
+    "removeExplain": "«إلغاء الفصل» يوقفه لكنه يبقى في القائمة مع سجلّه. «حذف نهائي» يشيله من النظام تماماً ولا يمكن التراجع.",
+    "cancelClass": "إلغاء الفصل",
+    "deleteForever": "حذف نهائي",
+    "cancelledToast": "تم إلغاء الفصل",
+    "deletedToast": "تم حذف الفصل نهائياً",
+    "blockedAttendance": "لا يمكن الحذف: الفصل فيه {n} سجل حضور. ألغِ الفصل بدل حذفه.",
+    "blockedInvoices": "لا يمكن الحذف: يوجد {n} فاتورة مدفوعة مرتبطة بالفصل.",
+    "blockedInUse": "تعذّر الحذف — الفصل مرتبط ببيانات أخرى."
   },
   "Schools": {
     "title": "شركاء النجاح",
@@ -1005,7 +1014,13 @@
     "generated": "تم توليد {n} حصة",
     "weekView": "أسبوع",
     "dayView": "يوم",
-    "agendaView": "أجندة"
+    "agendaView": "أجندة",
+    "deleteSession": "حذف الحصة",
+    "deleteSessionExplain": "ستُحذف هذه الحصة من الجدول ومن التقويم. لا يمكن التراجع.",
+    "deleteSessionConfirm": "نعم، احذف",
+    "sessionDeleted": "تم حذف الحصة",
+    "blockedAttendance": "لا يمكن الحذف: الحصة فيها {n} سجل حضور.",
+    "deleteFailed": "تعذّر حذف الحصة."
   },
   "AuditLog": {
     "title": "سجل التدقيق",

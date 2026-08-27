@@ -26,6 +26,54 @@ async function ip() {
   return h.get("x-forwarded-for")?.split(",")[0] ?? null;
 }
 
+/**
+ * Remove one session from the schedule.
+ *
+ * "Generate sessions" can fill a week with entries that are wrong — a bad time
+ * slot, a duplicate run, a class that will not happen — and until now there was
+ * no way to take one back off the calendar from the schedule page. Attendance
+ * cascades with the session in the schema, so a session that was actually
+ * taught is refused rather than quietly erasing who attended it; cancel that
+ * one instead. Its calendar entry goes with it, so the week view and the
+ * shared calendar cannot disagree about what is happening.
+ */
+export async function deleteSessionAction(id: string): Promise<Result> {
+  const session = await requireRole("ADMIN", "SUPER_ADMIN");
+
+  const row = await prisma.classSession.findUnique({
+    where: { id },
+    select: {
+      classId: true,
+      scheduledDate: true,
+      status: true,
+      _count: { select: { attendances: true } },
+    },
+  });
+  if (!row) return { ok: false, error: "NOT_FOUND" };
+  if (row._count.attendances > 0) {
+    return { ok: false, error: `HAS_ATTENDANCE:${row._count.attendances}` };
+  }
+
+  await prisma.$transaction([
+    prisma.calendarEvent.deleteMany({
+      where: { classId: row.classId, startAt: row.scheduledDate },
+    }),
+    prisma.classSession.delete({ where: { id } }),
+  ]);
+
+  await logAudit({
+    userId: session.user.id,
+    action: "CLASS_SESSION_DELETED",
+    entity: "ClassSession",
+    entityId: id,
+    metadata: { classId: row.classId, scheduledDate: row.scheduledDate.toISOString(), status: row.status },
+    ipAddress: await ip(),
+  });
+  revalidatePath("/admin/schedule");
+  revalidatePath("/calendar");
+  return { ok: true, data: null };
+}
+
 export async function generateSessionsAction(input: z.infer<typeof schema>): Promise<Result<{ created: number }>> {
   const session = await requireRole("ADMIN", "SUPER_ADMIN");
   const parsed = schema.safeParse(input);
