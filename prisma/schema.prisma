@@ -29,6 +29,14 @@ model User {
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
 
+  /// May see the marketing traffic dashboard (/admin/traffic).
+  ///
+  /// A flag rather than a role: the person who runs the ad budget is already
+  /// an admin, and inventing a role for this would cost them the rest of the
+  /// dashboard. Off by default — the data covers spend and campaign
+  /// performance, which is not every admin's business.
+  canViewTraffic Boolean @default(false)
+
   referredByCode String?
   referredAt     DateTime?
 
@@ -57,6 +65,7 @@ model User {
   stickyNotes             StickyNote[]              @relation("StickyNoteOwner")
   targetedRecordings      TargetedRecording[]       @relation("TargetedRecordingUploader")
   targetedRecordingViews  TargetedRecordingViewer[] @relation("TargetedRecordingViewer")
+  visitorSessions         VisitorSession[]          @relation("VisitorSessionUser")
 }
 
 model TeacherProfile {
@@ -3088,4 +3097,124 @@ enum PartnerApplicationStatus {
   PENDING
   APPROVED
   REJECTED
+}
+
+// ─────────────── PUBLIC-SITE VISITOR TRACKING ───────────────
+// First-party marketing analytics for the PUBLIC site. Distinct from
+// PageVisit above, which tracks SIGNED-IN users inside the app and cannot
+// answer "which ad brought this buyer". The tables already exist in the
+// live database with real data — this only declares them to Prisma.
+
+enum VisitorConversion {
+  TRIAL_BOOKED
+  ORDER_PLACED
+  ORDER_PAID
+  CONTACT_SUBMITTED
+  APPLICATION_SUBMITTED
+}
+
+model VisitorSession {
+  id String @id @default(uuid())
+
+  /// Random id from the visitor's own cookie. Groups repeat visits from one
+  /// browser without identifying anybody.
+  visitorId String
+
+  /// First-touch attribution, captured on the first page of the session and
+  /// never overwritten — the campaign that EARNED the visit is the one that
+  /// should get credit for the sale, not whatever they clicked last.
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+
+  /// Ad-platform click ids. Present when the visit came from a paid click, and
+  /// the only reliable signal when the ad strips UTMs.
+  clickId       String?
+  clickIdSource String?
+
+  /// Full referrer and just its host. The host is what the dashboard groups by;
+  /// the full value is kept for when a number looks wrong and needs explaining.
+  referrer     String?
+  referrerHost String?
+
+  /// Where they arrived. The landing page of a campaign is often the whole
+  /// story when a campaign converts badly.
+  landingPath String
+
+  /// Coarse only — country and device class. Never a city, never a fingerprint.
+  country    String?
+  deviceType String?
+  browser    String?
+  locale     String?
+
+  ipHash        String?
+  userAgentHash String?
+
+  startedAt  DateTime  @default(now())
+  lastSeenAt DateTime  @default(now())
+  endedAt    DateTime?
+
+  pageCount   Int @default(0)
+  durationSec Int @default(0)
+
+  /// True when the session had exactly one page view and left. The single most
+  /// useful number for judging whether an ad's traffic is real interest.
+  isBounce Boolean @default(true)
+
+  /// Set when the visit reached a real outcome — a booked trial or a paid
+  /// order. This is what turns traffic counts into a cost-per-customer.
+  convertedAt   DateTime?
+  conversionType VisitorConversion?
+
+  /// Order value in SAR, when the conversion was a purchase. Lets the dashboard
+  /// show revenue per campaign rather than only conversion counts.
+  conversionValueSar Decimal? @db.Decimal(10, 2)
+
+  /// Populated only if the visitor later signs in — the link is made by them
+  /// logging in, never by tracking. Null for everyone else.
+  userId String?
+  user   User?   @relation("VisitorSessionUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  pageViews VisitorPageView[]
+
+  @@index([visitorId])
+  @@index([startedAt])
+  @@index([utmCampaign, startedAt])
+  @@index([referrerHost, startedAt])
+  @@index([convertedAt])
+  @@index([lastSeenAt, endedAt])
+}
+
+model VisitorPageView {
+  id String @id @default(uuid())
+
+  sessionId String
+  session   VisitorSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  /// Normalised path with the locale prefix removed and ids replaced, so
+  /// /ar/checkout/pay/abc123 and /en/checkout/pay/def456 count as one page.
+  path String
+
+  /// Path exactly as visited, for when the grouped version hides something.
+  rawPath String?
+
+  /// 1-based position in the visit.
+  sequence Int
+
+  enteredAt   DateTime  @default(now())
+  leftAt      DateTime?
+  durationSec Int       @default(0)
+
+  /// How far down the page they got, 0-100. Distinguishes "read the pricing and
+  /// left" from "bounced off the hero without scrolling".
+  scrollDepth Int?
+
+  /// True for the last page of the session — the drop-off point.
+  isExit Boolean @default(false)
+
+  @@index([path, enteredAt])
+  @@index([sessionId, sequence])
+  @@index([isExit, path])
 }

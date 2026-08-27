@@ -7,6 +7,7 @@ import { getProduct, priceProduct } from "@/lib/finance/catalog";
 import { GRADE_VALUES, TIME_VALUES } from "@/lib/finance/checkout-options";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipFromHeaders, shortHash } from "@/lib/analytics/hashing";
+import { markConversion } from "@/lib/analytics/conversion";
 
 /**
  * POST /api/checkout — public landing-page purchase.
@@ -131,6 +132,16 @@ export async function POST(req: Request) {
         moyasarPaymentId: mockMode ? `mock_${crypto.randomUUID()}` : null,
         source: "landing_checkout",
       },
+    });
+
+    // Credit the visit that produced this order, so the traffic dashboard can
+    // report revenue per campaign instead of only visit counts — the whole
+    // point of tracking. markConversion swallows its own errors, so analytics
+    // can never fail a checkout; it is awaited only so the write lands before
+    // the response ends the request.
+    await markConversion({
+      type: paymentStatus === "PAID" ? "ORDER_PAID" : "ORDER_PLACED",
+      valueSar: Number(priced.totalSar),
     });
 
     // Notify admins. An unpaid order is a lead, not a sale — the paid

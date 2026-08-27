@@ -29,15 +29,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // The JWT session does not carry a fresh avatar (the session callback omits
   // `image`), so read it from the DB here. This also means it updates as soon
   // as the user uploads/removes a photo and router.refresh() re-renders.
+  // `canViewTraffic` rides along on a query that was already happening, so the
+  // sidebar can hide a link the user would only be redirected away from. Read
+  // from the DB rather than the session token for the same reason the page's
+  // own guard does: a JWT keeps whatever was stamped at sign-in, so revoking
+  // the flag would otherwise leave the link there until the person logged out.
   const me = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { avatar: true },
+    select: { avatar: true, canViewTraffic: true },
   });
 
   return (
     <SessionProvider session={session}>
       <div className="flex min-h-screen bg-brand-ivory">
-        <Sidebar role={session.user.role} />
+        <Sidebar role={session.user.role} canViewTraffic={me?.canViewTraffic ?? false} />
         {/* Persistent re-open affordance — visible on every page/shell when the
             sidebar is collapsed (desktop) or hidden (mobile). See F7. */}
         <SidebarReopenHandle />

@@ -288,7 +288,8 @@
     "teacherRequests": "طلبات المعلّمين",
     "catalogProducts": "المنتجات والأسعار",
     "partnerApplications": "طلبات الشراكة",
-    "conversationPartners": "شركاء المحادثة"
+    "conversationPartners": "شركاء المحادثة",
+    "traffic": "ترافيك الموقع"
   },
   "Roles": {
     "SUPER_ADMIN": "مدير عام",

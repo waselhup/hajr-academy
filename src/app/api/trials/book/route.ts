@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipFromHeaders, shortHash } from "@/lib/analytics/hashing";
+import { markConversion } from "@/lib/analytics/conversion";
 import {
   BOOKING_CUTOFF_MINUTES,
   HOLDING_STATUSES,
@@ -169,6 +170,11 @@ export async function POST(req: Request) {
       entityId: created.id,
       metadata: { slotId: slot.id, startsAt: slot.startsAt.toISOString(), name: d.name },
     });
+
+    // A booked trial is what most of the landing pages are actually for, so it
+    // is the conversion a campaign should be judged on. No value attached: the
+    // trial is free, and revenue only appears later if they enrol.
+    await markConversion({ type: "TRIAL_BOOKED" });
 
     return NextResponse.json({
       success: true,

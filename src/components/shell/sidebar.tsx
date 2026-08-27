@@ -480,7 +480,16 @@ function isGroupActive(pathname: string, group: NavGroup, allFlat: NavItem[]): b
 
 const LS_PREFIX = "hajr.nav.";
 
-export function Sidebar({ role }: { role: Role }) {
+export function Sidebar({
+  role,
+  // Per-user flag, not a role: the traffic dashboard is for whoever runs the
+  // ad budget. The link is hidden rather than shown-and-redirected, because a
+  // nav item that bounces you is worse than no nav item.
+  canViewTraffic = false,
+}: {
+  role: Role;
+  canViewTraffic?: boolean;
+}) {
   // Collapse state is shared via sidebarStore so the floating re-open handle
   // (rendered in the app layout) can show whenever the sidebar is collapsed,
   // and so the choice persists across navigations/reloads.
@@ -496,6 +505,7 @@ export function Sidebar({ role }: { role: Role }) {
         role={role}
         collapsed={collapsed}
         onToggleCollapse={toggle}
+        canViewTraffic={canViewTraffic}
       />
     );
   }
@@ -610,11 +620,13 @@ function GroupedSidebar({
   role,
   collapsed,
   onToggleCollapse,
+  canViewTraffic = false,
 }: {
   kind: "admin" | "role";
   role: Role;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  canViewTraffic?: boolean;
 }) {
   const t = useTranslations();
   const pathname = usePathname();
@@ -626,6 +638,23 @@ function GroupedSidebar({
   if (kind === "admin") {
     dashboard = ADMIN_DASHBOARD_ITEM;
     groups = filterAdminGroups(role);
+    // Added next to the existing in-app analytics entry, which answers a
+    // different question: that one measures signed-in users, this one measures
+    // public-site visitors and which ad brought them.
+    if (canViewTraffic) {
+      groups = groups.map((g) =>
+        g.items.some((i) => i.href === "/admin/analytics")
+          ? {
+              ...g,
+              items: g.items.flatMap((i) =>
+                i.href === "/admin/analytics"
+                  ? [i, { key: "Nav.traffic", href: "/admin/traffic", icon: Radio }]
+                  : [i]
+              ),
+            }
+          : g
+      );
+    }
   } else {
     const g = groupsForRole(role)!;
     dashboard = g.dashboard;

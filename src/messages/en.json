@@ -288,7 +288,8 @@
     "teacherRequests": "Teacher requests",
     "catalogProducts": "Products & pricing",
     "partnerApplications": "Partner applications",
-    "conversationPartners": "Conversation partners"
+    "conversationPartners": "Conversation partners",
+    "traffic": "Site traffic"
   },
   "Roles": {
     "SUPER_ADMIN": "Super Admin",
