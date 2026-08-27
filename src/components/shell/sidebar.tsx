@@ -288,6 +288,13 @@ export const STUDENT_NAV_GROUPS: NavGroup[] = [
       { key: "Nav.labStudent", href: "/student/lab", icon: FlaskConical },
       { key: "Nav.libraryHub", href: "/student/library", icon: Library },
       { key: "Nav.studentExams", href: "/student/exams", icon: ClipboardCheck },
+      // The placement test has always existed, on the public site. A student
+      // who had already signed up had no way to reach it from inside the
+      // platform, so the only people who ever took it were visitors who had
+      // not enrolled. The start route already attaches the attempt to a
+      // signed-in student's profile, so a test taken from here appears for the
+      // teacher and the admin with no further wiring.
+      { key: "Nav.placementTest", href: "/placement-test", icon: Gauge },
       { key: "Nav.speakingClub", href: "/student/speaking-club", icon: Mic },
       { key: "Nav.privateLessons", href: "/student/private-lessons", icon: Headphones },
     ],
