@@ -26,11 +26,15 @@ const PACKAGE_LABEL: Record<string, { en: string; ar: string }> = {
  */
 export default async function CheckoutPayPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; orderId: string }>;
+  searchParams?: Promise<{ failed?: string }>;
 }) {
   const { locale, orderId } = await params;
   const isAr = locale === "ar";
+  // Set by the gateway callback when the bank refused the card.
+  const declined = ((await searchParams) ?? {}).failed === "1";
 
   const order = await prisma.purchaseOrder.findUnique({
     where: { id: orderId },
@@ -86,6 +90,37 @@ export default async function CheckoutPayPage({
           ? "الدفع يتم عبر بوابة ميسر المرخّصة. بياناتك البنكية لا تمر عبر خوادمنا."
           : "Payment is handled by the licensed Moyasar gateway. Your card details never touch our servers."}
       </p>
+
+      {/* A decline is the moment a sale is most often lost, and the buyer's
+          first fear is that they were charged anyway. Say plainly that they
+          were not, then give them the two things that actually work: Apple Pay
+          (which has never failed here) and their bank. */}
+      {declined && (
+        <div className="mt-5 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+          <p className="text-sm font-semibold text-amber-900">
+            {isAr
+              ? "لم تتم عملية الدفع — لم يُخصم من بطاقتك أي مبلغ."
+              : "The payment did not go through — nothing was charged to your card."}
+          </p>
+          <ul className="mt-2 space-y-1 text-xs leading-relaxed text-amber-900/90">
+            <li>
+              {isAr
+                ? "• جرّب الدفع عبر Apple Pay إن كان متاحاً على جهازك — وهو الأسرع والأنجح."
+                : "• Try Apple Pay if your device supports it — it is the fastest and most reliable option here."}
+            </li>
+            <li>
+              {isAr
+                ? "• أو استخدم بطاقة أخرى، وتأكد أن الشراء عبر الإنترنت مفعّل عليها."
+                : "• Or use another card, and check that online purchases are enabled on it."}
+            </li>
+            <li>
+              {isAr
+                ? "• إن تكرر الرفض فالسبب غالباً من البنك — تواصل معهم أو راسلنا على واتساب ونساعدك."
+                : "• If it keeps failing the refusal is usually from your bank — contact them, or message us on WhatsApp and we will help."}
+            </li>
+          </ul>
+        </div>
+      )}
 
       <div className="mt-6 space-y-3 rounded-2xl border border-hajr-border bg-white p-6 shadow-card">
         <div className="flex justify-between text-sm">

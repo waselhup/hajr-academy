@@ -62,10 +62,30 @@ export async function GET(req: NextRequest) {
     const locale = res.locale ?? queryLocale ?? "ar";
     const entityId = res.invoiceId ?? "";
 
-    // A landing-page purchase has no account behind it — always the public
-    // confirmation page, which reads the real order state.
+    // A landing-page purchase has no account behind it, so it always returns
+    // to a public page — but WHICH page has to depend on whether the card
+    // actually went through.
+    //
+    // Every outcome used to land on /checkout/success, a page headed "تم
+    // استلام طلبك" with a "the team will contact you" note. A buyer whose bank
+    // had just declined the card read that as done and stopped. One customer
+    // was declined three times in half an hour and re-registered under a new
+    // name each time, because nothing ever told her the payment had failed.
+    //
+    // A decline now returns to the payment page, where the amount is already
+    // loaded and retrying is one tap. `transient` is the exception: the card
+    // WAS charged and only our verification is lagging, so the webhook will
+    // settle it — sending that buyer back to "pay" invites a double charge.
+    // Only a gateway-confirmed FAILED goes back to "pay". Every other
+    // non-settled outcome — a transient verification error, an amount
+    // mismatch, a cancelled order — may mean the card WAS charged, and
+    // inviting a retry there would risk taking the money twice. Those keep the
+    // confirmation page, which reads the real order state and never lies.
     if (res.kind === "order") {
-      return send(`/${locale}/checkout/success`, { order: entityId });
+      const declinedByBank = res.ok && res.status === "FAILED";
+      return declinedByBank && entityId
+        ? send(`/${locale}/checkout/pay/${entityId}`, { failed: "1" })
+        : send(`/${locale}/checkout/success`, { order: entityId });
     }
 
     // An invoice: route by who is actually signed in, since a parent pays a

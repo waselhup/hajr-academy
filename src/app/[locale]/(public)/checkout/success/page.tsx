@@ -97,19 +97,33 @@ export default async function CheckoutSuccessPage({
             ? "أهلاً بك في أكاديمية هجر! 🎉"
             : "Welcome to HAJR Academy! 🎉"
           : isAr
-            ? "تم استلام طلبك"
-            : "We received your order"}
+            ? "لم يكتمل الدفع بعد"
+            : "Your payment is not complete"}
       </h1>
 
+      {/* The unpaid state used to be headed "تم استلام طلبك" and promised a
+          call within 24 hours, which reads as success — buyers whose card had
+          been declined believed they were done and walked away. It now says
+          what is true and puts the payment button first. */}
       <p className="mt-3 text-hajr-body">
         {paid
           ? isAr
             ? "تم تأكيد الدفع. تبقّت خطوة واحدة: أرسل لنا رسالة واتساب لنكمل تسجيل الطالب."
             : "Your payment is confirmed. One step left — send us a WhatsApp message so we can finish the student's enrolment."
           : isAr
-            ? "طلبك محفوظ ولم يكتمل الدفع بعد. سيتواصل معك فريق هجر لإتمامه."
-            : "Your order is saved and the payment is not complete yet. The Hajr team will contact you to finish it."}
+            ? "طلبك محفوظ، لكن لم يُخصم من بطاقتك أي مبلغ ولم يُحجز مقعد الطالب بعد. أكمل الدفع لتثبيت التسجيل."
+            : "Your order is saved, but nothing has been charged and the student's seat is not reserved yet. Complete the payment to confirm the enrolment."}
       </p>
+
+      {!paid && orderId && (
+        <div className="mt-6">
+          <Button asChild variant="cta" size="lg" className="w-full">
+            <Link href={`/${locale}/checkout/pay/${orderId}`}>
+              {isAr ? "إتمام الدفع الآن" : "Complete payment now"}
+            </Link>
+          </Button>
+        </div>
+      )}
 
       {paid && waHref ? (
         <>
@@ -144,29 +158,22 @@ export default async function CheckoutSuccessPage({
             <Clock className="mt-0.5 h-5 w-5 shrink-0 text-hajr-deep-navy" />
             <p className="text-sm text-hajr-body">
               {isAr
-                ? "خلال 24 ساعة سَتصلك معلومات الدخول إلى المنصّة عبر الجوال أو البريد الإلكتروني."
-                : "Within 24 hours, your platform login details will arrive via phone or email."}
+                ? "إن رُفضت بطاقتك فجرّب Apple Pay أو بطاقة أخرى — الرفض يأتي من البنك ولا يعني وجود مشكلة في طلبك."
+                : "If your card was declined, try Apple Pay or another card — the refusal comes from your bank, not from your order."}
             </p>
           </div>
           <div className="flex items-start gap-3">
             <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-hajr-deep-navy" />
             <p className="text-sm text-hajr-body">
               {isAr
-                ? "سيتواصل معك فريق هجر لإكمال إعداد حساب الطالب وتحديد الفصل المناسب."
-                : "The Hajr team will contact you to finish setting up the student account and assign the right class."}
+                ? "تحتاج مساعدة؟ راسلنا على واتساب 0502456651 ونكمل معك التسجيل."
+                : "Need help? Message us on WhatsApp 0502456651 and we will finish the enrolment with you."}
             </p>
           </div>
         </div>
       )}
 
       <div className="mt-8 flex flex-col items-center gap-3">
-        {!paid && orderId && (
-          <Button asChild>
-            <Link href={`/${locale}/checkout/pay/${orderId}`}>
-              {isAr ? "إتمام الدفع الآن" : "Complete payment now"}
-            </Link>
-          </Button>
-        )}
         <Button asChild variant="outline">
           <Link href={`/${locale}`}>
             {isAr ? "العودة للصفحة الرئيسية" : "Back to home"}
