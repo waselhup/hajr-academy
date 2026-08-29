@@ -94,7 +94,7 @@ const EXERCISES: Seed[] = [
       mcq("b2", "We ___ to Riyadh last summer.", ["goed", "gone", "went", "going"], 2, "Go is irregular: go → went."),
       fill("b3", "She {{1}} (buy) a new book last week.", [["bought"]]),
       fill("b4", "They {{1}} (finish) the project on time.", [["finished"]]),
-      order("b5", "Put the sentence in order.", ["I", "watched", "a", "film", "last", "night"]),
+      order("b5", "Put the sentence in order. Begin with \"I\".", ["I", "watched", "a", "film", "last", "night"]),
       tf("b6", "The past of \"teach\" is \"teached\".", false, "It is \"taught\"."),
     ],
   },
@@ -107,20 +107,20 @@ const EXERCISES: Seed[] = [
       mcq("b1", "I ___ in this city since 2019.", ["live", "lived", "have lived", "am living"], 2, "\"Since\" + a still-true situation takes the present perfect."),
       mcq("b2", "She ___ her keys yesterday.", ["has lost", "lost", "loses", "was losing"], 1, "\"Yesterday\" is finished time — past simple."),
       mcq("b3", "___ you ever ___ to Jeddah?", ["Did / go", "Have / been", "Are / going", "Do / went"], 1),
-      fill("b4", "We {{1}} (know) each other for ten years.", [["have known"]]),
+      fill("b4", "We {{1}} (know) each other for ten years.", [["have known", "'ve known"]]),
       tf("b5", "\"I have seen him last Monday\" is correct.", false, "A finished time marker needs the past simple: I saw him last Monday."),
-      match("b6", "Match the time expression to the tense.", [
-        ["since 2020", "present perfect"],
-        ["two days ago", "past simple"],
-        ["already", "present perfect"],
-        ["in 2015", "past simple"],
+      match("b6", "Match each time expression to what it tells you.", [
+        ["since 2020", "started in the past, still true now"],
+        ["two days ago", "a finished moment in the past"],
+        ["already", "done before now, time not stated"],
+        ["in 2015", "a named year that is over"],
       ]),
     ],
   },
   // ── VOCABULARY ───────────────────────────────────────────────────────
   {
     type: "VOCABULARY", level: "A1", title: "Everyday objects and places", titleAr: "أشياء وأماكن يومية",
-    description: "The first 30 words you actually use.", descriptionAr: "أول ٣٠ كلمة تستخدمها فعلاً.",
+    description: "The first 30 words you actually use.", descriptionAr: "أول 30 كلمة تستخدمها فعلاً.",
     estimatedMinutes: 7, tags: ["basics", "nouns"],
     instructions: "Choose the right word.",
     blocks: [
@@ -129,7 +129,7 @@ const EXERCISES: Seed[] = [
       match("b3", "Match the place to what you do there.", [
         ["school", "study"], ["hospital", "see a doctor"], ["restaurant", "eat"], ["airport", "take a plane"],
       ]),
-      fill("b4", "I keep my books in a {{1}}.", [["bag", "backpack"]]),
+      fill("b4", "I keep my books in a {{1}}.", [["bag", "backpack", "school bag", "schoolbag"]]),
       tf("b5", "A \"kitchen\" is a room where you cook.", true),
     ],
   },
@@ -162,7 +162,7 @@ const EXERCISES: Seed[] = [
       mcq("b1", "What time does the library close on Thursday?", ["2:00 p.m.", "12:00 noon", "7:30 a.m.", "It does not open"], 1),
       mcq("b2", "How many books can a student borrow?", ["Two", "Three", "Four", "As many as they want"], 1),
       tf("b3", "Books can be kept for one month.", false, "The notice says two weeks."),
-      fill("b4", "The library opens at {{1}} a.m.", [["7:30", "7.30"]]),
+      fill("b4", "The library opens at {{1}} a.m.", [["7:30", "7.30", "07:30", "half past seven"]]),
     ],
   },
   {
@@ -191,15 +191,20 @@ const EXERCISES: Seed[] = [
       order("b5", "Put the study advice in order.", ["study", "in", "short", "focused", "sessions"]),
     ],
   },
-  // ── LISTENING (text-driven, no audio file needed yet) ────────────────
+  // ── CLASSROOM LANGUAGE ───────────────────────────────────────────────
+  // Typed READING, not LISTENING. There is no audio in it — the student reads
+  // what the teacher said — and filing a reading task under LISTENING would
+  // feed the skill tracker a listening level the student never demonstrated,
+  // then show them a progress bar built on it. It becomes a listening exercise
+  // the day it carries a MEDIA block with a real recording.
   {
-    type: "LISTENING", level: "A2", title: "Following classroom instructions", titleAr: "متابعة تعليمات الصف",
-    description: "What your teacher actually means.", descriptionAr: "ماذا يقصد معلّمك فعلاً.",
+    type: "READING", level: "A2", title: "Classroom instructions", titleAr: "تعليمات الصف",
+    description: "The sentences your teacher says every lesson.", descriptionAr: "الجمل التي يقولها معلّمك كل حصة.",
     estimatedMinutes: 7, tags: ["classroom", "instructions"],
     instructions: "Read what the teacher says and choose the right response.",
     blocks: [
       passage("b0", "Your teacher says: \"Open your books to page forty-two and work in pairs.\"",
-        "يقول معلّمك: \"افتحوا كتبكم على صفحة ٤٢ واعملوا في أزواج.\""),
+        "يقول معلّمك: \"افتحوا كتبكم على صفحة 42 واعملوا في أزواج.\""),
       mcq("b1", "What page do you open?", ["24", "42", "40", "22"], 1),
       mcq("b2", "How do you work?", ["Alone", "In pairs", "In one big group", "At home"], 1),
       passage("b2p", "Your teacher says: \"Hand in your homework at the end of the lesson, not now.\"",
@@ -215,7 +220,7 @@ const EXERCISES: Seed[] = [
     estimatedMinutes: 9, tags: ["sentence structure", "word order"],
     instructions: "Arrange each sentence, then fix the punctuation questions.",
     blocks: [
-      order("b1", "Make a correct sentence.", ["My", "brother", "plays", "football", "on", "Fridays"]),
+      order("b1", "Make a correct sentence. Begin with \"My\".", ["My", "brother", "plays", "football", "on", "Fridays"]),
       order("b2", "Make a correct question.", ["Where", "do", "you", "live"]),
       order("b3", "Make a correct sentence.", ["She", "has", "never", "been", "to", "Cairo"]),
       mcq("b4", "Which sentence is punctuated correctly?", [
@@ -236,7 +241,7 @@ const EXERCISES: Seed[] = [
       mcq("b1", "I studied hard, ___ I still found the exam difficult.", ["so", "but", "because", "therefore"], 1),
       mcq("b2", "___ it was raining, we went out.", ["Although", "Because", "So", "Unless"], 0),
       mcq("b3", "He was tired ___ he had worked all night.", ["although", "but", "because", "however"], 2),
-      fill("b4", "She is young, {{1}} she is very experienced.", [["but", "yet", "however"]]),
+      fill("b4", "She is young, {{1}} she is very experienced.", [["but", "yet", "however", "although", "though"]]),
       match("b5", "Match the linker to its job.", [
         ["because", "gives a reason"],
         ["although", "shows contrast"],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -47,6 +47,18 @@ export function LibraryItemViewer({
   const lastTick = useRef<number>(Date.now());
   const lastReportedPct = useRef<number>(initialProgress);
   const articleRef = useRef<HTMLDivElement | null>(null);
+
+  // Direction follows the ARTICLE, not the interface. This is an English
+  // library, so nearly every item is English prose, and under the Arabic shell
+  // it was being right-aligned — which drops full stops at the start of a line
+  // and reverses anything containing a slash or a bracket. Counting the Arabic
+  // letters keeps a genuinely Arabic article rendering correctly too.
+  const articleDir: "rtl" | "ltr" = useMemo(() => {
+    const html = item.contentHtml ?? "";
+    const arabic = (html.match(/[؀-ۿ]/g) ?? []).length;
+    const latin = (html.match(/[A-Za-z]/g) ?? []).length;
+    return arabic > latin ? "rtl" : "ltr";
+  }, [item.contentHtml]);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -143,7 +155,8 @@ export function LibraryItemViewer({
           <CardContent className="p-6">
             <div
               ref={articleRef}
-              className="prose prose-slate max-w-none rtl:prose-headings:text-end"
+              dir={articleDir}
+              className={`hajr-article max-w-none ${articleDir === "rtl" ? "text-right" : "text-left"}`}
               dangerouslySetInnerHTML={{ __html: item.contentHtml || "" }}
             />
             {!item.contentHtml && (

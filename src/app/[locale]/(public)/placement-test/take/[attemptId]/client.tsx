@@ -191,10 +191,20 @@ export function TakeClient({
           />
         </div>
 
-        {/* Questions */}
+        {/*
+          Questions. Each item carries dir="ltr": the item and its options are
+          ENGLISH — they are what is being measured — so they render
+          left-to-right whatever the interface language is. Under RTL the blank
+          and the full stop landed on the wrong side of the sentence, which
+          changes what the student is actually being asked to read.
+        */}
         <div className="space-y-4">
           {section.questions.map((q, i) => (
-            <div key={q.id} className="rounded-2xl border border-hajr-border bg-white p-4 shadow-card">
+            <div
+              key={q.id}
+              dir="ltr"
+              className="rounded-2xl border border-hajr-border bg-white p-4 text-left shadow-card"
+            >
               <div className="mb-3 text-sm font-medium text-hajr-text">
                 <span className="me-1 text-hajr-muted">{i + 1}.</span>
                 {isAr ? q.textAr : q.textEn}

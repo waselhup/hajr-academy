@@ -156,3 +156,42 @@
     animation: hajr-typing 1.2s ease-in-out infinite;
   }
 }
+
+/*
+  Library article body.
+
+  The viewer used Tailwind's `prose prose-slate` classes, but
+  @tailwindcss/typography is not a dependency of this project — those classes
+  compile to nothing. Combined with Preflight, which strips list markers and
+  heading sizes, every library article rendered as one undifferentiated wall of
+  text: no headings, no bullets, no numbering.
+
+  This is the minimum needed to make an article readable, scoped to the article
+  container so it cannot leak into the rest of the app.
+*/
+.hajr-article {
+  color: #2C3E50;
+  line-height: 1.85;
+}
+.hajr-article h2 {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: #1E2A36;
+  margin: 0 0 0.85rem;
+}
+.hajr-article h3 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: #1E2A36;
+  margin: 1.65rem 0 0.6rem;
+}
+.hajr-article p { margin: 0 0 1rem; }
+.hajr-article ul,
+.hajr-article ol { margin: 0 0 1.15rem; padding-inline-start: 1.6rem; }
+.hajr-article ul { list-style: disc; }
+.hajr-article ol { list-style: decimal; }
+.hajr-article li { margin: 0 0 0.45rem; }
+.hajr-article strong { font-weight: 700; color: #1E2A36; }
+.hajr-article em { font-style: italic; }
+/* Arabic glosses inside an English article keep their own direction. */
+.hajr-article [dir="rtl"] { text-align: right; }

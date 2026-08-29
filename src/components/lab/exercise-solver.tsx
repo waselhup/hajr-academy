@@ -159,7 +159,19 @@ function BlockView({ block, isAr, answer, onAnswer, review, readOnly }: {
             {correct ? (isAr ? "صحيح" : "Correct") : (isAr ? "راجع" : "Review")}
           </div>
         )}
-        <BlockPlayer block={block} isAr={isAr} answer={answer} onAnswer={onAnswer} readOnly={readOnly} />
+        {/*
+          The exercise content is ENGLISH — it is the thing being taught — so it
+          is pinned left-to-right even when the interface around it is Arabic.
+          Without this an Arabic student saw "?Where do you live" with the
+          question mark on the wrong side, sentence-ordering tokens running
+          backwards, and gap-fill text reversed around its blanks.
+
+          Scoped to the block content only: the card, the correct/review banner
+          and every other piece of chrome stay RTL for the Arabic UI.
+        */}
+        <div dir="ltr" className="text-left">
+          <BlockPlayer block={block} isAr={isAr} answer={answer} onAnswer={onAnswer} readOnly={readOnly} />
+        </div>
       </CardContent>
     </Card>
   );
@@ -171,7 +183,21 @@ function BlockPlayer({ block, isAr, answer, onAnswer, readOnly }: {
   const ro = !!readOnly || !onAnswer;
   switch (block.kind) {
     case "PASSAGE":
-      return <p className="whitespace-pre-wrap rounded-card bg-hajr-ivory p-4 text-sm leading-relaxed text-hajr-deep-navy">{block.text}</p>;
+      // `textAr` was stored by the builder and by every seeded exercise but was
+      // never rendered, so an Arabic student read an English passage with no
+      // help at all. It is a gloss, not a replacement: the English stays first
+      // and stays the thing being read. Its own dir, because the block content
+      // around it is pinned LTR.
+      return (
+        <div className="rounded-card bg-hajr-ivory p-4">
+          <p className="whitespace-pre-wrap text-sm leading-relaxed text-hajr-deep-navy">{block.text}</p>
+          {isAr && block.textAr && (
+            <p dir="rtl" className="mt-3 whitespace-pre-wrap border-t border-hajr-border pt-3 text-right text-xs leading-relaxed text-muted-foreground">
+              {block.textAr}
+            </p>
+          )}
+        </div>
+      );
     case "MEDIA":
       return <MediaPlayer block={block} />;
     case "MCQ":
@@ -314,7 +340,12 @@ function MatchingPlayer({ block, isAr, answer, onAnswer, ro }: any) {
   };
   const rightFor = (leftId: string) => rights.find((r: any) => r.id === map[leftId])?.text;
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="space-y-2">
+      {/* The prompt was stored but never rendered, so a matching block arrived
+          as two bare columns with no instruction telling the student what the
+          relationship between them was meant to be. */}
+      {block.prompt && <p className="font-medium text-hajr-deep-navy">{block.prompt}</p>}
+      <div className="grid grid-cols-2 gap-3">
       <div className="space-y-1.5">
         {block.pairs.map((p: any) => (
           <button key={p.id} type="button" disabled={ro} onClick={() => setActiveLeft(p.id)}
@@ -332,6 +363,7 @@ function MatchingPlayer({ block, isAr, answer, onAnswer, ro }: any) {
               className={`w-full rounded-xl border px-3 py-2 text-start text-sm ${used ? "border-hajr-border bg-hajr-chip text-muted-foreground" : "border-hajr-border hover:bg-hajr-chip"}`}>{r.text}</button>
           );
         })}
+        </div>
       </div>
     </div>
   );

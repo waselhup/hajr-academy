@@ -47,26 +47,27 @@ const ITEMS: Seed[] = [
     titleAr: "المئة كلمة التي ستستخدمها كل يوم",
     description: "Start here. These words appear in half of everything you will read.",
     descriptionAr: "ابدأ من هنا. هذه الكلمات تظهر في نصف ما ستقرأه.",
-    type: "ARTICLE", skillLevel: "A1", targetAgeTier: "ALL", durationMinutes: 6,
+    type: "ARTICLE", skillLevel: "A2", targetAgeTier: "ALL", durationMinutes: 6,
     contentHtml: wrap("Where to start",
       `<p>English has more than a hundred thousand words, but you do not need them. Around one hundred words make up roughly half of everything written in English. Learn those first and the rest becomes easier.</p>
 <h3>The words that carry sentences</h3>
 <p><strong>the, be, to, of, and, a, in, that, have, it, for, not, on, with, he, as, you, do, at, this, but, his, by, from, they, we, say, her, she, or, an, will, my, one, all, would, there, their</strong></p>
-<p>Notice something: almost none of them are nouns. They are the joints of the language — the small words that hold bigger ones together. A learner who knows <em>camel</em> but not <em>with</em> cannot build a sentence. A learner who knows <em>with</em> can.</p>
+<p>Look at the list again. Almost none of them are names of things. They are small words, and small words hold a sentence together.</p>
+<p>You can know the word <em>camel</em> and still not make a sentence. But if you know <em>with</em>, <em>and</em>, <em>from</em>, you can: <em>I went with my father.</em> That is why these words come first.</p>
 <h3>How to practise them</h3>
 <ol>
 <li>Read a short paragraph and underline every word from the list. You will be surprised how much of the page you already know.</li>
 <li>Cover the paragraph and write one sentence using three of them.</li>
 <li>Say the sentence out loud. Speaking fixes words in memory faster than reading.</li>
 </ol>
-<p>Ten minutes a day for two weeks is enough to make these automatic. Once they are automatic, your brain is free to focus on the new words instead of the glue between them.</p>`),
+<p>Ten minutes a day for two weeks is enough. After that you will not stop to think about these words any more — and then your head is free for the new ones.</p>`),
   },
   {
     title: "How to answer a reading question without panicking",
     titleAr: "كيف تجيب عن سؤال قراءة دون توتر",
     description: "A method that works in class, in STEP and in IELTS.",
     descriptionAr: "طريقة تنفع في الصف وفي ستيب وآيلتس.",
-    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "HIGH", durationMinutes: 8,
+    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "ALL", durationMinutes: 8,
     contentHtml: wrap("Read the question first",
       `<p>Most students read the passage, then read the question, then read the passage again. That is three readings and a lot of lost time. Reverse it.</p>
 <h3>The four steps</h3>
@@ -100,7 +101,7 @@ const ITEMS: Seed[] = [
 <li>My grandmother <strong>makes</strong> the best food.</li>
 </ul>
 <h3>The mistake almost everyone makes</h3>
-<p>In Arabic you can say "I have brother two". In English the number comes first and the noun becomes plural: <em>two brothers</em>. One brother, two brother<strong>s</strong>. Say it five times and it will stop feeling strange.</p>
+<p>Arabic has a special dual form — «عندي أخوان» is complete on its own, with no number word in it. English has no dual, so the number has to be said and the noun has to change: <em>two brother<strong>s</strong></em>. One brother, two brother<strong>s</strong>, three brother<strong>s</strong>. That final -s is the part Arabic speakers leave off, because in Arabic the word itself already carried the meaning. Say it five times and it will stop feeling strange.</p>
 <h3>Try it</h3>
 <p>Write four sentences about your own family using the patterns above. Then read them aloud to someone at home.</p>`),
   },
@@ -128,7 +129,7 @@ const ITEMS: Seed[] = [
     titleAr: "قصة للقراءة: الولد والجمل",
     description: "A short story with the questions underneath.",
     descriptionAr: "قصة قصيرة مع أسئلة في نهايتها.",
-    type: "ARTICLE", skillLevel: "A2", targetAgeTier: "TIER_1_3", durationMinutes: 6,
+    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "TIER_4_6", durationMinutes: 6,
     contentHtml: wrap("The Boy and the Camel",
       `<p>Salem was ten years old. He lived with his family near the palm trees, and every morning he walked with his father's camel to the water.</p>
 <p>One day the camel stopped. It would not move. Salem pulled the rope, but the camel sat down in the sand and closed its eyes.</p>
@@ -150,14 +151,14 @@ const ITEMS: Seed[] = [
     titleAr: "ستيب: ماذا يطلب منك الاختبار فعلاً",
     description: "The four sections, the timing, and where marks are lost.",
     descriptionAr: "الأقسام الأربعة والتوقيت وأين تُفقد الدرجات.",
-    type: "ARTICLE", skillLevel: "B2", targetAgeTier: "HIGH", durationMinutes: 9,
+    type: "ARTICLE", skillLevel: "B2", targetAgeTier: "ALL", durationMinutes: 9,
     contentHtml: wrap("Know the shape before you study the content",
       `<p>STEP measures English for Saudi universities. Students lose marks less because their English is weak and more because the test surprises them. It should not.</p>
 <h3>What it contains</h3>
 <ul>
-<li><strong>Reading comprehension</strong> — passages followed by questions about main idea, detail and inference.</li>
-<li><strong>Grammar and structure</strong> — sentence completion; tenses, prepositions and word order.</li>
-<li><strong>Vocabulary</strong> — meaning in context, not memorised lists.</li>
+<li><strong>Listening comprehension</strong> — short exchanges and talks, heard once. This section surprises students most, because it is the one nobody practises.</li>
+<li><strong>Grammatical structure</strong> — sentence completion: tenses, prepositions, word order.</li>
+<li><strong>Reading comprehension</strong> — passages followed by questions on main idea, detail and inference.</li>
 <li><strong>Composition analysis</strong> — recognising the correct or best-written sentence.</li>
 </ul>
 <h3>Where marks are actually lost</h3>
@@ -167,14 +168,15 @@ const ITEMS: Seed[] = [
 <li><strong>Empty answers.</strong> There is no penalty for guessing. Never leave a box blank.</li>
 </ol>
 <h3>A four-week plan</h3>
-<p>Week 1: one reading passage a day, timed. Week 2: add twenty minutes of grammar practice. Week 3: full sections under exam timing. Week 4: two complete mock tests and review every wrong answer — the review is where the marks come from, not the test itself.</p>`),
+<p>Week 1: one reading passage a day, timed, plus fifteen minutes of listening — a podcast, a lecture clip, anything in English you cannot pause. Week 2: add twenty minutes of grammar practice and keep the daily listening. Week 3: full sections under exam timing. Week 4: two complete mock tests and review every wrong answer — the review is where the marks come from, not the test itself.</p>
+<p><strong>Do not skip the listening.</strong> It is the first section you will meet, it is played once, and it is the one students most often walk in cold.</p>`),
   },
   {
     title: "Writing an email your teacher will take seriously",
     titleAr: "كتابة بريد يأخذه معلّمك على محمل الجد",
     description: "Structure, tone, and the mistakes that make an email look careless.",
     descriptionAr: "البنية والأسلوب والأخطاء التي تجعل البريد يبدو مهملاً.",
-    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "MIDDLE", durationMinutes: 7,
+    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "ALL", durationMinutes: 7,
     contentHtml: wrap("Four lines and a signature",
       `<p>A good email is short. Long emails do not sound polite — they sound uncertain.</p>
 <h3>The structure</h3>
@@ -201,14 +203,14 @@ const ITEMS: Seed[] = [
     titleAr: "عشر عادات نطق يستطيع الناطق بالعربية إصلاحها بسرعة",
     description: "The specific sounds, and what to do with your mouth.",
     descriptionAr: "الأصوات المحددة وماذا تفعل بفمك.",
-    type: "ARTICLE", skillLevel: "A2", targetAgeTier: "ALL", durationMinutes: 8,
+    type: "ARTICLE", skillLevel: "B1", targetAgeTier: "ALL", durationMinutes: 8,
     contentHtml: wrap("Small changes, large difference",
       `<p>Arabic and English do not share all their sounds. These are the ones worth practising, and none of them take long.</p>
 <h3>The sounds</h3>
 <ol>
 <li><strong>P vs B</strong> — <em>park</em> is not <em>bark</em>. Hold a paper in front of your mouth: for P it should move.</li>
 <li><strong>V vs F</strong> — <em>very</em>, not <em>fery</em>. Top teeth touch the bottom lip and the sound buzzes.</li>
-<li><strong>The two TH sounds</strong> — <em>think</em> (quiet) and <em>this</em> (buzzing). The tongue goes between the teeth for both.</li>
+<li><strong>The English vowels</strong> — Arabic works with three vowel qualities; English has about twelve. That is why <em>bit</em>, <em>bet</em> and <em>bat</em> can come out as one sound. Learn them in pairs, never alone.</li>
 <li><strong>NG at the end</strong> — <em>singing</em>, not <em>singin-g</em>. Stop the sound in your nose, do not add a hard G.</li>
 <li><strong>Short vs long vowels</strong> — <em>ship</em> and <em>sheep</em> are different words. So are <em>full</em> and <em>fool</em>.</li>
 <li><strong>Silent letters</strong> — <em>know</em>, <em>write</em>, <em>hour</em>, <em>listen</em>. The letter is there; the sound is not.</li>
