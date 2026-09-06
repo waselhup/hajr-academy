@@ -59,6 +59,9 @@ type TrialRow = {
   phone: string;
   email: string | null;
   childGrade: string | null;
+  childAge: number | null;
+  /** Short id the family quotes on WhatsApp. */
+  reference: string;
   preferredProgram: string | null;
   preferredTime: string | null;
   notes: string | null;
@@ -269,6 +272,11 @@ export function TrialsClient({ rows }: { rows: TrialRow[] }) {
                   </TableCell>
                   <TableCell className="text-sm">
                     {r.childGrade ?? "—"}
+                    {r.childAge != null && (
+                      <span className="num ms-1 text-xs text-muted-foreground">
+                        · {r.childAge}
+                      </span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Badge variant={STATUS_CONFIG[r.status].variant}>

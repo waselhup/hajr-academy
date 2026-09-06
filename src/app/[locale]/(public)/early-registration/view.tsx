@@ -5,6 +5,7 @@ import { BRAND } from "@/lib/brand";
 import s from "./early-registration.module.css";
 import { getContent, buyHref, waHref, UTM } from "./content";
 import { SiteNav, ProgramTabs, ScrollOffset, type Tab } from "./interactive";
+import { TrialRequestForm } from "./trial-request-form";
 
 const SITE = BRAND.site;
 
@@ -126,6 +127,7 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
           enrollHref={enrollHref}
           loginLabel={c.nav.login}
           loginHref={`/${locale}/login`}
+          trialLabel={c.nav.trial}
           registerLabel={c.nav.register}
           registerHref={`/${locale}/register`}
           languageHref={`/${otherLocale}`}
@@ -148,6 +150,12 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
               <div className={s.heroActions}>
                 <a className={`${s.btn} ${s.btnPrimary}`} href="#early-pricing">
                   {c.hero.ctaPrimary}
+                </a>
+                {/* A free trial is the cheapest thing a hesitant visitor can
+                    say yes to, so it sits beside "enrol" rather than being
+                    buried further down the page. */}
+                <a className={`${s.btn} ${s.btnOutline}`} href="#free-trial">
+                  {c.hero.ctaTrial}
                 </a>
                 <a className={`${s.btn} ${s.btnOutline}`} href="#all-programs">
                   {c.hero.ctaSecondary}
@@ -187,6 +195,28 @@ export async function EarlyRegistrationView({ locale }: { locale: string }) {
             </div>
           </div>
         </header>
+
+        {/* ── Free trial ───────────────────────────────────────────
+            Directly under the hero, above everything else: a visitor who is
+            not ready to pay is still ready to try, and the request has to be
+            in front of them before they scroll past. */}
+        <section className={s.trialSection} id="free-trial" aria-label={c.trial.aria}>
+          <div className={`${s.container} ${s.trialGrid}`}>
+            <div className={s.trialCopy}>
+              <span className={s.trialKicker}>{c.trial.kicker}</span>
+              <h2>{c.trial.title}</h2>
+              <p>{c.trial.lead}</p>
+              <ul>
+                {c.trial.points.map((p) => (
+                  <li key={p}>
+                    <i>✓</i> {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <TrialRequestForm isAr={isAr} />
+          </div>
+        </section>
 
         {/* ── Proof ────────────────────────────────────────────── */}
         <section className={s.proofStrip} aria-label={c.proof.aria}>

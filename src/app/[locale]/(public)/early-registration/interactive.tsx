@@ -18,6 +18,7 @@ export function SiteNav({
   enrollHref,
   loginLabel,
   loginHref,
+  trialLabel,
   registerLabel,
   registerHref,
   languageHref,
@@ -32,6 +33,7 @@ export function SiteNav({
   enrollHref: string;
   loginLabel: string;
   loginHref: string;
+  trialLabel: string;
   registerLabel: string;
   registerHref: string;
   languageHref: string;
@@ -69,6 +71,9 @@ export function SiteNav({
               buttons are visible. Below 840px those buttons are hidden, so
               they are repeated here — otherwise a phone user has no way to
               sign in at all. */}
+          <a className={s.drawerOnly} href="#free-trial" onClick={() => setOpen(false)}>
+            {trialLabel}
+          </a>
           <a className={s.drawerOnly} href={loginHref} onClick={() => setOpen(false)}>
             {loginLabel}
           </a>
@@ -79,6 +84,13 @@ export function SiteNav({
         <div className={s.navActions}>
           <a className={s.languageSwitch} href={languageHref} aria-label={languageAria} hrefLang={languageCode.toLowerCase()}>
             {languageCode}
+          </a>
+          {/* Beside "sign in", because the visitor still deciding is exactly
+              the one looking at this corner of the page. It scrolls to the
+              form rather than leaving for another route — a navigation away
+              is where a hesitant visitor gets lost. */}
+          <a className={`${s.btn} ${s.btnMint} ${s.btnSmall} ${s.navTrial}`} href="#free-trial">
+            {trialLabel}
           </a>
           <a className={`${s.btn} ${s.btnOutline} ${s.btnSmall}`} href={loginHref}>
             {loginLabel}

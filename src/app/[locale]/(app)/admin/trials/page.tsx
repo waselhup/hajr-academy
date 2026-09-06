@@ -2,6 +2,7 @@ import { requireRole } from "@/lib/rbac";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "next-intl/server";
 import { dayLabel, timeLabel, HOLDING_STATUSES } from "@/lib/trials/slots";
+import { trialReference } from "@/lib/trials/reference";
 import { TrialsClient } from "./_components/trials-client";
 import { TrialSlotsClient, type AdminSlot } from "./_components/trial-slots-client";
 
@@ -25,6 +26,10 @@ export default async function AdminTrialsPage() {
       phone: tr.phone,
       email: tr.email,
       childGrade: tr.childGrade,
+      childAge: tr.childAge,
+      // The same short reference the family was given on WhatsApp, so a
+      // message quoting it can be matched back to this row.
+      reference: trialReference(tr.id),
       preferredProgram: tr.preferredProgram,
       preferredTime: tr.preferredTime,
       notes: tr.notes,

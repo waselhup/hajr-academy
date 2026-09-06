@@ -95,6 +95,7 @@ export function getContent(locale: string) {
       menuAria: isAr ? "فتح القائمة" : "Open menu",
       enroll: isAr ? "اشترك الآن" : "Enroll now",
       login: isAr ? "تسجيل الدخول" : "Sign in",
+      trial: isAr ? "حصة تجريبية" : "Free trial",
       register: isAr ? "إنشاء حساب" : "Create account",
       links: [
         { href: "#why", label: isAr ? "ماذا يشمل؟" : "What's included?" },
@@ -103,6 +104,20 @@ export function getContent(locale: string) {
         { href: "#all-programs", label: isAr ? "جميع البرامج" : "All programmes" },
         { href: "#faq", label: isAr ? "الأسئلة الشائعة" : "FAQs" },
       ],
+    },
+
+    // The free-trial block under the hero. Deliberately short: the form is the
+    // point, and every extra line of copy is another reason to scroll past it.
+    trial: {
+      aria: isAr ? "طلب حصة تجريبية مجانية" : "Request a free trial lesson",
+      kicker: isAr ? "جرّب قبل ما تشترك" : "Try before you enrol",
+      title: isAr ? "احجز حصة تجريبية مجانية" : "Book a free trial lesson",
+      lead: isAr
+        ? "حصة كاملة مع معلّمة هجر، بدون أي التزام. اترك بياناتك ونتواصل معك على واتساب لتحديد الموعد المناسب."
+        : "A full lesson with a HAJR teacher, with no commitment. Leave your details and we will agree a time with you on WhatsApp.",
+      points: isAr
+        ? ["مجانية بالكامل", "معلّمة معتمدة", "تقرير مستوى بعد الحصة"]
+        : ["Completely free", "A qualified teacher", "A level report afterwards"],
     },
 
     hero: {
@@ -115,6 +130,7 @@ export function getContent(locale: string) {
         ? "برنامج واحد يجمع تقوية المنهج السعودي وتطوير مهارات الإنجليزية، مع حصص مباشرة وEnglish Lab وتدريب مستمر قبل الحصة وبعدها."
         : "One programme combines Saudi curriculum support with practical English skills, live classes, English Lab and guided practice before and after every class.",
       ctaPrimary: isAr ? "اشترك الآن" : "Enroll now",
+      ctaTrial: isAr ? "حصة تجريبية مجانية" : "Free trial lesson",
       ctaSecondary: isAr ? "استعرض جميع البرامج" : "Explore all programmes",
       notes: isAr
         ? ["دفع إلكتروني آمن", "حساب خاص لكل طالب", "فاتورة إلكترونية"]

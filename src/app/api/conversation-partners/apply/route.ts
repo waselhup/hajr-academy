@@ -21,17 +21,35 @@ export const dynamic = "force-dynamic";
  * recruited abroad, so a Saudi-only rule would reject the entire audience.
  */
 
+/**
+ * Every field is required.
+ *
+ * `otherLanguages` and `linkedin` used to be optional and almost nobody filled
+ * them in, which left the academy screening people it had no way to check. A
+ * conversation partner ends up alone in a room with a student, so an
+ * incomplete application is not worth reviewing at all.
+ *
+ * Enforced HERE, not only in the browser: the form's own checks are a
+ * courtesy, and anything posting to this route directly bypasses them.
+ *
+ * The database columns stay nullable on purpose. The applications taken before
+ * this rule existed keep their gaps instead of being rewritten, and the
+ * partial records created by other paths still save.
+ */
 const schema = z.object({
-  fullName: z.string().min(2).max(120),
-  email: z.string().email(),
-  phone: z.string().min(6).max(30),
-  country: z.string().min(2).max(80),
-  nativeLanguage: z.string().min(2).max(60),
-  otherLanguages: z.string().max(160).optional().or(z.literal("")),
-  timezone: z.string().min(2).max(60),
-  availability: z.string().min(5).max(600),
-  about: z.string().min(20).max(2000),
-  linkedin: z.string().max(200).optional().or(z.literal("")),
+  fullName: z.string().trim().min(2).max(120),
+  email: z.string().trim().email(),
+  phone: z.string().trim().min(6).max(30),
+  country: z.string().trim().min(2).max(80),
+  nativeLanguage: z.string().trim().min(2).max(60),
+  otherLanguages: z.string().trim().min(2).max(160),
+  timezone: z.string().trim().min(2).max(60),
+  availability: z.string().trim().min(5).max(600),
+  about: z.string().trim().min(20).max(2000),
+  // Lenient on shape, strict on presence: applicants paste
+  // "linkedin.com/in/name" as often as a full URL, and rejecting that would
+  // turn a required field into a wall.
+  linkedin: z.string().trim().min(5).max(200),
 });
 
 export async function POST(req: Request) {

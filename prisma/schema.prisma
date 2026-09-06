@@ -1404,6 +1404,12 @@ model TrialRequest {
   phone                String
   email                String?
   childGrade           String?
+  /// The learner's age in years. Asked on the landing-page trial form because
+  /// grade alone does not place an adult, a pre-school child, or a student who
+  /// is a year ahead or behind — and the trial teacher needs to know before
+  /// the lesson, not during it. Nullable: requests taken before this existed,
+  /// and requests from the assistant, do not have it.
+  childAge             Int?
   preferredProgram     String?
   /// Free-text time preference (legacy path: the assistant, the old form).
   preferredTime        String?

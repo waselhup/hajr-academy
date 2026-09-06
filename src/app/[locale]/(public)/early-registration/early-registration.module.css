@@ -1738,3 +1738,234 @@
     animation: none;
   }
 }
+
+/* ── Free-trial request (directly under the hero) ─────────────────────
+   Two columns on desktop: the reason on one side, the form on the other.
+   On mobile the form comes FIRST, because a visitor who tapped "free trial
+   lesson" in the hero has already read the reason. */
+.trialSection {
+  background: var(--ivory);
+  padding: 56px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.trialGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.trialCopy {
+  order: 2;
+}
+
+.trialCopy h2 {
+  margin: 10px 0 12px;
+  font-size: clamp(24px, 3.4vw, 34px);
+  line-height: 1.25;
+  color: var(--navy);
+}
+
+.trialCopy p {
+  margin: 0 0 16px;
+  color: var(--muted);
+  line-height: 1.9;
+}
+
+.trialCopy ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.trialCopy li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.trialCopy li i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--mint);
+  color: var(--navy);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.trialKicker {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--mint-soft);
+  color: var(--navy);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ── The form card ── */
+.trialCard {
+  order: 1;
+  display: grid;
+  gap: 14px;
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.trialHead {
+  display: grid;
+  gap: 4px;
+}
+
+.trialHead strong {
+  font-size: 18px;
+  color: var(--navy);
+}
+
+.trialHead span {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.trialRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.trialField {
+  display: grid;
+  gap: 6px;
+}
+
+.trialField > span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.trialField input {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+
+.trialField input:focus {
+  outline: none;
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(184, 110, 123, 0.16);
+}
+
+/* Inline validation note — amber rather than red: the visitor is still
+   typing, and a red error on an unfinished field reads as a rejection. */
+.trialField em {
+  font-style: normal;
+  font-size: 12px;
+  color: #92400e;
+}
+
+.trialError {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.trialSubmit {
+  width: 100%;
+  justify-content: center;
+}
+
+.trialSubmit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ── Confirmation ── */
+.trialDone {
+  display: grid;
+  gap: 12px;
+  text-align: center;
+}
+
+.trialDone strong {
+  font-size: 19px;
+  color: var(--navy);
+}
+
+.trialDone p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.9;
+}
+
+.trialRef {
+  justify-self: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--mint-soft);
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+@media (min-width: 900px) {
+  .trialGrid {
+    grid-template-columns: 1fr 420px;
+    gap: 44px;
+  }
+  .trialCopy {
+    order: 1;
+  }
+  .trialCard {
+    order: 2;
+  }
+}
+
+/* Nav "free trial" button. Mint rather than rose: rose is the enrol action
+   and there must be exactly one of those in the header, or neither reads as
+   the main step. Mint is the brand's secondary accent and still stands out
+   against the navy bar. */
+.btnMint {
+  background: var(--mint);
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.btnMint:hover {
+  background: #a3ded0;
+  color: var(--navy);
+}
+
+/* Below 1080px the header runs out of room before the 840px breakpoint that
+   collapses it into the drawer. The trial button goes first, because it is
+   repeated in the drawer and in the hero — losing it here costs nothing. */
+@media (max-width: 1080px) {
+  .navTrial {
+    display: none;
+  }
+}

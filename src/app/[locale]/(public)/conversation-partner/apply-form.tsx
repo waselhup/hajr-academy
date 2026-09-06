@@ -33,15 +33,20 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
   const emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email.trim());
   // Any country: partners are recruited abroad by definition.
   const phoneOk = /^(\+|00)?[1-9][\d\s\-().]{6,}$/.test(f.phone.trim());
+  // Every field is required — mirrors the server schema exactly. If these two
+  // ever disagree, the applicant gets a rejection the form did not warn them
+  // about and has no way to fix.
   const canSubmit =
     f.fullName.trim().length >= 2 &&
     emailOk &&
     phoneOk &&
     f.country.trim().length >= 2 &&
     f.nativeLanguage.trim().length >= 2 &&
+    f.otherLanguages.trim().length >= 2 &&
     f.timezone.trim().length >= 2 &&
     f.availability.trim().length >= 5 &&
     f.about.trim().length >= 20 &&
+    f.linkedin.trim().length >= 5 &&
     status !== "sending";
 
   async function submit(e: React.FormEvent) {
@@ -172,8 +177,13 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
             required
           />
         </Field>
-        <Field label={isAr ? "لغات أخرى (اختياري)" : "Other languages (optional)"}>
-          <Input value={f.otherLanguages} onChange={(e) => set("otherLanguages", e.target.value)} />
+        <Field label={isAr ? "لغات أخرى *" : "Other languages *"}>
+          <Input
+            value={f.otherLanguages}
+            onChange={(e) => set("otherLanguages", e.target.value)}
+            placeholder={isAr ? "مثال: العربية، الفرنسية — أو: لا يوجد" : "e.g. Arabic, French — or: none"}
+            required
+          />
         </Field>
       </div>
 
@@ -219,8 +229,14 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
         />
       </Field>
 
-      <Field label={isAr ? "لينكدإن أو موقعك (اختياري)" : "LinkedIn or website (optional)"}>
-        <Input dir="ltr" value={f.linkedin} onChange={(e) => set("linkedin", e.target.value)} />
+      <Field label={isAr ? "لينكدإن أو موقعك *" : "LinkedIn or website *"}>
+        <Input
+          dir="ltr"
+          value={f.linkedin}
+          onChange={(e) => set("linkedin", e.target.value)}
+          placeholder="linkedin.com/in/…"
+          required
+        />
       </Field>
 
       {status === "error" && <p className="text-sm text-destructive">{err}</p>}
