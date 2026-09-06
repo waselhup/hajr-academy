@@ -22,12 +22,12 @@ export const dynamic = "force-dynamic";
  */
 
 /**
- * Every field is required.
+ * Every field is required except the LinkedIn/website link.
  *
- * `otherLanguages` and `linkedin` used to be optional and almost nobody filled
- * them in, which left the academy screening people it had no way to check. A
- * conversation partner ends up alone in a room with a student, so an
- * incomplete application is not worth reviewing at all.
+ * `otherLanguages` used to be optional and almost nobody filled it in, which
+ * left the academy screening people it had no way to place. A conversation
+ * partner ends up alone in a room with a student, so an incomplete
+ * application is not worth reviewing.
  *
  * Enforced HERE, not only in the browser: the form's own checks are a
  * courtesy, and anything posting to this route directly bypasses them.
@@ -46,10 +46,11 @@ const schema = z.object({
   timezone: z.string().trim().min(2).max(60),
   availability: z.string().trim().min(5).max(600),
   about: z.string().trim().min(20).max(2000),
-  // Lenient on shape, strict on presence: applicants paste
-  // "linkedin.com/in/name" as often as a full URL, and rejecting that would
-  // turn a required field into a wall.
-  linkedin: z.string().trim().min(5).max(200),
+  // The one field that stays optional. Applicants come from Iraq, Tunisia,
+  // Algeria, the UAE and China, and plenty of good candidates there simply
+  // have no LinkedIn — requiring it would reject them for owning the wrong
+  // social account rather than for anything about their teaching.
+  linkedin: z.string().trim().max(200).optional().or(z.literal("")),
 });
 
 export async function POST(req: Request) {

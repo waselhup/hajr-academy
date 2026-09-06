@@ -46,7 +46,6 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
     f.timezone.trim().length >= 2 &&
     f.availability.trim().length >= 5 &&
     f.about.trim().length >= 20 &&
-    f.linkedin.trim().length >= 5 &&
     status !== "sending";
 
   async function submit(e: React.FormEvent) {
@@ -229,13 +228,12 @@ export function ConversationPartnerForm({ locale }: { locale: string }) {
         />
       </Field>
 
-      <Field label={isAr ? "لينكدإن أو موقعك *" : "LinkedIn or website *"}>
+      <Field label={isAr ? "لينكدإن أو موقعك (اختياري)" : "LinkedIn or website (optional)"}>
         <Input
           dir="ltr"
           value={f.linkedin}
           onChange={(e) => set("linkedin", e.target.value)}
           placeholder="linkedin.com/in/…"
-          required
         />
       </Field>
 
