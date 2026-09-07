@@ -53,7 +53,10 @@ export function CheckoutForm({
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [gradeLevel, setGradeLevel] = useState("");
-  const [preferredTime, setPreferredTime] = useState(TIME_WINDOWS[0].value);
+  // Starts empty rather than pre-ticked: a default here is a lie in the data,
+  // because a buyer who never looked at this section would still arrive as
+  // "3-4 PM suits me" and be scheduled into a slot they cannot attend.
+  const [preferredTimes, setPreferredTimes] = useState<string[]>([]);
   const [notes, setNotes] = useState("");
   const [promo, setPromo] = useState(initialPromo ?? "");
   const [promoNote, setPromoNote] = useState("");
@@ -82,9 +85,14 @@ export function CheckoutForm({
     phoneOk &&
     emailOk &&
     gradeOk &&
-    !!preferredTime &&
+    preferredTimes.length > 0 &&
     !!selected &&
     status !== "sending";
+
+  const toggleTime = (value: string) =>
+    setPreferredTimes((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
 
   const money = (n: number) =>
     new Intl.NumberFormat(isAr ? "ar-SA-u-nu-latn" : "en-US", {
@@ -107,7 +115,7 @@ export function CheckoutForm({
           email: email.trim() || undefined,
           product: selected.slug,
           gradeLevel: needsGrade ? gradeLevel : undefined,
-          preferredTime,
+          preferredTime: preferredTimes,
           promoCode: promo.trim() || undefined,
           notes: notes.trim() || undefined,
         }),
@@ -284,22 +292,26 @@ export function CheckoutForm({
           </div>
         )}
 
-        {/* Teaching window */}
+        {/* Teaching hours — multi-select.
+            Two-hour blocks used to be the only choice, which told the buyer
+            the lesson lasted two hours. Single hours are honest about the
+            length, and letting a family tick several is what actually makes
+            them placeable: three possible hours can be scheduled, one cannot. */}
         <div className="space-y-1.5">
           <Label className="flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5" />
-            {isAr ? "الوقت المناسب للحصص *" : "Preferred class time *"}
+            {isAr ? "الأوقات المناسبة للحصص *" : "Suitable class times *"}
           </Label>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-2 sm:grid-cols-3">
             {TIME_WINDOWS.map((w) => {
-              const active = preferredTime === w.value;
+              const active = preferredTimes.includes(w.value);
               return (
                 <button
                   key={w.value}
                   type="button"
-                  onClick={() => setPreferredTime(w.value)}
+                  onClick={() => toggleTime(w.value)}
                   aria-pressed={active}
-                  className={`rounded-lg border px-4 py-3 text-sm font-semibold transition ${
+                  className={`rounded-lg border px-3 py-3 text-sm font-semibold transition ${
                     active
                       ? "border-hajr-navy bg-hajr-navy text-white"
                       : "border-hajr-border bg-white text-hajr-navy hover:border-hajr-navy/40"
@@ -312,8 +324,8 @@ export function CheckoutForm({
           </div>
           <p className="text-xs text-hajr-muted">
             {isAr
-              ? "بتوقيت السعودية. نراعي اختيارك عند جدولة حصصك."
-              : "KSA time. We schedule your lessons around this choice."}
+              ? "اختر كل الأوقات التي تناسبك — بتوقيت السعودية. اختيارك أكثر من وقت يساعد أكاديمية هجر في تحديد الوقت المناسب لك."
+              : "Pick every hour that suits you — KSA time. Choosing more than one helps HAJR Academy find the right time for you."}
           </p>
         </div>
 

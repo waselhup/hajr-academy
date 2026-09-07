@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { logAudit } from "@/lib/audit";
 import { gatewayMode } from "@/lib/finance/moyasar";
 import { getProduct, priceProduct } from "@/lib/finance/catalog";
-import { GRADE_VALUES, TIME_VALUES } from "@/lib/finance/checkout-options";
+import { GRADE_VALUES, TIME_VALUES, serializeTimes } from "@/lib/finance/checkout-options";
 import { rateLimit } from "@/lib/rate-limit";
 import { ipFromHeaders, shortHash } from "@/lib/analytics/hashing";
 import { markConversion } from "@/lib/analytics/conversion";
@@ -39,8 +39,20 @@ const checkoutSchema = z.object({
   product: z.string().min(1).max(80),
   /** School year. Required only when the chosen product asks for it. */
   gradeLevel: z.enum(GRADE_VALUES as [string, ...string[]]).optional(),
-  /** Which teaching window the buyer picked. */
-  preferredTime: z.enum(TIME_VALUES as [string, ...string[]]),
+  /**
+   * One or more teaching hours the family can attend.
+   *
+   * Accepts an array (what the form sends now) or a single string (older
+   * clients, the assistant, and anything still posting one window). Both
+   * normalise to the same comma-separated column value, so nothing
+   * downstream has to know which shape arrived.
+   */
+  preferredTime: z
+    .union([
+      z.array(z.enum(TIME_VALUES as [string, ...string[]])).min(1),
+      z.enum(TIME_VALUES as [string, ...string[]]),
+    ])
+    .transform((v) => serializeTimes(Array.isArray(v) ? v : [v])),
   promoCode: z.string().max(40).optional(),
   notes: z.string().max(500).optional(),
 });
